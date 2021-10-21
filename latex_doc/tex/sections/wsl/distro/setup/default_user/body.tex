@@ -1,0 +1,27 @@
+\subsubsubsection{Setting the default user}
+
+In order to set the default user to the newly created one, run the line below but replace \code{<username>}:
+
+\code{sudo bash -c 'printf "[user]\ndefault=<username>\n" >> /etc/wsl.conf'}
+
+Verify that the file has been created with the contents:
+
+\code{cat /etc/wsl.conf}
+
+Close the Ubuntu terminal.
+
+Open up the Command Prompt \code{cmd} and see if the Ubuntu distribution is still running:
+
+\code{wsl -l -}
+
+If the \code{STATE} is \code{Running}, then terminate the session with:
+
+\code{wsl -t <distro name>}
+
+Verify that it has \code{Stopped}:
+
+\code{wsl -l -v}
+
+Close the \code{cmd}.
+
+Then open up Ubuntu again with the \code{.exe}. Now it should be logged in with the new user, instead of \code{root}.

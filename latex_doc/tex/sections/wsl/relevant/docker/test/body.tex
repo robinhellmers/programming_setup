@@ -1,0 +1,26 @@
+\subsubsubsection{Test docker connection between distribution and Windows}
+
+Time to test the connection between Windows docker and Ubuntu docker which both runs through WSL2.
+
+In \textbf{Ubuntu terminal}, see which containers that exists:
+
+\code{docker ps -a}
+
+Which should be empty right now.
+
+Open up \code{cmd} in \textbf{Windows} and run \code{hello-world}:
+
+\code{docker run hello-world}
+
+When it is done, see which containers that exists
+
+\code{docker ps -a}
+
+Which should show \code{hello-world} as \code{IMAGE} with a \code{CONTAINER ID}.
+
+
+Go back to the \textbf{Ubuntu terminal} and see which containers that exists:
+
+\code{docker ps -a}
+
+Which should show \code{hello-world} as \code{IMAGE} with the same \code{CONTAINER ID} as in Windows.

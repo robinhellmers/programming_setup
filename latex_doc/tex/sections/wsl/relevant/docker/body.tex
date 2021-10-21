@@ -1,0 +1,33 @@
+\subsubsection{Docker for WSL2}
+
+\textbf{In Windows:}
+
+\link{https://hub.docker.com/editions/community/docker-ce-desktop-windows/}{Download Docker Desktop}
+
+Install and make sure that the following checkboxes are ticked:
+\begin{itemize}
+    \item Enable Hyper-V Windows Features (Probably not necessary because of using WSL2 and not WSL1, but won't hurt)
+    \item Install required Windows components for WSL 2
+\end{itemize}
+
+Run the Docker Desktop program in Windows. If the engine never starts, try to reboot your computer.
+
+In Docker Desktop go into settings through the gear icon in the top right and then:
+\begin{itemize}
+    \item \textbf{General} make sure that
+    \begin{itemize}
+        \item The \textbf{Use the WSL 2 based engine} checkbox is checked.
+    \end{itemize}
+    \item \textbf{Resources} \ra \textbf{WSL INTEGRATION} and make sure that
+    \begin{itemize}
+        \item The \textbf{Enable integration with my default WSL distro} checkbox is checked.
+        \item Your installed distribution is enabled.
+    \end{itemize}
+\end{itemize}
+
+Open up Ubuntu and check if docker is available:
+
+\code{docker --version}
+
+\subimport{test/}{body.tex}
+

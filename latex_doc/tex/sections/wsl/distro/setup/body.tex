@@ -1,0 +1,65 @@
+\subsubsection{Setup of the distribution}
+
+When installing, you will be prompted for a username.
+
+\subsubsubsection{If the username can't be chosen}
+
+If the username can't be chosen because of using e.g. a dot (.), press \code{Ctrl + C} and the window should close.
+
+Run the \code{.exe} file again and you should now have skipped the first user initialization and be logged in as \code{root}.
+
+\code{adduser -aG --force-badname <username>}
+
+Set a password and you can skip entering all of your details by just pressing enter till it's done.
+
+Now we are going to give the new user \code{sudo} privileges by adding it to the \code{sudo} group:
+
+\code{usermod -aG sudo <username>}
+
+Verify that the new user is in the \code{sudo} group with: \code{groups <username>}
+
+Which should show: \code{<username> : <username> sudo}
+
+Log into the new user:
+
+\code{su - <username>}
+
+\subimport{default_user/}{body.tex}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%% Update the system %%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsubsection{Update the system}
+
+Update the list of packages, but doesn't install:
+
+\code{sudo apt update}
+
+Install new version of packages and say yes to every question:
+
+\code{sudo apt upgrade -y}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%% Set WSL to version 2 %%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsubsection{Set WSL to version 2}
+
+We are now going to check which WSL version which is used with the newly installed Ubuntu distribution.
+
+Close any Ubuntu terminal open.
+
+Open up the Command Prompt \code{cmd} and run:
+
+\code{wsl -l -v}
+
+Which should show all WSL distributions and which version they are running.
+
+If your Ubuntu WSL version is 1, close any Ubuntu window and then run:
+
+\code{wsl --set-version <distro name> 2}
+
+After it is done, recheck that the version now is 2:
+
+\code{wsl -l -v}
