@@ -24,7 +24,9 @@ Log into the new user:
 
 \code{su - <username>}
 
+\ifdefined\wslDistroSetupDefaultUser
 \subimport{default_user/}{body.tex}
+\fi
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%% Update the system %%%%%

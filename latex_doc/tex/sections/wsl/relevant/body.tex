@@ -1,5 +1,13 @@
 \subsection{Relevant programs \& setups}
 
-\subimport{vscode/}{body.tex}
+\ifdefined\wslRelevantWindowsTerminal
+\subimport{windows_terminal/}{body.tex}
+\fi
 
+\ifdefined\wslRelevantVscode
+\subimport{vscode/}{body.tex}
+\fi
+
+\ifdefined\wslRelevantDocker
 \subimport{docker/}{body.tex}
+\fi

@@ -1,7 +1,13 @@
 \section{Windows Subsystem for Linux 2 (WSL2)}
 
+\ifdefined\wslInstallation
 \subimport{installation/}{body.tex}
+\fi
 
+\ifdefined\wslDistro
 \subimport{distro/}{body.tex}
+\fi
 
+\ifdefined\wslRelevant
 \subimport{relevant/}{body.tex}
+\fi
