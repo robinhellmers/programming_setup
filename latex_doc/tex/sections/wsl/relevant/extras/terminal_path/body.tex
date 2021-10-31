@@ -1,0 +1,52 @@
+\subsubsubsection{Git indications Shorten terminal path shown}
+
+If you navigate through many directories inside of each other, the terminal gets input line gets very long. This will shorten that to show only the latest 3 directories.
+
+This will also show Git branch and indication about commits to be pushed etc.
+
+\begin{enumerate}
+    \item Download the \link{https://github.com/git/git/blob/master/contrib/completion/git-completion.bash}{.git-completion.bash} and save it as the very same name at \code{~/.git-completion.bash}. If you want to save it elsewhere, you have to change the first row of the code you are going to copy very soon.
+    
+    \item Use \code{sudo chmod +x ~/.git-completion.bash} in order to give permission to the user to run it through \code{.bashrc}.
+    
+    \item Copy the code:
+    
+    \begin{minted}[]{bash}
+~/.git-completion.bash
+
+export PROMPT_DIRTRIM=3
+PS1_custom='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u\[\033[00m\]:\[\\
+033[01;34m\]\w\[\033[00m\]\$ '
+PS1_original='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\\
+]:\[\033[01;34m\]\w\[\033[00m\]\$ '
+
+if [ "$color_prompt" = yes ]; then
+    PS1=$PS1_custom
+else
+    PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
+fi
+unset color_prompt force_color_prompt
+
+export GIT_PS1_SHOWCOLORHINTS=true
+export GIT_PS1_SHOWDIRTYSTATE=true
+export GIT_PS1_SHOWUNTRACKEDFILES=true
+export GIT_PS1_SHOWUPSTREAM="auto" 
+# PROMPT_COMMAND='__git_ps1 "\u@\h:\w" "\\\$ "'
+# use existing PS1 settings
+PROMPT_COMMAND=$(sed -r 's|^(.+)(\\\$\s*)$|__git_ps1 "\1" "\2"|' <<< $PS1)
+    \end{minted}
+
+    \item Open up \code{~/.bashrc} and replace/paste the corresponding code similar to:
+
+    \begin{minted}[]{bash}
+if [ "$color_prompt" = yes ]; then
+    PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\\
+033[01;34m\]\w\[\033[00m\]\$ '
+else
+    PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
+fi
+unset color_prompt force_color_prompt
+    \end{minted}
+
+    \item In Ubuntu, enter \code{source ~/.bashrc} or restart the terminal.
+\end{enumerate}

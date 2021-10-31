@@ -11,3 +11,11 @@
 \ifdefined\wslRelevantDocker
 \subimport{docker/}{body.tex}
 \fi
+
+\ifdefined\wslPackages
+\subimport{packages/}{body.tex}
+\fi
+
+\ifdefined\wslExtras
+\subimport{extras/}{body.tex}
+\fi

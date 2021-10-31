@@ -11,34 +11,217 @@
     
     \item Open up Visual Studio Code
     
-    \item Install the \texttt{C/C++} extenstion from Microsoft.
+    \item Install the \texttt{C/C++} extension from Microsoft.
     
+    \item Press on the new icon on the left, \texttt{Remote explorer}. Right-click the distribution (e.g. \texttt{Ubuntu-18.04}) and press \texttt{Connect to WSL}. A new window will appear with some connection to the WSL.
+    
+    \item Press on the extension icon the left in the new window. Press \texttt{Install in WSL: <distribution>} button on the \texttt{C/C++} extension.
+    
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.7\textwidth]{figures/vscode_extensions.PNG}
+    \end{figure}
+    
+    \item By now it might prompt that you have to reload the window. Press that button.
+
     \item Open up the folder you created the main C file in. \texttt{File\ra Open Folder...}
     
     \item Open up the \texttt{helloworld.c} file in the file explorer.
     
-    
+    \item Press \texttt{Terminal\ra Configure Default Build Task...}. In the dropdown list that should appear, choose \code{C/C++: gcc build active file} (Not gcc-7). A file \texttt{tasks.json} will be created and opened up.
+    \begin{itemize}
+        \item No edits of the \texttt{tasks.json} is required for single file compilation with \texttt{gcc}.
+        \item Edits are required for multi-file compilation with \texttt{gcc}.
+    \end{itemize}
+
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.7\textwidth]{figures/vscode_compiler.PNG}
+    \end{figure}
+
 \end{enumerate}
-
-
-bla
-
-
-\begin{enumerate}
-    \setcounter{enumi}{783}
-
-    \item asd
-\end{enumerate}
-
-
 
 \subsubsubsubsection{Single file compilation}
+
+\begin{enumerate}
+    \setcounter{enumi}{10}
+
+    \item Do not edit the \texttt{tasks.json}
+    
+    \item Build file with \texttt{Ctrl+Shift+b}. Press the \texttt{+} sign at the terminal to open a new terminal. Run the file \code{./helloworld} to test that everything is working.
+    
+    \item Now onto debugging. Press \texttt{F5} or \texttt{Run\ra Start Debugging}. In the drop-down list that should appear, choose \code{C++ (GDB/LLDB)}. A file \texttt{launch.json} will be created and opened up.
+
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.7\textwidth]{figures/vscode_debugger.PNG}
+    \end{figure}
+
+    \item Do not edit the \texttt{launch.json}.
+    
+    \item Down at the \texttt{Output} and \texttt{Terminal}, press the three dots \texttt{...} and choose \texttt{Debug Console} in which one can run the standard \texttt{gdb} commands.
+    
+\end{enumerate}
 
 \subsubsubsubsection{Multi-file compilation}
 
 Here is some info about setting up Visual Studio Code to build and debug projects including multiple files:
 
 \link{https://dev.to/talhabalaj/setup-visual-studio-code-for-multi-file-c-projects-1jpi}{https://dev.to/talhabalaj/setup-visual-studio-code-for-multi-file-c-projects-1jpi}
+
+Here is an example of a \texttt{Makefile} I have used. Remember to use the \code{-g} flag if you want to debug. Also available here \link{https://github.com/robinhellmers/programming_setup}{https://github.com/robinhellmers/programming\_setup}.
+
+This \texttt{Makefile} is based on the following structure.
+\begin{itemize}
+    \item \texttt{Makefile} in the main project folder.
+    \item Four sub-folders: \texttt{bin}, \texttt{src}, \texttt{include}, \texttt{lib}
+    \item Executable \texttt{.out} files in \texttt{bin}.
+    \item Main \texttt{.c} files in \texttt{src}.
+    \item Extra \texttt{.c} used as libraries in \texttt{lib}.
+    \item All \texttt{.h} header files in \texttt{include}.
+\end{itemize}
+
+\begin{minted}{make}
+CC := gcc
+CFLAGS := -pthread -g
+
+BIN := bin
+SRC := src
+INCLUDE := include
+LIB := lib
+
+all: $(BIN)/server.out $(BIN)/client.out
+
+$(BIN)/server.out: $(SRC)/server.c $(LIB)/*.c $(INCLUDE)/*.h
+    $(CC) $(CFLAGS) -I$(INCLUDE) $^ -o $@
+
+$(BIN)/client.out: $(SRC)/client.c $(LIB)/*.c $(INCLUDE)/*.h
+    $(CC) $(CFLAGS) -I$(INCLUDE) $^ -o $@
+
+clean:
+    rm $(BIN)/server.out $(BIN)/client.out
+
+
+
+# ${wildcard pattern}
+# "wildcard" will list every file that follows the "pattern"
+#
+# Lets say we have the files hello.c hello.h goodbye.c goodbye.h
+# ${wildcard *.c} will result in: hello.c goodbye.c
+\end{minted}
+
+After creating one for the specific project, continue with the \textbf{Visual Studio Code} configuration:
+
+\begin{enumerate}
+    \setcounter{enumi}{10}
+    
+    \item The \texttt{tasks.json} must be edited according to the following.
+    
+    \begin{itemize}
+        \item Might have to check if there is some information in the generated \texttt{tasks.json} about the version number.
+        
+        \item Code also available here: \link{https://github.com/robinhellmers/programming_setup}{https://github.com/robinhellmers/programming\_setup} in the \texttt{.vscode} folder.
+        
+        \item This edit will require a \texttt{Makefile} with an \code{make all} command for compiling all the different files together.
+        
+        \item The label \code{"label": "build"} can be changed to any other, which will be used in the debugger config file \texttt{launch.json} later on. Same label will appear as a dropdown list later on.
+    \end{itemize}
+
+    \begin{minted}{json}
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "type": "shell",
+            "label": "build",
+            "command": "make all",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": "$gcc"
+        }
+    ]
+}
+    \end{minted}
+
+    \item Build file with \texttt{Ctrl+Shift+b}. Press the \texttt{+} sign at the terminal to open a new terminal. Run the file \code{./helloworld} to test that everything is working.
+    
+    \item Now onto debugging. Press \texttt{F5} or \texttt{Run\ra Start Debugging}. In the drop-down list that should appear, choose \code{C++ (GDB/LLDB)}. A file \texttt{launch.json} will be created and opened up.'
+    
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.7\textwidth]{figures/vscode_debugger.PNG}
+    \end{figure}
+
+    \item The \texttt{launch.json} must be edited according to the following.
+    \begin{itemize}
+        \item Might have to check if there is some information in the generated \texttt{tasks.json} about the version number.
+        
+        \item Code also available here: \link{https://github.com/robinhellmers/programming_setup}{https://github.com/robinhellmers/programming\_setup} in the \texttt{.vscode} folder.
+        
+        \item Set the prelaunch task \code{"preLaunchTask": "build"} to the label you set in the \texttt{tasks.json}, in this case to \code{"build"}. This will do the compilation according to our specification in the \texttt{tasks.json} and thereby compile with the \texttt{Makefile}.
+        
+        \item Set which program to debug with\\\mintinline[escapeinside=||]{text}{"program": "${workspaceFolder}/bin/|\$|{fileBasenameNoExtension}.out"}.\\This must be adjusted according to the \texttt{Makefile} and where it saves its executable file. Remember to adjust the file ending according to what the \texttt{Makefile} outputs.
+    \end{itemize}
+
+    \begin{minted}{json}
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "gcc - Build and debug active file",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/bin/${fileBasenameNoExtension}.out",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "build",
+            "miDebuggerPath": "/usr/bin/gdb",
+            "sourceFileMap": {
+                "/build/glibc-2ORdQG": "/usr/src/glibc"
+            }
+        }
+    ]
+}
+    \end{minted}
+\end{enumerate}
+
+Now when debugging and the debugger quits the program, there will always be an error about now able to open a specific file such as \code{/build/glibc-2ORdQG} or some other letters and numbers after \code{glibc-...}. This is not a problem more than that it is annoying. This can be fixed by downloading the files which it wants to open.
+
+\begin{enumerate}
+    \setcounter{enumi}{14}
+    
+    \item Download \texttt{glibc} compressed file with \code{sudo apt install glibc-source}.
+    
+    \item Go to the right directory \code{cd /usr/src/glibc}
+    
+    \item Extract the content of the compressed file with \code{sudo tar xf glibc-2.27.tar.xz}
+    
+    \item Now add the following, except the most outer curly brackets, to the \texttt{launch.json} file under\\\code{"configurations": [{...}]}
+    \begin{itemize}
+        \item The letters and numbers \code{<LetterCombination>} after \code{glibc-...} must be adjusted to the error message that pops up when the debugger is quitting the program.
+    \end{itemize}
+    
+    \begin{minted}{json}
+{
+    "sourceFileMap": {
+        "/build/glibc-<LetterCombination>": "/usr/src/glibc"
+    }
+}
+    \end{minted}
+\end{enumerate}
 
 \subsubsubsubsection{Global multiple word search}
 

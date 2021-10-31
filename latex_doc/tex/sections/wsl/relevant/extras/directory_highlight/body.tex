@@ -1,0 +1,18 @@
+\subsubsubsection{Fix directory highlight inconsistency}
+
+Depending if you have created the directories within Ubuntu WSL directly with \code{mkdir} or pulled a directory,
+which were made within Windows, through some version control system; the background or highlight coloring
+of these directory may vary.
+
+\begin{enumerate}
+    \item Run \code{dircolors -p > ~/.dircolors} and open \code{~/.dircolors} in an editor.
+    
+    \item Find \code{DIR}, \mintinline{text}{STICKY_OTHER_VARIABLE}, \code{STICKY} and write their corresponding values in the
+    comments in case one want to revert the upcoming changes.
+    
+    \item Find \mintinline{text}{OTHER_WRITABLE} and copy the variable value, which probably is \code{34;42}.
+    
+    \item Replace the values of \code{DIR}, \mintinline{text}{STICKY_OTHER_VARIABLE}, \code{STICKY} with the copied value of\mintinline{text}{OTHER_WRITABLE}.
+    
+    \item Restart the Ubuntu terminal.
+\end{enumerate}

@@ -2,6 +2,7 @@
 
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
+\usepackage{lmodern} % Gives good tilde ~ for minted, together with [T1]{fontenc}
 \usepackage{parskip}
 \usepackage{fullpage}
 \usepackage{import}
@@ -19,7 +20,7 @@
 
 \import{tex/extra/newcommands/}{body.tex}
 
-\import{tex/extra/subsubsubsection/}{body.tex}
+\import{tex/extra/subsections_depth/}{body.tex}
 
 \import{tex/predocument/settings/}{body.tex}
 
@@ -29,25 +30,21 @@
 
 % Ifdefined -> Include
 \def\wsl{}
-    %\def\wslDistro{}
+    % \def\wslDistro{}
         \def\wslDistroSetup{}
             \def\wslDistroSetupDefaultUser{}
-    %\def\wslInstallation{}
+    % \def\wslInstallation{}
     \def\wslRelevant{}
-        %\def\wslRelevantDocker{}
+        % \def\wslRelevantDocker{}
             \def\wslRelevantDockerTest{}
-        \def\wslRelevantVscode{}
+        % \def\wslRelevantVscode{}
             \def\wslRelevantVscodeCProgramming{}
-        %\def\wslRelevantWindowsTerminal{}
+        % \def\wslRelevantWindowsTerminal{}
+        % \def\wslPackages{}
+        \def\wslExtras{}
+            \def\wslTerminalPath{}
+            \def\wslDirectoryHighlight{}
 
-
-\makeatletter
-\renewcommand*\l@section{\@dottedtocline{1}{0em}{1.5em}}
-\renewcommand*\l@subsection{\@dottedtocline{1}{1.5em}{2.3em}}
-\renewcommand*\l@subsubsection{\@dottedtocline{1}{3.8em}{3.2em}}
-\renewcommand*\l@paragraph{\@dottedtocline{1}{7.0em}{4.1em}}
-\renewcommand*\l@subparagraph{\@dottedtocline{1}{14.2em}{0em}}
-\makeatother
 
 
 \begin{document}

@@ -1,0 +1,17 @@
+\subsubsection{Extras}
+
+\ifdefined\wslTerminalPath
+\subimport{terminal_path/}{body.tex}
+\fi
+
+\ifdefined\wslDirectoryHighlight
+\subimport{directory_highlight/}{body.tex}
+\fi
+
+\subsubsubsection{Disable bell sound when using backspace}
+
+If you don't have anything to remove in the terminal and press backspace, you will hear a bell sound. Disable this by entering
+
+\code{echo 'set bell-style none' > ~/.inputrc}
+
+Restart the terminal.
