@@ -1,0 +1,65 @@
+\subsubsection{Repository across 2 computers}
+
+Relevant StackOverflow \link{https://stackoverflow.com/a/20987150/12374737}{answer}
+
+One might want to develop code on two machines, without using a server such as Github or similar.
+
+Lets say you have created a repository and developed on \tttbf{Computer 1}. That could be only locally or still through some server which you might not want to access through the other computer.
+
+So you have a repository and the working directory on \tttbf{Computer 1}, could also be on \tttbf{Computer 2}, does not matter:
+
+\code{~/<pathToRepo>/<repoName>}
+
+which contains a \code{.git} with all the git related revision history.
+
+Now you want to be able to push to \tttbf{Computer 2}. In order to do that you need
+
+\tttbf{Computer 1:}
+\begin{itemize}
+    \item Normal repository (non-bare) with the working directory
+\end{itemize}
+
+\tttbf{Computer 2:}
+\begin{itemize}
+    \item Normal repository (non-bare) with the working directory.
+    \item Bare repository
+\end{itemize}
+
+The usage will be:
+
+\begin{enumerate}
+    \item From \tttbf{Computer 1} working directory: Push to the bare repository on \tttbf{Computer 2}
+    \item From \tttbf{Computer 2} working directory: Pull from bare repository on \tttbf{Computer 2}.
+\end{enumerate}
+
+or the other way around
+
+\begin{enumerate}
+    \item From \tttbf{Computer 2} working directory: Push to the bare repository on \tttbf{Computer 2}.
+    \item From \tttbf{Computer 1} working directory: Pull from the bare repository on \tttbf{Computer 2}
+\end{enumerate}
+
+\subsubsubsection{Instructions}
+
+Lets say you have the original repository with its working directory on \tttbf{Computer 1} with its \code{.git} directory in \code{~/<pathToRepo>/<repoName>/}
+
+\begin{enumerate}
+    \item \tttbf{Computer 1}: Make a bare clone of the repository with the name extension \code{.git}
+    \begin{minted}[]{text}
+git clone --bare ~/<pathToRepo>/<repoName> ~/<pathToRepo>/<repoName>.git
+    \end{minted}
+    
+    \item \tttbf{Computer 1}: Copy it over to \tttbf{Computer 2}, using SSH.
+    \begin{minted}[]{text}
+scp -r ~/<pathToRepo>/<repoName>.git <username>@<ipAddress>:<relativePathBare>
+    \end{minted}
+    or
+    \begin{minted}[]{text}
+scp -r ~/<pathToRepo>/<repoName>.git ssh://<username>@<ipAddress>/<fullPathBare>
+    \end{minted}
+
+    \item \tttbf{Computer 2}: Clone the bare repository into a non-bare repository.
+    \begin{minted}[]{text}
+git clone ~/<relativePathBare>/<repoName>.git ~/<pathToStoreRepo>/.
+    \end{minted}
+\end{enumerate}
