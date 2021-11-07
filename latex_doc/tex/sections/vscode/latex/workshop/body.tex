@@ -1,12 +1,4 @@
-\subsubsubsection{LaTeX}
-
-Install the complete version TeX Live:
-
-\code{sudo apt install texlive-full}
-
-In Visual Studio Code, install the extension: \texttt{LaTeX Workshop}
-
-\subsubsubsubsection{Latex Workshop}
+\subsubsection{Latex Workshop}
 
 Open up the settings \texttt{JSON} file:
 
@@ -78,7 +70,7 @@ Some times, the recipes does not appear in the \texttt{JSON} file. Append the co
     ]
     \end{minted}
 
-\subsubsubsubsection{Default PDF viewer}
+\subsubsubsection{Default PDF viewer}
 
 The setting
 
@@ -86,7 +78,7 @@ The setting
 
 will open up a browser tab when pressing the \texttt{View LaTeX PDF file} button. Using the browser works good with \code{Synctex} for jumping between PDF and code seamlessly.
 
-\subsubsubsubsection{Synctex - Jump between PDF and code}
+\subsubsubsection{Synctex - Jump between PDF and code}
 
 By having the flag \code{"-synctex=1"} in the recipe, one can enable jumping between the PDF and code locations seamlessly. Works good when using \code{"browser"} as default PDF viewer.
 
@@ -95,7 +87,7 @@ By having the flag \code{"-synctex=1"} in the recipe, one can enable jumping bet
     \item Set text marker in code and press \code{Ctrl + Alt + J}
 \end{itemize}
 
-\subsubsubsubsection{Default recipe}
+\subsubsubsection{Default recipe}
 
 The setting
 
@@ -106,7 +98,7 @@ will run the first/top recipe given in \code{"latex-workshop.latex.recipes":}. I
 Make sure that \code{latexmk} is the first item.
 
 
-\subsubsubsubsection{Clean aux files}
+\subsubsubsection{Clean aux files}
 
 The setting
 
@@ -115,7 +107,7 @@ The setting
 will remove the \code{aux} files generated from the compilation after that the compilation is done.
 
 
-\subsubsubsubsection{Chktex - Linting}
+\subsubsubsection{Chktex - Linting}
 
 The settings
 
