@@ -6,11 +6,40 @@ Create SSH keys by entering a passphrase connected to the SSH keys, after runnin
 
 \code{ssh-keygen -f ~/.ssh/id_ecdsa -t ecdsa -b 521}
 
-In Ubuntu, run the \code{ssh-agent} with the command:
+\subsubsubsection{Remember passphrase}
 
-\mintinline{text}{eval "$(ssh-agent -s)"}
+By using \code{ssh-agent}, you do not have to enter the SSH-key passphrase everytime.
 
-Add the SSH keys to the \code{ssh-agent} by entering the passphrase after:
+Append the following to the \code{~/.profile}
+
+\begin{minted}[]{bash}
+SSH_ENV="$HOME/.ssh/agent-environment"
+
+function start_agent {
+    echo "Initialising new SSH agent..."
+    /usr/bin/ssh-agent | sed 's/^echo/#echo/' > "${SSH_ENV}"
+    echo succeeded
+    chmod 600 "${SSH_ENV}"
+    . "${SSH_ENV}" > /dev/null
+    /usr/bin/ssh-add;
+}
+
+# Source SSH settings, if applicable
+
+if [ -f "${SSH_ENV}" ]; then
+    . "${SSH_ENV}" > /dev/null
+    #ps ${SSH_AGENT_PID} doesn't work under cywgin
+    ps -ef | grep ${SSH_AGENT_PID} | grep ssh-agent$ > /dev/null || {
+        start_agent;
+    }
+else
+    start_agent;
+fi
+\end{minted}
+
+then \code{source ~/.profile} and the \code{ssh-agent} will ask for the passphrase and then you do not have to enter it again. The script will look for the agent automatically.
+
+You can manually add a SSH-key with:
 
 \code{ssh-add ~/.ssh/id_ecdsa}
 
