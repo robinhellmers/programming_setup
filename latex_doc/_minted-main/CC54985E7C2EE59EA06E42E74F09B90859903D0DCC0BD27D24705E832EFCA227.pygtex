@@ -1,0 +1,7 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{p}{\PYGZob{}}
+    \PYG{n+nt}{\PYGZdq{}sourceFileMap\PYGZdq{}}\PYG{p}{:} \PYG{p}{\PYGZob{}}
+        \PYG{n+nt}{\PYGZdq{}/build/glibc\PYGZhy{}\PYGZlt{}LetterCombination\PYGZgt{}\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}/usr/src/glibc\PYGZdq{}}
+    \PYG{p}{\PYGZcb{}}
+\PYG{p}{\PYGZcb{}}
+\end{Verbatim}

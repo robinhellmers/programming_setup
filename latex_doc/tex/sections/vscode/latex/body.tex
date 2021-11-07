@@ -4,8 +4,16 @@ Install the complete version TeX Live:
 
 \code{sudo apt install texlive-full}
 
-In Visual Studio Code, install the extension: \texttt{LaTeX Workshop}
+In Visual Studio Code, install the extension: \tttbf{LaTeX Workshop}
 
 \ifdefined\latexWorkshop
 \subimport{workshop/}{body.tex}
+\fi
+
+\ifdefined\latexPackages
+\subimport{packages/}{body.tex}
+\fi
+
+\ifdefined\latexExtras
+\subimport{extras/}{body.tex}
 \fi

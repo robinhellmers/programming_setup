@@ -1,0 +1,31 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{p}{\PYGZob{}}
+    \PYG{n+nt}{\PYGZdq{}version\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}0.2.0\PYGZdq{}}\PYG{p}{,}
+    \PYG{n+nt}{\PYGZdq{}configurations\PYGZdq{}}\PYG{p}{:} \PYG{p}{[}
+        \PYG{p}{\PYGZob{}}
+            \PYG{n+nt}{\PYGZdq{}name\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}gcc \PYGZhy{} Build and debug active file\PYGZdq{}}\PYG{p}{,}
+            \PYG{n+nt}{\PYGZdq{}type\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}cppdbg\PYGZdq{}}\PYG{p}{,}
+            \PYG{n+nt}{\PYGZdq{}request\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}launch\PYGZdq{}}\PYG{p}{,}
+            \PYG{n+nt}{\PYGZdq{}program\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}\PYGZdl{}\PYGZob{}workspaceFolder\PYGZcb{}/bin/\PYGZdl{}\PYGZob{}fileBasenameNoExtension\PYGZcb{}.out\PYGZdq{}}\PYG{p}{,}
+            \PYG{n+nt}{\PYGZdq{}args\PYGZdq{}}\PYG{p}{:} \PYG{p}{[],}
+            \PYG{n+nt}{\PYGZdq{}stopAtEntry\PYGZdq{}}\PYG{p}{:} \PYG{k+kc}{false}\PYG{p}{,}
+            \PYG{n+nt}{\PYGZdq{}cwd\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}\PYGZdl{}\PYGZob{}workspaceFolder\PYGZcb{}\PYGZdq{}}\PYG{p}{,}
+            \PYG{n+nt}{\PYGZdq{}environment\PYGZdq{}}\PYG{p}{:} \PYG{p}{[],}
+            \PYG{n+nt}{\PYGZdq{}externalConsole\PYGZdq{}}\PYG{p}{:} \PYG{k+kc}{false}\PYG{p}{,}
+            \PYG{n+nt}{\PYGZdq{}MIMode\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}gdb\PYGZdq{}}\PYG{p}{,}
+            \PYG{n+nt}{\PYGZdq{}setupCommands\PYGZdq{}}\PYG{p}{:} \PYG{p}{[}
+                \PYG{p}{\PYGZob{}}
+                    \PYG{n+nt}{\PYGZdq{}description\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}Enable pretty\PYGZhy{}printing for gdb\PYGZdq{}}\PYG{p}{,}
+                    \PYG{n+nt}{\PYGZdq{}text\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}\PYGZhy{}enable\PYGZhy{}pretty\PYGZhy{}printing\PYGZdq{}}\PYG{p}{,}
+                    \PYG{n+nt}{\PYGZdq{}ignoreFailures\PYGZdq{}}\PYG{p}{:} \PYG{k+kc}{true}
+                \PYG{p}{\PYGZcb{}}
+            \PYG{p}{],}
+            \PYG{n+nt}{\PYGZdq{}preLaunchTask\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}build\PYGZdq{}}\PYG{p}{,}
+            \PYG{n+nt}{\PYGZdq{}miDebuggerPath\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}/usr/bin/gdb\PYGZdq{}}\PYG{p}{,}
+            \PYG{n+nt}{\PYGZdq{}sourceFileMap\PYGZdq{}}\PYG{p}{:} \PYG{p}{\PYGZob{}}
+                \PYG{n+nt}{\PYGZdq{}/build/glibc\PYGZhy{}2ORdQG\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}/usr/src/glibc\PYGZdq{}}
+            \PYG{p}{\PYGZcb{}}
+        \PYG{p}{\PYGZcb{}}
+    \PYG{p}{]}
+\PYG{p}{\PYGZcb{}}
+\end{Verbatim}

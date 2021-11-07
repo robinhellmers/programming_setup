@@ -8,67 +8,66 @@ Open up the settings \texttt{JSON} file:
 
 Some times, the recipes does not appear in the \texttt{JSON} file. Append the code below if it doesn't exist. 
 
-
 \begin{minted}{latex}
-    "latex-workshop.view.pdf.viewer": "browser",
-    "latex-workshop.latex.autoBuild.run": "onSave",
-    "latex-workshop.latex.autoClean.run": "onBuilt",
-    "latex-workshop.latex.recipe.default": "first",
-    "latex-workshop.chktex.run": "onType",
-    "latex-workshop.chktex.delay": 2000,
-    "latex-workshop.latex.recipes": [
-        {
-            "name": "latexmk",
-            "tools": [
-            "latexmk"
-            ]
-        },
-        {
-            "name": "pdflatex - bibtex - pdflatex x2",
-            "tools": [
-            "pdflatex",
-            "bibtex",
-            "pdflatex",
-            "pdflatex"
-            ]
-        }
-    ],
-    "latex-workshop.latex.tools": [
-        {
-            "name": "latexmk",
-            "command": "latexmk",
-            "args": [
-            "-synctex=1",
-            "-interaction=nonstopmode",
-            "-file-line-error",
-            "-pdf",
-            "-shell-escape",
-            "-outdir=%OUTDIR%",
-            "%DOC%"
-            ],
-            "env": {}
-        },
-        {
-            "name": "pdflatex",
-            "command": "pdflatex",
-            "args": [
-            "-synctex=1",
-            "-interaction=nonstopmode",
-            "-file-line-error",
-            "%DOC%"
-            ],
-            "env": {}
-        },
-        {
-            "name": "bibtex",
-            "command": "bibtex",
-            "args": [
-            "%DOCFILE%"
-            ],
-            "env": {}
-        }
-    ]
-    \end{minted}
+"latex-workshop.view.pdf.viewer": "browser",
+"latex-workshop.latex.autoBuild.run": "onSave",
+"latex-workshop.latex.autoClean.run": "onBuilt",
+"latex-workshop.latex.recipe.default": "first",
+"latex-workshop.chktex.run": "onType",
+"latex-workshop.chktex.delay": 2000,
+"latex-workshop.latex.recipes": [
+    {
+        "name": "latexmk",
+        "tools": [
+        "latexmk"
+        ]
+    },
+    {
+        "name": "pdflatex - bibtex - pdflatex x2",
+        "tools": [
+        "pdflatex",
+        "bibtex",
+        "pdflatex",
+        "pdflatex"
+        ]
+    }
+],
+"latex-workshop.latex.tools": [
+    {
+        "name": "latexmk",
+        "command": "latexmk",
+        "args": [
+        "-synctex=1",
+        "-interaction=nonstopmode",
+        "-file-line-error",
+        "-pdf",
+        "-shell-escape",
+        "-outdir=%OUTDIR%",
+        "%DOC%"
+        ],
+        "env": {}
+    },
+    {
+        "name": "pdflatex",
+        "command": "pdflatex",
+        "args": [
+        "-synctex=1",
+        "-interaction=nonstopmode",
+        "-file-line-error",
+        "%DOC%"
+        ],
+        "env": {}
+    },
+    {
+        "name": "bibtex",
+        "command": "bibtex",
+        "args": [
+        "%DOCFILE%"
+        ],
+        "env": {}
+    }
+]
+\end{minted}
 
 \subsubsubsection{Default PDF viewer}
 

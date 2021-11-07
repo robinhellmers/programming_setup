@@ -1,0 +1,21 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+[alias]
+    show\PYGZhy{}gitignore = git ls\PYGZhy{}files \PYGZhy{}ci \PYGZhy{}\PYGZhy{}exclude\PYGZhy{}standard
+    apply\PYGZhy{}gitignore = !git ls\PYGZhy{}files \PYGZhy{}ci \PYGZhy{}\PYGZhy{}exclude\PYGZhy{}standard \PYGZhy{}z | \PYGZbs{}
+                      xargs \PYGZhy{}0 git rm \PYGZhy{}\PYGZhy{}cached
+    apply\PYGZhy{}gitignore\PYGZhy{}remove = !git ls\PYGZhy{}files \PYGZhy{}ci \PYGZhy{}\PYGZhy{}exclude\PYGZhy{}standard \PYGZhy{}z | \PYGZbs{}
+                             xargs \PYGZhy{}0 git rm \PYGZhy{}\PYGZhy{}cached
+    lg = log \PYGZhy{}\PYGZhy{}all \PYGZhy{}\PYGZhy{}graph \PYGZhy{}\PYGZhy{}abbrev\PYGZhy{}commit \PYGZhy{}\PYGZhy{}decorate \PYGZbs{}
+		\PYGZhy{}\PYGZhy{}format=format:\PYGZsq{}\PYGZpc{}C(bold blue)\PYGZpc{}h\PYGZpc{}C(reset) \PYGZhy{} \PYGZpc{}C(bold green)(\PYGZpc{}ar)\PYGZpc{}C(reset)\PYGZsq{}\PYGZbs{}
+		\PYGZsq{} \PYGZpc{}C(white)\PYGZpc{}s\PYGZpc{}C(reset) \PYGZpc{}C(dim white)\PYGZhy{} \PYGZpc{}an\PYGZpc{}C(reset)\PYGZpc{}C(auto)\PYGZpc{}d\PYGZpc{}C(reset)\PYGZsq{}
+    lg2 = log \PYGZhy{}\PYGZhy{}all \PYGZhy{}\PYGZhy{}graph \PYGZhy{}\PYGZhy{}abbrev\PYGZhy{}commit \PYGZhy{}\PYGZhy{}decorate \PYGZbs{}
+		\PYGZhy{}\PYGZhy{}format=format:\PYGZsq{}\PYGZpc{}C(bold blue)\PYGZpc{}h\PYGZpc{}C(reset) \PYGZhy{} \PYGZpc{}C(bold cyan)\PYGZpc{}aD\PYGZpc{}C(reset)\PYGZsq{}\PYGZbs{}
+		\PYGZsq{} \PYGZpc{}C(bold green)(\PYGZpc{}ar)\PYGZpc{}C(reset)\PYGZpc{}C(auto)\PYGZpc{}d\PYGZpc{}C(reset)\PYGZpc{}n\PYGZsq{}\PYGZsq{}          \PYGZsq{}\PYGZbs{}
+		\PYGZsq{}\PYGZpc{}C(white)\PYGZpc{}s\PYGZpc{}C(reset) \PYGZpc{}C(dim white)\PYGZhy{} \PYGZpc{}an\PYGZpc{}C(reset)\PYGZsq{}
+    lg3 = log \PYGZhy{}\PYGZhy{}all \PYGZhy{}\PYGZhy{}graph \PYGZhy{}\PYGZhy{}abbrev\PYGZhy{}commit \PYGZhy{}\PYGZhy{}decorate \PYGZbs{}
+		\PYGZhy{}\PYGZhy{}format=format:\PYGZsq{}\PYGZpc{}C(bold blue)\PYGZpc{}h\PYGZpc{}C(reset) \PYGZhy{} \PYGZpc{}C(bold cyan)\PYGZpc{}aD\PYGZpc{}C(reset)\PYGZsq{}\PYGZbs{}
+		\PYGZsq{} \PYGZpc{}C(bold green)(\PYGZpc{}ar)\PYGZpc{}C(reset) \PYGZpc{}C(bold cyan)(committed: \PYGZpc{}cD)\PYGZpc{}C(reset)\PYGZsq{}\PYGZbs{}
+		\PYGZsq{} \PYGZpc{}C(auto)\PYGZpc{}d\PYGZpc{}C(reset)\PYGZpc{}n\PYGZsq{}\PYGZsq{}          \PYGZpc{}C(white)\PYGZpc{}s\PYGZpc{}C(reset)\PYGZpc{}n\PYGZsq{}\PYGZsq{}          \PYGZsq{}\PYGZbs{}
+		\PYGZsq{}\PYGZpc{}C(dim white)\PYGZhy{} \PYGZpc{}an \PYGZlt{}\PYGZpc{}ae\PYGZgt{} \PYGZpc{}C(reset) \PYGZpc{}C(dim white)(committer:\PYGZsq{}\PYGZbs{}
+		\PYGZsq{} \PYGZpc{}cn \PYGZlt{}\PYGZpc{}ce\PYGZgt{})\PYGZpc{}C(reset)\PYGZsq{}
+\end{Verbatim}

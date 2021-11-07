@@ -1,0 +1,4 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+[includeIf \PYGZdq{}gitdir:\PYGZti{}/\PYGZlt{}pathToNewGitDirectory\PYGZgt{}/\PYGZdq{}]
+    path = \PYGZti{}/\PYGZlt{}pathToNewGitDirectory\PYGZgt{}/.gitconfig
+\end{Verbatim}

@@ -1,0 +1,3 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+apply\PYGZhy{}gitignore\PYGZhy{}remove = !git ls\PYGZhy{}files \PYGZhy{}ci \PYGZhy{}\PYGZhy{}exclude\PYGZhy{}standard \PYGZhy{}z | xargs \PYGZhy{}0 git rm \PYGZhy{}\PYGZhy{}cached
+\end{Verbatim}

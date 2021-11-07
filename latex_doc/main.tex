@@ -14,8 +14,7 @@
 \usepackage[shortlabels]{enumitem}
 \usepackage{bold-extra} % \tttbf
 \usepackage{xcolor}
-\usepackage[cache=false]{minted} % linenos = numbering
-%\usepackage{titlesec} % subsubsubsection
+\usepackage[]{minted} % cache=false might remove error, but slows down a lot
 \usepackage{textcomp} % texttildelow
 \usepackage{transparent}
 \usepackage{eso-pic} % For 'Link to TOC'
@@ -31,7 +30,7 @@
 
 
 % Ifdefined -> Include
-% \def\wsl{}
+\def\wsl{}
     \def\wslDistro{}
         \def\wslDistroSetup{}
             \def\wslDistroSetupDefaultUser{}
@@ -57,7 +56,11 @@
     \def\vscodeCProgramming{}
     \def\vscodeLatex{}
         \def\latexWorkshop{}
-
+        \def\latexPackages{}
+            \def\latexMinted{}
+        \def\latexExtras{}
+            \def\latexGlossaries{}
+    \def\vscodeExtras{}
 
 
 \begin{document}

@@ -1,0 +1,3 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+scp \PYGZhy{}r \PYGZti{}/\PYGZlt{}pathToRepo\PYGZgt{}/\PYGZlt{}repoName\PYGZgt{}.git ssh://\PYGZlt{}username\PYGZgt{}@\PYGZlt{}ipAddress\PYGZgt{}/\PYGZlt{}fullPathBare\PYGZgt{}
+\end{Verbatim}

@@ -1,0 +1,28 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{n+nv}{CC} \PYG{o}{:=} gcc
+\PYG{n+nv}{CFLAGS} \PYG{o}{:=} \PYGZhy{}pthread \PYGZhy{}g
+
+\PYG{n+nv}{BIN} \PYG{o}{:=} bin
+\PYG{n+nv}{SRC} \PYG{o}{:=} src
+\PYG{n+nv}{INCLUDE} \PYG{o}{:=} include
+\PYG{n+nv}{LIB} \PYG{o}{:=} lib
+
+\PYG{n+nf}{all}\PYG{o}{:} \PYG{k}{\PYGZdl{}(}\PYG{n+nv}{BIN}\PYG{k}{)}/\PYG{n}{server}.\PYG{n}{out} \PYG{k}{\PYGZdl{}(}\PYG{n+nv}{BIN}\PYG{k}{)}/\PYG{n}{client}.\PYG{n}{out}
+
+\PYG{n+nf}{\PYGZdl{}(BIN)/server.out}\PYG{o}{:} \PYG{k}{\PYGZdl{}(}\PYG{n+nv}{SRC}\PYG{k}{)}/\PYG{n}{server}.\PYG{n}{c} \PYG{k}{\PYGZdl{}(}\PYG{n+nv}{LIB}\PYG{k}{)}/*.\PYG{n}{c} \PYG{k}{\PYGZdl{}(}\PYG{n+nv}{INCLUDE}\PYG{k}{)}/*.\PYG{n}{h}
+    \PYG{k}{\PYGZdl{}(}CC\PYG{k}{)} \PYG{k}{\PYGZdl{}(}CFLAGS\PYG{k}{)} \PYGZhy{}I\PYG{k}{\PYGZdl{}(}INCLUDE\PYG{k}{)} \PYGZdl{}\PYGZca{} \PYGZhy{}o \PYG{n+nv}{\PYGZdl{}@}
+
+\PYG{n+nf}{\PYGZdl{}(BIN)/client.out}\PYG{o}{:} \PYG{k}{\PYGZdl{}(}\PYG{n+nv}{SRC}\PYG{k}{)}/\PYG{n}{client}.\PYG{n}{c} \PYG{k}{\PYGZdl{}(}\PYG{n+nv}{LIB}\PYG{k}{)}/*.\PYG{n}{c} \PYG{k}{\PYGZdl{}(}\PYG{n+nv}{INCLUDE}\PYG{k}{)}/*.\PYG{n}{h}
+    \PYG{k}{\PYGZdl{}(}CC\PYG{k}{)} \PYG{k}{\PYGZdl{}(}CFLAGS\PYG{k}{)} \PYGZhy{}I\PYG{k}{\PYGZdl{}(}INCLUDE\PYG{k}{)} \PYGZdl{}\PYGZca{} \PYGZhy{}o \PYG{n+nv}{\PYGZdl{}@}
+
+\PYG{n+nf}{clean}\PYG{o}{:}
+    rm \PYG{k}{\PYGZdl{}(}BIN\PYG{k}{)}/server.out \PYG{k}{\PYGZdl{}(}BIN\PYG{k}{)}/client.out
+
+
+
+\PYG{c}{\PYGZsh{} \PYGZdl{}\PYGZob{}wildcard pattern\PYGZcb{}}
+\PYG{c}{\PYGZsh{} \PYGZdq{}wildcard\PYGZdq{} will list every file that follows the \PYGZdq{}pattern\PYGZdq{}}
+\PYG{c}{\PYGZsh{}}
+\PYG{c}{\PYGZsh{} Lets say we have the files hello.c hello.h goodbye.c goodbye.h}
+\PYG{c}{\PYGZsh{} \PYGZdl{}\PYGZob{}wildcard *.c\PYGZcb{} will result in: hello.c goodbye.c}
+\end{Verbatim}

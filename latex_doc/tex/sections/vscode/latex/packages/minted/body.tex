@@ -1,0 +1,43 @@
+\subsubsubsection{Minted - Code viewing}
+In order to use the \texttt{minted} package for displaying code one must install \texttt{Pygments} for \texttt{Python}.
+
+If using \texttt{Ubuntu 18.04}:
+
+\code{sudo apt install python-pygments}
+
+If using \texttt{Ubuntu 20.04}:
+
+\code{sudo apt install python3-pygments}
+
+Also, one must use the \code{-shell-escape} flag with the \code{latexmk} (standard compilation) command in order to compile with \texttt{minted}.
+
+In Visual Studio Code, press \texttt{Ctrl + Shift + P} in order to search for commands. Search and execute \code{Preferences: Open settings (JSON)} in order to open up the \texttt{settings.json} file with the compilation recipe. Add \code{"-shell-escape"} to the arguments.
+
+If the file is empty, use the \texttt{settings.json} from \href{https://github.com/robinhellmers/computer_setup/blob/master/latex-workshop/settings.json}{Github}.
+
+\begin{minted}[tabsize=3,obeytabs,linenos,bgcolor=codegray]{json}
+{
+    "name": "latexmk",
+    "command": "latexmk",
+    "args": [
+        "-shell-escape",
+        "-synctex=1",
+        "-interaction=nonstopmode",
+        "-file-line-error",
+        "-pdf",
+        "-outdir=%OUTDIR%",
+        "%DOC%"
+    ],
+    "env": {}
+}
+\end{minted}
+
+If there there is an error message similar to
+
+\mintinline{text}{Undefined control sequence. \PYG #1#2->\FV@PYG}
+
+\tttbf{WARNING:} Slows down compilation significantly!
+
+Add the argument \code{cache=false} when loading the \code{minted} package.
+
+\code{\usepackage[cache=false]{minted}}

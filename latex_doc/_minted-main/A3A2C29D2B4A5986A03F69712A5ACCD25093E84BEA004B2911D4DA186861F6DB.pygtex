@@ -1,0 +1,7 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+add\PYGZus{}cus\PYGZus{}dep\PYG{o}{(}\PYG{l+s+s1}{\PYGZsq{}glo\PYGZsq{}}, \PYG{l+s+s1}{\PYGZsq{}gls\PYGZsq{}}, \PYG{l+m}{0}, \PYG{l+s+s1}{\PYGZsq{}makeglo2gls\PYGZsq{}}\PYG{o}{)}\PYG{p}{;}
+add\PYGZus{}cus\PYGZus{}dep\PYG{o}{(}\PYG{l+s+s1}{\PYGZsq{}acn\PYGZsq{}}, \PYG{l+s+s1}{\PYGZsq{}acr\PYGZsq{}}, \PYG{l+m}{0}, \PYG{l+s+s1}{\PYGZsq{}makeglo2gls\PYGZsq{}}\PYG{o}{)}\PYG{p}{;}
+sub makeglo2gls \PYG{o}{\PYGZob{}}
+        system\PYG{o}{(}\PYG{l+s+s2}{\PYGZdq{}makeglossaries }\PYG{n+nv}{\PYGZdl{}\PYGZus{}}\PYG{l+s+s2}{[0]\PYGZdq{}}\PYG{o}{)}\PYG{p}{;}
+\PYG{o}{\PYGZcb{}}
+\end{Verbatim}

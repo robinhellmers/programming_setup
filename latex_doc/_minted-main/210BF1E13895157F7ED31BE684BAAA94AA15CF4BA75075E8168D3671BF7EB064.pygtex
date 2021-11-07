@@ -1,0 +1,3 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+sudo tar xf glibc\PYGZhy{}2.27.tar.xz
+\end{Verbatim}

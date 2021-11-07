@@ -1,0 +1,3 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+Invoke\PYGZhy{}WebRequest \PYGZhy{}Uri \PYGZlt{}distro url\PYGZgt{} \PYGZhy{}OutFile ./Ubuntu.zip \PYGZhy{}UseBasicParsing
+\end{Verbatim}

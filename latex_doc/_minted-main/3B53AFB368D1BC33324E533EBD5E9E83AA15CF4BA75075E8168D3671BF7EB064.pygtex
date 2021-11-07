@@ -1,0 +1,5 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+[user]
+    name = \PYGZlt{}Your name\PYGZgt{}
+    email = \PYGZlt{}Your email\PYGZgt{}
+\end{Verbatim}

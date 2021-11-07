@@ -1,0 +1,24 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYGZti{}/.git\PYGZhy{}completion.bash
+
+\PYG{n+nb}{export} \PYG{n+nv}{PROMPT\PYGZus{}DIRTRIM}\PYG{o}{=}\PYG{l+m}{3}
+\PYG{n+nv}{PS1\PYGZus{}custom}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}\PYGZdl{}\PYGZob{}debian\PYGZus{}chroot:+(\PYGZdl{}debian\PYGZus{}chroot)\PYGZcb{}\PYGZbs{}[\PYGZbs{}033[01;32m\PYGZbs{}]\PYGZbs{}u\PYGZbs{}[\PYGZbs{}033[00m\PYGZbs{}]:\PYGZbs{}[\PYGZsq{}}\PYG{l+s+se}{\PYGZbs{}}
+\PYG{l+s+s1}{\PYGZsq{}\PYGZbs{}033[01;34m\PYGZbs{}]\PYGZbs{}w\PYGZbs{}[\PYGZbs{}033[00m\PYGZbs{}]\PYGZbs{}\PYGZdl{} \PYGZsq{}}
+\PYG{n+nv}{PS1\PYGZus{}original}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}\PYGZdl{}\PYGZob{}debian\PYGZus{}chroot:+(\PYGZdl{}debian\PYGZus{}chroot)\PYGZcb{}\PYGZbs{}[\PYGZbs{}033[01;32m\PYGZbs{}]\PYGZbs{}u@\PYGZbs{}h\PYGZbs{}[\PYGZbs{}033[00m\PYGZsq{}}\PYG{l+s+se}{\PYGZbs{}}
+\PYG{l+s+s1}{\PYGZsq{}\PYGZbs{}]:\PYGZbs{}[\PYGZbs{}033[01;34m\PYGZbs{}]\PYGZbs{}w\PYGZbs{}[\PYGZbs{}033[00m\PYGZbs{}]\PYGZbs{}\PYGZdl{} \PYGZsq{}}
+
+\PYG{k}{if} \PYG{o}{[} \PYG{l+s+s2}{\PYGZdq{}}\PYG{n+nv}{\PYGZdl{}color\PYGZus{}prompt}\PYG{l+s+s2}{\PYGZdq{}} \PYG{o}{=} yes \PYG{o}{]}\PYG{p}{;} \PYG{k}{then}
+    \PYG{n+nv}{PS1}\PYG{o}{=}\PYG{n+nv}{\PYGZdl{}PS1\PYGZus{}custom}
+\PYG{k}{else}
+    \PYG{n+nv}{PS1}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}\PYGZdl{}\PYGZob{}debian\PYGZus{}chroot:+(\PYGZdl{}debian\PYGZus{}chroot)\PYGZcb{}\PYGZbs{}u@\PYGZbs{}h:\PYGZbs{}w\PYGZbs{}\PYGZdl{} \PYGZsq{}}
+\PYG{k}{fi}
+\PYG{n+nb}{unset} color\PYGZus{}prompt force\PYGZus{}color\PYGZus{}prompt
+
+\PYG{n+nb}{export} \PYG{n+nv}{GIT\PYGZus{}PS1\PYGZus{}SHOWCOLORHINTS}\PYG{o}{=}\PYG{n+nb}{true}
+\PYG{n+nb}{export} \PYG{n+nv}{GIT\PYGZus{}PS1\PYGZus{}SHOWDIRTYSTATE}\PYG{o}{=}\PYG{n+nb}{true}
+\PYG{n+nb}{export} \PYG{n+nv}{GIT\PYGZus{}PS1\PYGZus{}SHOWUNTRACKEDFILES}\PYG{o}{=}\PYG{n+nb}{true}
+\PYG{n+nb}{export} \PYG{n+nv}{GIT\PYGZus{}PS1\PYGZus{}SHOWUPSTREAM}\PYG{o}{=}\PYG{l+s+s2}{\PYGZdq{}auto\PYGZdq{}}
+\PYG{c+c1}{\PYGZsh{} PROMPT\PYGZus{}COMMAND=\PYGZsq{}\PYGZus{}\PYGZus{}git\PYGZus{}ps1 \PYGZdq{}\PYGZbs{}u@\PYGZbs{}h:\PYGZbs{}w\PYGZdq{} \PYGZdq{}\PYGZbs{}\PYGZbs{}\PYGZbs{}\PYGZdl{} \PYGZdq{}\PYGZsq{}}
+\PYG{c+c1}{\PYGZsh{} use existing PS1 settings}
+\PYG{n+nv}{PROMPT\PYGZus{}COMMAND}\PYG{o}{=}\PYG{k}{\PYGZdl{}(}sed \PYGZhy{}r \PYG{l+s+s1}{\PYGZsq{}s|\PYGZca{}(.+)(\PYGZbs{}\PYGZbs{}\PYGZbs{}\PYGZdl{}\PYGZbs{}s*)\PYGZdl{}|\PYGZus{}\PYGZus{}git\PYGZus{}ps1 \PYGZdq{}\PYGZbs{}1\PYGZdq{} \PYGZdq{}\PYGZbs{}2\PYGZdq{}|\PYGZsq{}} \PYG{o}{\PYGZlt{}\PYGZlt{}\PYGZlt{}} \PYG{n+nv}{\PYGZdl{}PS1}\PYG{k}{)}
+\end{Verbatim}

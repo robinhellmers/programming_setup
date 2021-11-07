@@ -1,0 +1,25 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYGZob{}
+    \PYGZdq{}name\PYGZdq{}: \PYGZdq{}Solarized Dark Custom\PYGZdq{},
+    \PYGZdq{}background\PYGZdq{}: \PYGZdq{}\PYGZsh{}002B36\PYGZdq{},
+    \PYGZdq{}black\PYGZdq{}: \PYGZdq{}\PYGZsh{}002B36\PYGZdq{},
+    \PYGZdq{}blue\PYGZdq{}: \PYGZdq{}\PYGZsh{}FFFFFF\PYGZdq{},
+    \PYGZdq{}brightBlack\PYGZdq{}: \PYGZdq{}\PYGZsh{}073642\PYGZdq{},
+    \PYGZdq{}brightBlue\PYGZdq{}: \PYGZdq{}\PYGZsh{}747D7D\PYGZdq{},
+    \PYGZdq{}brightCyan\PYGZdq{}: \PYGZdq{}\PYGZsh{}93A1A1\PYGZdq{},
+    \PYGZdq{}brightGreen\PYGZdq{}: \PYGZdq{}\PYGZsh{}00A0FF\PYGZdq{},
+    \PYGZdq{}brightPurple\PYGZdq{}: \PYGZdq{}\PYGZsh{}6C71C4\PYGZdq{},
+    \PYGZdq{}brightRed\PYGZdq{}: \PYGZdq{}\PYGZsh{}CB4B16\PYGZdq{},
+    \PYGZdq{}brightWhite\PYGZdq{}: \PYGZdq{}\PYGZsh{}FDF6E3\PYGZdq{},
+    \PYGZdq{}brightYellow\PYGZdq{}: \PYGZdq{}\PYGZsh{}657B83\PYGZdq{},
+    \PYGZdq{}cursorColor\PYGZdq{}: \PYGZdq{}\PYGZsh{}FFFFFF\PYGZdq{},
+    \PYGZdq{}cyan\PYGZdq{}: \PYGZdq{}\PYGZsh{}2AA198\PYGZdq{},
+    \PYGZdq{}foreground\PYGZdq{}: \PYGZdq{}\PYGZsh{}A8A8A8\PYGZdq{},
+    \PYGZdq{}green\PYGZdq{}: \PYGZdq{}\PYGZsh{}056E32\PYGZdq{},
+    \PYGZdq{}purple\PYGZdq{}: \PYGZdq{}\PYGZsh{}D33682\PYGZdq{},
+    \PYGZdq{}red\PYGZdq{}: \PYGZdq{}\PYGZsh{}DC322F\PYGZdq{},
+    \PYGZdq{}selectionBackground\PYGZdq{}: \PYGZdq{}\PYGZsh{}FFFFFF\PYGZdq{},
+    \PYGZdq{}white\PYGZdq{}: \PYGZdq{}\PYGZsh{}EEE8D5\PYGZdq{},
+    \PYGZdq{}yellow\PYGZdq{}: \PYGZdq{}\PYGZsh{}B58900\PYGZdq{}
+\PYGZcb{},
+\end{Verbatim}

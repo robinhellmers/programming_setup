@@ -1,0 +1,17 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{p}{\PYGZob{}}
+    \PYG{n+nt}{\PYGZdq{}version\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}2.0.0\PYGZdq{}}\PYG{p}{,}
+    \PYG{n+nt}{\PYGZdq{}tasks\PYGZdq{}}\PYG{p}{:} \PYG{p}{[}
+        \PYG{p}{\PYGZob{}}
+            \PYG{n+nt}{\PYGZdq{}type\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}shell\PYGZdq{}}\PYG{p}{,}
+            \PYG{n+nt}{\PYGZdq{}label\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}build\PYGZdq{}}\PYG{p}{,}
+            \PYG{n+nt}{\PYGZdq{}command\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}make all\PYGZdq{}}\PYG{p}{,}
+            \PYG{n+nt}{\PYGZdq{}group\PYGZdq{}}\PYG{p}{:} \PYG{p}{\PYGZob{}}
+                \PYG{n+nt}{\PYGZdq{}kind\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}build\PYGZdq{}}\PYG{p}{,}
+                \PYG{n+nt}{\PYGZdq{}isDefault\PYGZdq{}}\PYG{p}{:} \PYG{k+kc}{true}
+            \PYG{p}{\PYGZcb{},}
+            \PYG{n+nt}{\PYGZdq{}problemMatcher\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}\PYGZdl{}gcc\PYGZdq{}}
+        \PYG{p}{\PYGZcb{}}
+    \PYG{p}{]}
+\PYG{p}{\PYGZcb{}}
+\end{Verbatim}

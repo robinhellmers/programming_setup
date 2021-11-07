@@ -1,0 +1,9 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{k}{if} \PYG{o}{[} \PYG{l+s+s2}{\PYGZdq{}}\PYG{n+nv}{\PYGZdl{}color\PYGZus{}prompt}\PYG{l+s+s2}{\PYGZdq{}} \PYG{o}{=} yes \PYG{o}{]}\PYG{p}{;} \PYG{k}{then}
+    \PYG{n+nv}{PS1}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}\PYGZdl{}\PYGZob{}debian\PYGZus{}chroot:+(\PYGZdl{}debian\PYGZus{}chroot)\PYGZcb{}\PYGZbs{}[\PYGZbs{}033[01;32m\PYGZbs{}]\PYGZbs{}u@\PYGZbs{}h\PYGZbs{}[\PYGZbs{}033[00m\PYGZbs{}]:\PYGZbs{}[\PYGZbs{}\PYGZbs{}}
+\PYG{l+s+s1}{033[01;34m\PYGZbs{}]\PYGZbs{}w\PYGZbs{}[\PYGZbs{}033[00m\PYGZbs{}]\PYGZbs{}\PYGZdl{} \PYGZsq{}}
+\PYG{k}{else}
+    \PYG{n+nv}{PS1}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}\PYGZdl{}\PYGZob{}debian\PYGZus{}chroot:+(\PYGZdl{}debian\PYGZus{}chroot)\PYGZcb{}\PYGZbs{}u@\PYGZbs{}h:\PYGZbs{}w\PYGZbs{}\PYGZdl{} \PYGZsq{}}
+\PYG{k}{fi}
+\PYG{n+nb}{unset} color\PYGZus{}prompt force\PYGZus{}color\PYGZus{}prompt
+\end{Verbatim}

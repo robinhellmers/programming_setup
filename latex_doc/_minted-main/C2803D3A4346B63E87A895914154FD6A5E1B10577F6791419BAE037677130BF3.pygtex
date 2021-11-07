@@ -1,0 +1,60 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYGZdq{}latex\PYGZhy{}workshop.view.pdf.viewer\PYGZdq{}: \PYGZdq{}browser\PYGZdq{},
+\PYGZdq{}latex\PYGZhy{}workshop.latex.autoBuild.run\PYGZdq{}: \PYGZdq{}onSave\PYGZdq{},
+\PYGZdq{}latex\PYGZhy{}workshop.latex.autoClean.run\PYGZdq{}: \PYGZdq{}onBuilt\PYGZdq{},
+\PYGZdq{}latex\PYGZhy{}workshop.latex.recipe.default\PYGZdq{}: \PYGZdq{}first\PYGZdq{},
+\PYGZdq{}latex\PYGZhy{}workshop.chktex.run\PYGZdq{}: \PYGZdq{}onType\PYGZdq{},
+\PYGZdq{}latex\PYGZhy{}workshop.chktex.delay\PYGZdq{}: 2000,
+\PYGZdq{}latex\PYGZhy{}workshop.latex.recipes\PYGZdq{}: [
+    \PYG{n+nb}{\PYGZob{}}
+        \PYGZdq{}name\PYGZdq{}: \PYGZdq{}latexmk\PYGZdq{},
+        \PYGZdq{}tools\PYGZdq{}: [
+        \PYGZdq{}latexmk\PYGZdq{}
+        ]
+    \PYG{n+nb}{\PYGZcb{}},
+    \PYG{n+nb}{\PYGZob{}}
+        \PYGZdq{}name\PYGZdq{}: \PYGZdq{}pdflatex \PYGZhy{} bibtex \PYGZhy{} pdflatex x2\PYGZdq{},
+        \PYGZdq{}tools\PYGZdq{}: [
+        \PYGZdq{}pdflatex\PYGZdq{},
+        \PYGZdq{}bibtex\PYGZdq{},
+        \PYGZdq{}pdflatex\PYGZdq{},
+        \PYGZdq{}pdflatex\PYGZdq{}
+        ]
+    \PYG{n+nb}{\PYGZcb{}}
+],
+\PYGZdq{}latex\PYGZhy{}workshop.latex.tools\PYGZdq{}: [
+    \PYG{n+nb}{\PYGZob{}}
+        \PYGZdq{}name\PYGZdq{}: \PYGZdq{}latexmk\PYGZdq{},
+        \PYGZdq{}command\PYGZdq{}: \PYGZdq{}latexmk\PYGZdq{},
+        \PYGZdq{}args\PYGZdq{}: [
+        \PYGZdq{}\PYGZhy{}synctex=1\PYGZdq{},
+        \PYGZdq{}\PYGZhy{}interaction=nonstopmode\PYGZdq{},
+        \PYGZdq{}\PYGZhy{}file\PYGZhy{}line\PYGZhy{}error\PYGZdq{},
+        \PYGZdq{}\PYGZhy{}pdf\PYGZdq{},
+        \PYGZdq{}\PYGZhy{}shell\PYGZhy{}escape\PYGZdq{},
+        \PYGZdq{}\PYGZhy{}outdir=\PYG{c}{\PYGZpc{}OUTDIR\PYGZpc{}\PYGZdq{},}
+        \PYGZdq{}\PYG{c}{\PYGZpc{}DOC\PYGZpc{}\PYGZdq{}}
+        ],
+        \PYGZdq{}env\PYGZdq{}: \PYG{n+nb}{\PYGZob{}\PYGZcb{}}
+    \PYG{n+nb}{\PYGZcb{}},
+    \PYG{n+nb}{\PYGZob{}}
+        \PYGZdq{}name\PYGZdq{}: \PYGZdq{}pdflatex\PYGZdq{},
+        \PYGZdq{}command\PYGZdq{}: \PYGZdq{}pdflatex\PYGZdq{},
+        \PYGZdq{}args\PYGZdq{}: [
+        \PYGZdq{}\PYGZhy{}synctex=1\PYGZdq{},
+        \PYGZdq{}\PYGZhy{}interaction=nonstopmode\PYGZdq{},
+        \PYGZdq{}\PYGZhy{}file\PYGZhy{}line\PYGZhy{}error\PYGZdq{},
+        \PYGZdq{}\PYG{c}{\PYGZpc{}DOC\PYGZpc{}\PYGZdq{}}
+        ],
+        \PYGZdq{}env\PYGZdq{}: \PYG{n+nb}{\PYGZob{}\PYGZcb{}}
+    \PYG{n+nb}{\PYGZcb{}},
+    \PYG{n+nb}{\PYGZob{}}
+        \PYGZdq{}name\PYGZdq{}: \PYGZdq{}bibtex\PYGZdq{},
+        \PYGZdq{}command\PYGZdq{}: \PYGZdq{}bibtex\PYGZdq{},
+        \PYGZdq{}args\PYGZdq{}: [
+        \PYGZdq{}\PYG{c}{\PYGZpc{}DOCFILE\PYGZpc{}\PYGZdq{}}
+        ],
+        \PYGZdq{}env\PYGZdq{}: \PYG{n+nb}{\PYGZob{}\PYGZcb{}}
+    \PYG{n+nb}{\PYGZcb{}}
+]
+\end{Verbatim}

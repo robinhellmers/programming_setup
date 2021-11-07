@@ -1,0 +1,3 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+sudo bash \PYGZhy{}c \PYGZsq{}printf \PYGZdq{}[user]\PYGZbs{}ndefault =\PYGZlt{}username\PYGZgt{}\PYGZbs{}n \PYGZdq{} \PYGZgt{}\PYGZgt{} /etc/wsl.conf\PYGZsq{}
+\end{Verbatim}

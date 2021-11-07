@@ -1,0 +1,3 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+git clone \PYGZti{}/\PYGZlt{}relativePathBare\PYGZgt{}/\PYGZlt{}repoName\PYGZgt{}.git \PYGZti{}/\PYGZlt{}pathToStoreRepo\PYGZgt{}/.
+\end{Verbatim}

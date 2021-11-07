@@ -1,0 +1,3 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+ssh \PYGZlt{}username\PYGZgt{}@\PYGZlt{}IP address server\PYGZgt{}
+\end{Verbatim}

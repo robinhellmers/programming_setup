@@ -1,0 +1,19 @@
+\subsubsubsection{Glossaries}
+
+In order for glossaries to work, one must call \code{makeglossaries}.
+
+E.g. \code{pdflatex <file>.tex} \ra\ \code{makeglossaries <file>} \ra\ \code{pdflatex <file>.text}
+
+But with \tttbf{latex-workshop} in \texttt{VSCode}, the standard compilation tool is \code{latexmk} which does a series of calls with e.g. \code{pdflatex}, \code{bibtex}, etc.
+
+In order to make \code{latexmk} include a call of \code{makeglossaries},
+
+create the file \code{~/.latexmkrc} from \href{https://github.com/robinhellmers/computer_setup}{Github}.
+
+\begin{minted}{bash}
+add_cus_dep('glo', 'gls', 0, 'makeglo2gls');
+add_cus_dep('acn', 'acr', 0, 'makeglo2gls');
+sub makeglo2gls {
+        system("makeglossaries $_[0]");
+}
+\end{minted}

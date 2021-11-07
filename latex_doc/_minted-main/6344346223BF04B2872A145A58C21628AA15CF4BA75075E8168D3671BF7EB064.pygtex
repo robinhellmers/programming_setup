@@ -1,0 +1,3 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+dism.exe /online /enable\PYGZhy{}feature /featurename:Microsoft\PYGZhy{}Windows\PYGZhy{}Subsystem\PYGZhy{}Linux /all /norestart
+\end{Verbatim}
