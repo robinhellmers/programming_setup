@@ -17,12 +17,14 @@
 \usepackage[cache=false]{minted} % linenos = numbering
 %\usepackage{titlesec} % subsubsubsection
 \usepackage{textcomp} % texttildelow
+\usepackage{transparent}
+\usepackage{eso-pic} % For 'Link to TOC'
+\usepackage{ifthen}  % For 'Link to TOC'
 
 \import{tex/extra/newcommands/}{body.tex}
-
-\import{tex/extra/subsections_depth/}{body.tex}
-
 \import{tex/predocument/settings/}{body.tex}
+\import{tex/extra/subsections_depth/}{body.tex}
+\import{tex/extra/link_to_toc/}{body.tex}
 
 \title{Computer Setup Programming}
 \author{Robin Hellmers}
@@ -53,7 +55,7 @@
     
 \maketitle
 \newpage
-\tableofcontents
+\tableofcontents\label{toc}
 \newpage
 
 \import{tex/sections/}{body.tex}
