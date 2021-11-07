@@ -1,0 +1,24 @@
+\subsubsection{Apply gitignore}
+
+\textbf{NOTE:} \textit{This will remove the files from remote repo and thereby remove the files from other computers.}
+
+Show the files which currently apply to the \texttt{.gitignore}:
+
+\code{git ls-files -ci --exclude-standard}
+
+Have a command which 
+\begin{enumerate}
+    \item Looks up the \texttt{.gitignore} files
+    \item Removes them locally
+    \item Stages the changes (add): the removed files
+\end{enumerate}
+
+Add this line to \texttt{.gitconfig} under \code{[alias]} in order to have a short command:
+
+\code{apply-gitignore-remove = !git ls-files -ci --exclude-standard -z | xargs -0 git rm --cached}
+
+Called with: 
+
+\code{git apply-gitignore-remove}
+
+Then commit the removed files.

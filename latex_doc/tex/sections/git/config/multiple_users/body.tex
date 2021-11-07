@@ -1,0 +1,34 @@
+\subsubsection{Multiple git users}
+
+One might want to have multiple users, e.g. one for work with the work email and a private with private email.
+
+As standard, when doing the commands:\\
+\code{git config --global user.name}\\
+\code{git config --global user.email}
+
+It created the default user to the \code{~/.gitconfig} by appending
+\begin{minted}[tabsize=3,obeytabs,bgcolor=codegray]{text}
+[user]
+    name = <Your name>
+    email = <Your email>
+\end{minted}
+
+You can create another local configuration file \code{~/<pathToNewGitDirectory>/.gitconfig}, with the other user:
+\begin{minted}[tabsize=3,obeytabs,bgcolor=codegray]{text}
+[user]
+    name = <Other name>
+    email = <Other email>
+\end{minted}
+
+Open up \code{~/.gitconfig} and add \code{[includeIf ...]} with your new git configuration file path replaced:
+\begin{minted}[tabsize=3,obeytabs,bgcolor=codegray]{text}
+[includeIf "gitdir:~/<pathToNewGitDirectory>/"]
+    path = ~/<pathToNewGitDirectory>/.gitconfig
+\end{minted}
+
+If you are in that directory or any sub-directory specified, your user will be \code{Other name} with \code{Other email}. Verify this by going to that specified path and type:
+
+\begin{minted}[tabsize=3,obeytabs,bgcolor=codegray]{text}
+git config user.name
+git config user.email
+\end{minted}

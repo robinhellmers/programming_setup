@@ -1,0 +1,13 @@
+\subsection{Configurations}
+
+\ifdefined\gitLog
+\subimport{log/}{body.tex}
+\fi
+
+\ifdefined\gitApplyGitIgnore
+\subimport{gitignore/}{body.tex}
+\fi
+
+\ifdefined\gitMultipleUsers
+\subimport{multiple_users/}{body.tex}
+\fi

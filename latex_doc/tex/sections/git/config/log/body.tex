@@ -1,0 +1,26 @@
+\subsubsection{Log - Commit history}
+
+In order to have a good git history tree visualization in the terminal, use the \texttt{.gitconfig} from \href{https://github.com/robinhellmers/computer_setup/blob/master/git_setup/gitconfig}{Github}. This gives three different commands:
+
+
+\begin{minted}{text}
+[alias]
+    show-gitignore = git ls-files -ci --exclude-standard
+    apply-gitignore = !git ls-files -ci --exclude-standard -z | \
+                      xargs -0 git rm --cached
+    apply-gitignore-remove = !git ls-files -ci --exclude-standard -z | \
+                             xargs -0 git rm --cached
+    lg = log --all --graph --abbrev-commit --decorate \
+		--format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset)'\
+		' %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(auto)%d%C(reset)'
+    lg2 = log --all --graph --abbrev-commit --decorate \
+		--format=format:'%C(bold blue)%h%C(reset) - %C(bold cyan)%aD%C(reset)'\
+		' %C(bold green)(%ar)%C(reset)%C(auto)%d%C(reset)%n''          '\
+		'%C(white)%s%C(reset) %C(dim white)- %an%C(reset)'
+    lg3 = log --all --graph --abbrev-commit --decorate \
+		--format=format:'%C(bold blue)%h%C(reset) - %C(bold cyan)%aD%C(reset)'\
+		' %C(bold green)(%ar)%C(reset) %C(bold cyan)(committed: %cD)%C(reset)'\
+		' %C(auto)%d%C(reset)%n''          %C(white)%s%C(reset)%n''          '\
+		'%C(dim white)- %an <%ae> %C(reset) %C(dim white)(committer:'\
+		' %cn <%ce>)%C(reset)'
+\end{minted}

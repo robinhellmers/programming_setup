@@ -1,0 +1,31 @@
+\subsubsection{SSH}
+
+\subsubsubsection{Create SSH keys}
+
+Create SSH keys by entering a passphrase connected to the SSH keys, after running:
+
+\code{ssh-keygen -f ~/.ssh/id_ecdsa -t ecdsa -b 521}
+
+In Ubuntu, run the \code{ssh-agent} with the command:
+
+\mintinline{text}{eval "$(ssh-agent -s)"}
+
+Add the SSH keys to the \code{ssh-agent} by entering the passphrase after:
+
+\code{ssh-add ~/.ssh/id_ecdsa}
+
+\subsubsubsection{Github}
+
+Copy the public key, that is all of the content in \code{id_ecdsa.pub}. If in WSL Ubuntu, copy the content with:
+
+\code{clip.exe < ~/.ssh/id_ecdsa.pub}
+
+Go to \href{www.github.com}{Github}, then: 
+
+\texttt{Settings \ra\ SSH and GPG keys \ra\ Add copied public key}
+
+Now you can clone a repo:
+
+\code{git clone git@github.com:<username>/<reponame>.git}
+
+Say yes to the fingerprint.
