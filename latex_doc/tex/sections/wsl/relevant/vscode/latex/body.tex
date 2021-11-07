@@ -1,0 +1,126 @@
+\subsubsubsection{LaTeX}
+
+Install the complete version TeX Live:
+
+\code{sudo apt install texlive-full}
+
+In Visual Studio Code, install the extension: \texttt{LaTeX Workshop}
+
+\subsubsubsubsection{Latex Workshop}
+
+Open up the settings \texttt{JSON} file:
+
+\code{Ctrl + Shift + P} and enter
+
+\code{>Preferences: Open Settings (JSON)}
+
+Some times, the recipes does not appear in the \texttt{JSON} file. Append the code below if it doesn't exist. 
+
+
+\begin{minted}{latex}
+    "latex-workshop.view.pdf.viewer": "browser",
+    "latex-workshop.latex.autoBuild.run": "onSave",
+    "latex-workshop.latex.autoClean.run": "onBuilt",
+    "latex-workshop.latex.recipe.default": "first",
+    "latex-workshop.chktex.run": "onType",
+    "latex-workshop.chktex.delay": 2000,
+    "latex-workshop.latex.recipes": [
+        {
+            "name": "latexmk",
+            "tools": [
+            "latexmk"
+            ]
+        },
+        {
+            "name": "pdflatex - bibtex - pdflatex x2",
+            "tools": [
+            "pdflatex",
+            "bibtex",
+            "pdflatex",
+            "pdflatex"
+            ]
+        }
+    ],
+    "latex-workshop.latex.tools": [
+        {
+            "name": "latexmk",
+            "command": "latexmk",
+            "args": [
+            "-synctex=1",
+            "-interaction=nonstopmode",
+            "-file-line-error",
+            "-pdf",
+            "-shell-escape",
+            "-outdir=%OUTDIR%",
+            "%DOC%"
+            ],
+            "env": {}
+        },
+        {
+            "name": "pdflatex",
+            "command": "pdflatex",
+            "args": [
+            "-synctex=1",
+            "-interaction=nonstopmode",
+            "-file-line-error",
+            "%DOC%"
+            ],
+            "env": {}
+        },
+        {
+            "name": "bibtex",
+            "command": "bibtex",
+            "args": [
+            "%DOCFILE%"
+            ],
+            "env": {}
+        }
+    ]
+    \end{minted}
+
+\subsubsubsubsection{Default PDF viewer}
+
+The setting
+
+\code{"latex-workshop.view.pdf.viewer": "browser"}
+
+will open up a browser tab when pressing the \texttt{View LaTeX PDF file} button. Using the browser works good with \code{Synctex} for jumping between PDF and code seamlessly.
+
+\subsubsubsubsection{Synctex - Jump between PDF and code}
+
+By having the flag \code{"-synctex=1"} in the recipe, one can enable jumping between the PDF and code locations seamlessly. Works good when using \code{"browser"} as default PDF viewer.
+
+\begin{itemize}
+    \item \code{Ctrl} clicking in the PDF.
+    \item Set text marker in code and press \code{Ctrl + Alt + J}
+\end{itemize}
+
+\subsubsubsubsection{Default recipe}
+
+The setting
+
+\code{"latex-workshop.latex.recipe.default": "first"}
+
+will run the first/top recipe given in \code{"latex-workshop.latex.recipes":}. It can be changed to \code{lastUsed} but might confuse some times.
+
+Make sure that \code{latexmk} is the first item.
+
+
+\subsubsubsubsection{Clean aux files}
+
+The setting
+
+\code{"latex-workshop.latex.autoClean.run": "onBuilt"}
+
+will remove the \code{aux} files generated from the compilation after that the compilation is done.
+
+
+\subsubsubsubsection{Chktex - Linting}
+
+The settings
+
+\code{"latex-workshop.chktex.run": "onType"}\\
+\code{"latex-workshop.chktex.delay": 2000}
+
+will enable linting using \code{Chtex}, checking two seconds after stopped writing. Will show problems in the \texttt{Problems} tab.
+
