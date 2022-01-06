@@ -1,0 +1,14 @@
+
+# Send notifications from WSL to Windows
+# https://github.com/stuartleeks/wsl-notify-send
+notify-send() { wsl-notify-send.exe --category $WSL_DISTRO_NAME "${@}"; }
+# Example notification
+alias makeit='<compilation> && notify-send \"Compilation done!\"'
+
+# cat with color
+alias ccat='highlight -O ansi --force'
+# less with color
+lless()
+{
+   ccat "$1" | less -R
+}
