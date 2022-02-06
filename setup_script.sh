@@ -9,6 +9,99 @@ PATH_VIMCOLORSCHEME=~/.vim/colors
 NAME_VIMCOLORSCHEME=mycolorscheme.vim
 
 PATH_VIMRC=~
+PATH_GITCONFIG=~
+PATH_BASHRC=~
+NAME_BASHRC=.bashrc
+
+URL_GITCOMPLETIONBASH="https://raw.githubusercontent.com/git/git/master/contrib/completion/git-completion.bash"
+PATH_GITCOMPLETIONBASH
+NAME_GITCOMPLETIONBASH=.git-completion.bash
+
+#########################
+### INITIAL QUESTIONS ###
+#########################
+initial_questions()
+{
+    echo "Choose what to setup."
+    echo "Setup everything?"
+    select answer in "Yes" "No"; do
+        echo "You answered $answer"
+        case $answer in 
+            Yes) SETUP_EVERYTHING=true;break;;
+            No) SETUP_EVERYTHING=false;break;;
+        esac
+    done
+
+    if ! [[ $SETUP_EVERYTHING ]]
+    then
+        return
+    fi
+
+    # echo ""
+    # select answer in "y" "n"; do
+    #     case $answer in
+    #         y) SETUP_;;
+    #         n) SETUP_;;
+    #     esac
+    # done
+
+    echo "Setup vimdiff?"
+    select answer in "y" "n"; do
+        case $answer in
+            y)
+                SETUP_VIMDIFF=true;
+                INIT_RESULTS+="[X] ";break;;
+            n)
+                SETUP_VIMDIFF=false;
+                INIT_RESULTS+="[ ] ";break;;
+        esac
+    done
+    INIT_RESULTS+="vimdiff\n"
+
+    echo "Setup git difftool as vimdiff?"
+    select answer in "y" "n"; do
+        case $answer in
+            y)
+                SETUP_GITDIFFTOOL=true;
+                INIT_RESULTS+="[X] ";break;;
+            n)
+                SETUP_GITDIFFTOOL=false;
+                INIT_RESULTS+="[ ] ";break;;
+        esac
+    done
+    INIT_RESULTS+="git difftool as vimdiff\n"
+
+    echo "Setup trash-cli package and alias rm?"
+    select answer in "y" "n"; do
+        case $answer in
+            y)
+                SETUP_TRASHCLI=true;
+                INIT_RESULTS+="[X] ";break;;
+            n)
+                SETUP_TRASHCLI=false;
+                INIT_RESULTS+="[ ] ";break;;
+        esac
+    done
+    INIT_RESULTS+="trash-cli package and alias rm\n"
+
+    echo "Setup git completion bash?"
+    select answer in "y" "n"; do
+        case $answer in
+            y)
+                SETUP_GITCOMPLETIONBASH=true;
+                INIT_RESULTS+="[X] ";break;;
+            n)
+                SETUP_GITCOMPLETIONBASH=false;
+                INIT_RESULTS+="[ ] ";break;;
+        esac
+    done
+    INIT_RESULTS+="Git completion bash\n"
+
+    echo -e $INIT_RESULTS
+}
+################################
+### END OF INITIAL QUESTIONS ###
+################################
 
 ####################
 ### VIM COLORING ###
@@ -19,7 +112,7 @@ setup_vimdiff () {
     ##########################
     ### CREATE COLORSCHEME ###
     ##########################
-    if [[ -f $PATH_VIMCOLORSCHEME/mycolorscheme.vim ]]
+    if [[ -f $PATH_VIMCOLORSCHEME/$NAME_VIMCOLORSCHEME ]]
     then
         echo -e "$NAME_VIMCOLORSCHEME exists.\n"
     else
@@ -45,7 +138,6 @@ EOF
         echo -e "$PATH_VIMRC/.vimrc already exists."
         echo -e "Append to .vimrc.\n"
         cat <<EOF >> .vimrc
-
 set number
 if &diff
         colorscheme mycolorscheme
@@ -66,15 +158,98 @@ endif
 EOF
     fi
 
+cd $PATH_SCRIPT
 echo "End of \"Vimdiff setup\""
-echo -e "****************************************\n" 
+echo -e "****************************************\n"
 }
 ###########################
 ### END OF VIM COLORING ###
 ###########################
 
+############################
+### GIT DIFFTOOL VIMDIFF ###
+############################
+setup_gitdifftool()
+{
+    cd $PATH_GITCONFIG
+    git config --global diff.tool vimdiff
+    git config --global difftool.prompt false
+    cd $PATH_SCRIPT
+}
+###############################
+### END OF DIFFTOOL VIMDIFF ###
+###############################
+
+#################
+### TRASH-CLI ###
+#################
+setup_trashcli()
+{
+    sudo apt install trash-cli
+
+    if [[ $? > 0 ]]
+    then
+        echo -e "Failed setup_trashcli()\n"
+    else
+        echo "alias rm=trash" >> $PATH_BASHRC/$NAME_BASHRC
+    fi
+}
+########################
+### END OF TRASH-CLI ###
+########################
+
+############################
+### GIT COMPLETION SETUP ###
+############################
+setup_gitcompletionbash()
+{
+    if ! [[ -f $PATH_GITCOMPLETIONBASH/$NAME_GITCOMPLETIONBASH ]]
+    then
+        if ! [[ -x $(command -v curl) ]]
+        then
+            echo "Command \"curl\" not available"
+            if ! [[ -x $(command -v wget) ]]
+            then
+                echo -e "Command \"wget\" not available\n"
+                echo "Failed setup_gitcompletionbash()"
+            else
+                URL_CONTENT=$(wget $URL_GITCOMPLETIONBASH -q -O -)
+                echo URL_CONTENT > $PATH_GITCOMPLETIONBASH/$NAME_GITCOMPLETIONBASH
+            fi
+        else
+            URL_CONTENT=$(curl -L $URL_GITCOMPLETIONBASH)
+            echo URL_CONTENT > $PATH_GITCOMPLETIONBASH/$NAME_GITCOMPLETIONBASH
+        fi
+    else
+        echo "The $PATH_GITCOMPLETIONBASH/$NAME_GITCOMPLETIONBASH file already exists."
+        echo -e "Doesn't continue with setup_gitcompletionbash()\n"
+    fi
+}
+###################################
+### END OF GIT COMPLETION SETUP ###
+###################################
+
+initial_questions
+# if [[ SETUP_VIMDIFF ]] || [[ SETUP_EVERYTHING ]]
+# then
+#     setup_vimdiff
+# fi
+
+# if [[ SETUP_GITDIFFTOOL ]] || [[ SETUP_EVERYTHING ]]
+# then
+#     setup_gitdifftool
+# fi
+
+# if [[ SETUP_TRASHCLI ]] || [[ SETUP_EVERYTHING ]]
+# then
+#     setup_trashcli
+# fi
+
+# if [[ SETUP_GITCOMPLETIONBASH ]] || [[ SETUP_EVERYTHING ]]
+# then
+#     setup_gitcompletionbash
+# fi
 
 
-setup_vimdiff
 
 
