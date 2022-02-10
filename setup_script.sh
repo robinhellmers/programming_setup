@@ -14,90 +14,56 @@ PATH_BASHRC=~
 NAME_BASHRC=.bashrc
 
 URL_GITCOMPLETIONBASH="https://raw.githubusercontent.com/git/git/master/contrib/completion/git-completion.bash"
-PATH_GITCOMPLETIONBASH
+PATH_GITCOMPLETIONBASH=~
 NAME_GITCOMPLETIONBASH=.git-completion.bash
+
+
+#############################
+### YESNO QUESTION HELPER ###
+#############################
+yesno_question()
+{
+
+    read -p "Setup $2? [y/*]: " -n 1 -r
+    echo
+
+    case ${REPLY,,} in
+        y)
+            declare SETUP_${1^^}=true
+            INIT_RESULTS+="✅ ";;
+        *)
+            declare SETUP_${1^^}=false
+            INIT_RESULTS+="❌ ";;
+    esac
+    INIT_RESULTS+="$2\n"
+}
+####################################
+### END OF YESNO QUESTION HELPER ###
+####################################
 
 #########################
 ### INITIAL QUESTIONS ###
 #########################
 initial_questions()
 {
-    echo "Choose what to setup."
-    echo "Setup everything?"
-    select answer in "Yes" "No"; do
-        echo "You answered $answer"
-        case $answer in 
-            Yes) SETUP_EVERYTHING=true;break;;
-            No) SETUP_EVERYTHING=false;break;;
-        esac
-    done
+    echo "Choose what to setup in the following prompts:"
+    read -p "Setup everything? [y/*]: " -n 1 -r 
+    echo -e "\n"
+    case ${REPLY,,} in
+        y|yes)
+            SETUP_EVERYTHING=true;;
+        *)
+            SETUP_EVERYTHING=false;;
+    esac
 
-    if ! [[ $SETUP_EVERYTHING ]]
-    then
-        return
-    fi
+    if ! [[ $SETUP_EVERYTHING ]] ; then return ; fi
 
-    # echo ""
-    # select answer in "y" "n"; do
-    #     case $answer in
-    #         y) SETUP_;;
-    #         n) SETUP_;;
-    #     esac
-    # done
-
-    echo "Setup vimdiff?"
-    select answer in "y" "n"; do
-        case $answer in
-            y)
-                SETUP_VIMDIFF=true;
-                INIT_RESULTS+="[X] ";break;;
-            n)
-                SETUP_VIMDIFF=false;
-                INIT_RESULTS+="[ ] ";break;;
-        esac
-    done
-    INIT_RESULTS+="vimdiff\n"
-
-    echo "Setup git difftool as vimdiff?"
-    select answer in "y" "n"; do
-        case $answer in
-            y)
-                SETUP_GITDIFFTOOL=true;
-                INIT_RESULTS+="[X] ";break;;
-            n)
-                SETUP_GITDIFFTOOL=false;
-                INIT_RESULTS+="[ ] ";break;;
-        esac
-    done
-    INIT_RESULTS+="git difftool as vimdiff\n"
-
-    echo "Setup trash-cli package and alias rm?"
-    select answer in "y" "n"; do
-        case $answer in
-            y)
-                SETUP_TRASHCLI=true;
-                INIT_RESULTS+="[X] ";break;;
-            n)
-                SETUP_TRASHCLI=false;
-                INIT_RESULTS+="[ ] ";break;;
-        esac
-    done
-    INIT_RESULTS+="trash-cli package and alias rm\n"
-
-    echo "Setup git completion bash?"
-    select answer in "y" "n"; do
-        case $answer in
-            y)
-                SETUP_GITCOMPLETIONBASH=true;
-                INIT_RESULTS+="[X] ";break;;
-            n)
-                SETUP_GITCOMPLETIONBASH=false;
-                INIT_RESULTS+="[ ] ";break;;
-        esac
-    done
-    INIT_RESULTS+="Git completion bash\n"
-
-    echo -e $INIT_RESULTS
+    yesno_question vimdiff "vimdiff"
+    yesno_question gitdifftool "git difftool as vimdiff"
+    yesno_question trashcli "trash-cli and alias rm"
+    yesno_question gitcompletionbash "git completion bash"
+    
+    echo -e "\n$INIT_RESULTS"
 }
 ################################
 ### END OF INITIAL QUESTIONS ###
