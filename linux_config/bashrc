@@ -13,5 +13,27 @@ lless()
    ccat "$1" | less -R
 }
 
+# SSH agent password manager
+env=~/.ssh/agent.env
+agent_load_env () { test -f "$env" && . "$env" >| /dev/null ; }
+agent_start () {
+    (umask 077; ssh-agent >| "$env")
+    . "$env" >| /dev/null ; }
+agent_load_env
+# agent_run_state: 0=agent running w/ key; 1=agent w/o key; 2=agent not running
+agent_run_state=$(ssh-add -l >| /dev/null 2>&1; echo $?)
+if [ ! "$SSH_AUTH_SOCK" ] || [ $agent_run_state = 2 ]; then
+    agent_start
+    ssh-add
+elif [ "$SSH_AUTH_SOCK" ] && [ $agent_run_state = 1 ]; then
+    ssh-add
+fi
+unset env
+
 # PS1 adding @BuildServer in orange after username
 # PS1_customSecond='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u\[\033[00m\]\[\033[38;5;214m\]@BuildServer\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$'
+
+# SSH port knocking
+RASP_LAN_IP=192.168.0.27
+alias ssh-rasp-lan="knock -v $RASP_LAN_IP <port1> <port2> <port3> -d 500 && nmap -p 22 $RASP_LAN_IP | grep -q open && echo 'SESAME OPEN!' && ssh ubuntu@$RASP_LAN_IP"
+alias lock-rasp-lan="knock -v $RASP_LAN_IP <port3> <port2> <port1> -d 500 && nmap -p 22 $RASP_LAN_IP | grep -q 'closed\|filtered' && echo 'CLOSEY SESAME!'"
