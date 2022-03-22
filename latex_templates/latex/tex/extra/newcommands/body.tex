@@ -1,0 +1,30 @@
+
+%%% Code %%%
+\definecolor{codegray}{gray}{0.9}
+\newcommand{\code}[1]{\mintinline{text}{#1}}
+\newcommand{\tttbf}[1]{\texttt{\textbf{#1}}} % requires package bold-extra
+
+%%% ---- %%%
+
+%%% Links %%%
+\definecolor{darkblue}{rgb}{0.0, 0.0, 0.8}
+\newcommand{\linkcolor}[1]{\textbf{\color{darkblue}#1}}
+\newcommand{\link}[2]{{\href{#1}{\linkcolor{#2}}}}
+\newcommand{\refsection}[2]{{\hyperref[#1]{\textbf{\color{darkblue}#2}}}}
+%%% ----- %%%
+
+%%% Symbols %%%
+\newcommand{\textapprox}{\raisebox{0.5ex}{\texttildelow}}
+\newcommand{\ra}{\(\,\to\,\)}
+%%% ------- %%%
+
+%%% Minipage %%%
+% Keep parskip the same
+\newlength{\currentparskip}
+\newenvironment{minipageparskip}
+  {\setlength{\currentparskip}{\parskip}% save the value
+   \begin{minipage}{\textwidth}% open the minipage
+   \setlength{\parskip}{\currentparskip}% restore the value
+  }
+  {\end{minipage}}
+%%% -------- %%%

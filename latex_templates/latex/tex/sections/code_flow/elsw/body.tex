@@ -1,0 +1,18 @@
+\subsection{ELSW}
+
+\begin{minipageparskip}
+Some inline code with the file and location
+
+\mintinline{text}{PC_TCA_super\TSL\PlatformLogic\TarVersionHelper.cs}
+
+Some inline code with the name of the function of relevance
+
+\mintinline{csharp}{public static bool IsSwVersionMatched(string blobPath, ICtDevice device)}
+
+at currently \code{line: 120}
+
+\begin{minted}[highlightlines={1-2}]{csharp}
+if (!device.RtSysUpgrade.GetHwInfo(out dummy, out dummy, out dummy,
+    out installedProductVersion, out installedBlobVersion))
+\end{minted}
+\end{minipageparskip}

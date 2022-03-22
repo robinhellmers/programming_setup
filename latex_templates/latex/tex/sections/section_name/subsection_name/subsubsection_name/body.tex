@@ -1,0 +1,14 @@
+\subsubsection{Subsubsection name}
+
+\blindtext
+
+% Observe relative path for the .png file, because of using import/subimport
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth]{figures/example.png}
+\end{figure}
+
+
+\ifdefined\subsubsubsectionName
+\subimport{subsubsubsection_name/}{body.tex}
+\fi

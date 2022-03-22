@@ -1,0 +1,56 @@
+\documentclass{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern} % Gives good tilde ~ for minted, together with [T1]{fontenc}
+\usepackage{parskip}
+\usepackage{fullpage}
+\usepackage{import}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage{listings}
+\usepackage[hidelinks]{hyperref}
+\usepackage[shortlabels]{enumitem}
+\usepackage{bold-extra} % \tttbf
+\usepackage{xcolor}
+\usepackage[]{minted} % linenos = numbering
+\usepackage{textcomp} % texttildelow
+\usepackage{navigator} % Embedd files with \embeddedfile{}{} \openfilelink{}{}
+\usepackage{blindtext}
+\usepackage{transparent} % Copy paste code - \FancyVerbSpace at tex/extra/settings/
+\usepackage{eso-pic} % For 'Link to TOC'
+\usepackage{ifthen} % For 'Link to TOC'
+
+
+\import{tex/extra/newcommands/}{body.tex}
+\import{tex/extra/subsections_depth/}{body.tex}
+\import{tex/extra/linktotoc/}{body.tex}
+
+\import{tex/predocument/settings/}{body.tex}
+
+\title{Task  \#\#\#\# - Descriptor}
+\author{Robin Hellmers}
+
+\embeddedfile{extra/embedded_files/sample.pdf}{extra/embedded_files/sample.pdf}
+
+
+% Ifdefined -> Include
+% Comment out to exclude from compilation
+\def\sectionName{}
+    \def\subsectionName{}
+        \def\subsubsectionName{}
+            \def\subsubsubsectionName{}
+                \def\subsubsubsubsectionName{}
+\def\codeExamples{}
+
+\begin{document}
+
+\maketitle
+\newpage
+{\hypersetup{hidelinks} \tableofcontents\label{toc}}
+\newpage
+
+\import{tex/sections/}{body.tex}
+
+\end{document}
