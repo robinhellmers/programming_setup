@@ -17,18 +17,46 @@ URL_GITCOMPLETIONBASH="https://raw.githubusercontent.com/git/git/master/contrib/
 PATH_GITCOMPLETIONBASH=~
 NAME_GITCOMPLETIONBASH=.git-completion.bash
 
+# Reads multiline text and inputs to variable
+define(){ IFS=$'\n' read -r -d '' ${1} || true; }
+# Example usage:
+# define VAR <<'EOF'
+# abc'asdf"
+#     $(dont-execute-this)
+# foo"bar"'''
+# EOF
+
+# Checks if variable content exists in file
+# Input: 2 arguments
+# 1 - Filename
+# 2 - Multiline variable. Must be quoted
+existsInFile()
+{
+    FILECONTENT=$(<$1)
+    REPLACED_CONTENT=${FILECONTENT/$2/}
+
+    if [[ "$FILECONTENT" != "$REPLACED_CONTENT" ]]
+    then
+        return 0
+    fi
+
+    return -1
+}
 
 #############################
 ### YESNO QUESTION HELPER ###
 #############################
+# Input: 2 arguments
+# 1 - Variable name
+# 2 - Description for question and results
 yesno_question()
 {
 
-    read -p "Setup $2? [y/*]: " -n 1 -r
+    read -p "Setup $2? [y/n]: " -n 1 -r
     echo
 
     case ${REPLY,,} in
-        y)
+        y|yes)
             declare SETUP_${1^^}=true
             INIT_RESULTS+="✅ ";;
         *)
@@ -58,6 +86,8 @@ initial_questions()
 
     if ! [[ $SETUP_EVERYTHING ]] ; then return ; fi
 
+    # Yes/No questions
+
     yesno_question vimdiff "vimdiff"
     yesno_question gitdifftool "git difftool as vimdiff"
     yesno_question trashcli "trash-cli and alias rm"
@@ -74,63 +104,94 @@ initial_questions()
 ####################
 setup_vimdiff () {
     echo -e "Start of \"Vimdiff setup\"\n"
+    
+    create_colorscheme
 
-    ##########################
-    ### CREATE COLORSCHEME ###
-    ##########################
-    if [[ -f $PATH_VIMCOLORSCHEME/$NAME_VIMCOLORSCHEME ]]
-    then
-        echo -e "$NAME_VIMCOLORSCHEME exists.\n"
-    else
-        echo -e "Create directory: $PATH_VIMCOLORSCHEME/\n"
-        mkdir -p $PATH_VIMCOLORSCHEME
-        cd $PATH_VIMCOLORSCHEME
+    create_vimrc
 
-        echo -e "Create file $PATH_VIMCOLORSCHEME/$NAME_VIMCOLORSCHEME"
-        cat <<EOF > $NAME_VIMCOLORSCHEME
+    echo "End of \"Vimdiff setup\""
+    echo -e "****************************************\n"
+}
+###########################
+### END OF VIM COLORING ###
+###########################
+
+##########################
+### CREATING COLORSCHEME ###
+##########################
+create_colorscheme()
+{
+    define VIMCOLORSCHEME << 'EOF'
 highlight DiffAdd    cterm=bold ctermfg=15 ctermbg=22 gui=none guifg=bg guibg=Red
 highlight DiffDelete cterm=bold ctermfg=15 ctermbg=88 gui=none guifg=bg guibg=Red
 highlight DiffChange cterm=bold ctermfg=15 ctermbg=17 gui=none guifg=bg guibg=Red
 highlight DiffText   cterm=bold ctermfg=15 ctermbg=130 gui=none guifg=bg guibg=Red
 EOF
-    fi
-    cd $PATH_SCRIPT
 
-    ####################
-    ### CREATE VIMRC ###
-    ####################
-    if [[ -f $PATH_VIMRC/.vimrc ]]
-    then
-        echo -e "$PATH_VIMRC/.vimrc already exists."
-        echo -e "Append to .vimrc.\n"
-        cat <<EOF >> .vimrc
-set number
-if &diff
-        colorscheme mycolorscheme
-        au VimEnter * | execute 'windo set wrap' |
-endif
-EOF
-        # ************************************************************************************** APPEND
-    else
+    if [[ -f $PATH_VIMCOLORSCHEME/$NAME_VIMCOLORSCHEME ]]
+    then # File already exists
+        echo -e "$NAME_VIMCOLORSCHEME exists."
 
-        echo -e "Create $PATH_VIMRC/.vimrc\n"
-        # Create vimrc with colorscheme, word wrapping and line numbering
-        cat <<EOF > .vimrc
-set number
-if &diff
-        colorscheme mycolorscheme
-        au VimEnter * | execute 'windo set wrap' |
-endif
-EOF
+        if existsInFile "$PATH_VIMCOLORSCHEME/$NAME_VIMCOLORSCHEME" "$VIMCOLORSCHEME"
+        then # Content is already in the file
+            echo -e "$NAME_VIMCOLORSCHEME already contains the relevant content.\n"
+            return 0
+        else # Append content to file
+            echo -e "Append to $NAME_VIMCOLORSCHEME.\n"
+            echo "$VIMCOLORSCHEME" >> $NAME_VIMCOLORSCHEME
+            return 0
+        fi
+    else # Create file with content
+        echo -e "Create directory: $PATH_VIMCOLORSCHEME/\n"
+        mkdir -p $PATH_VIMCOLORSCHEME
+        echo -e "Create file $PATH_VIMCOLORSCHEME/$NAME_VIMCOLORSCHEME"    
+        echo "$VIMCOLORSCHEME" > $PATH_VIMCOLORSCHEME/$NAME_VIMCOLORSCHEME
+        return 0
     fi
 
-cd $PATH_SCRIPT
-echo "End of \"Vimdiff setup\""
-echo -e "****************************************\n"
 }
-###########################
-### END OF VIM COLORING ###
-###########################
+###################################
+### END OF CREATING COLORSCHEME ###
+###################################
+
+#####################
+### CREATNG VIMRC ###
+#####################
+create_vimrc()
+{
+    # Create vimrc with colorscheme, word wrapping and line numbering
+    define VIMRC_CONTENT << 'EOF'
+set number
+if &diff
+        colorscheme mycolorscheme
+        au VimEnter * | execute 'windo set wrap' |
+endif
+EOF
+    
+    if [[ -f $PATH_VIMRC/.vimrc ]]
+    then # File already exists
+        echo -e "$PATH_VIMRC/.vimrc exists."
+
+        if existsInFile "$PATH_VIMRC/.vimrc" "$VIMRC_CONTENT"
+        then # Content is already in the file
+            echo -e ".vimrc already contains the relevant content.\n"
+            return 0
+        else # Append content to file
+            echo -e "Append to .vimrc.\n"
+            echo "$VIMRC_CONTENT" >> "$PATH_VIMRC/.vimrc"
+            return 0;
+        fi
+    else # Create file with content
+        echo -e "Create directory: $PATH_VIMCOLORSCHEME/\n"
+        mkdir -p $PATH_VIMCOLORSCHEME
+        echo -e "Create file $PATH_VIMRC/.vimrc\n"
+        echo "$VIMRC_CONTENT" > $PATH_VIMRC/.vimrc
+        return 0
+    fi
+}
+############################
+### END OF CREATNG VIMRC ###
+############################
 
 ############################
 ### GIT DIFFTOOL VIMDIFF ###
@@ -178,17 +239,20 @@ setup_gitcompletionbash()
             then
                 echo -e "Command \"wget\" not available\n"
                 echo "Failed setup_gitcompletionbash()"
+                return -1
             else
                 URL_CONTENT=$(wget $URL_GITCOMPLETIONBASH -q -O -)
                 echo URL_CONTENT > $PATH_GITCOMPLETIONBASH/$NAME_GITCOMPLETIONBASH
+                return 0
             fi
         else
             URL_CONTENT=$(curl -L $URL_GITCOMPLETIONBASH)
             echo URL_CONTENT > $PATH_GITCOMPLETIONBASH/$NAME_GITCOMPLETIONBASH
+            return 0
         fi
     else
         echo "The $PATH_GITCOMPLETIONBASH/$NAME_GITCOMPLETIONBASH file already exists."
-        echo -e "Doesn't continue with setup_gitcompletionbash()\n"
+        return 0
     fi
 }
 ###################################
@@ -196,10 +260,11 @@ setup_gitcompletionbash()
 ###################################
 
 initial_questions
-# if [[ SETUP_VIMDIFF ]] || [[ SETUP_EVERYTHING ]]
-# then
-#     setup_vimdiff
-# fi
+if [[ SETUP_VIMDIFF ]] || [[ SETUP_EVERYTHING ]]
+then
+    create_vimrc
+    # setup_vimdiff
+fi
 
 # if [[ SETUP_GITDIFFTOOL ]] || [[ SETUP_EVERYTHING ]]
 # then
