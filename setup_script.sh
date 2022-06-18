@@ -4,6 +4,11 @@ PATH_SCRIPT="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 echo -e "\nLocation of script:"
 echo -e "$PATH_SCRIPT\n"
 
+declare -a arr_setups=(vimdiff "vimdiff"
+                           gitdifftool "git difftool as vimdiff"
+                           trashcli "trash-cli and alias rm"
+                           gitcompletionbash "git completion bash")
+
 
 PATH_VIMCOLORSCHEME=~/.vim/colors
 NAME_VIMCOLORSCHEME=mycolorscheme.vim
@@ -49,6 +54,7 @@ existsInFile()
 # Input: 2 arguments
 # 1 - Variable name
 # 2 - Description for question and results
+# 
 yesno_question()
 {
 
@@ -58,10 +64,10 @@ yesno_question()
     case ${REPLY,,} in
         y|yes)
             declare SETUP_${1^^}=true
-            INIT_RESULTS+="✅ ";;
+            INIT_RESULTS+="[  ] ";;
         *)
             declare SETUP_${1^^}=false
-            INIT_RESULTS+="❌ ";;
+            INIT_RESULTS+="[❌] ";;
     esac
     INIT_RESULTS+="$2\n"
 }
@@ -74,8 +80,19 @@ yesno_question()
 #########################
 initial_questions()
 {
-    echo "Choose what to setup in the following prompts:"
-    read -p "Setup everything? [y/*]: " -n 1 -r 
+    # List what this script will setup
+    echo "This script have to option to setup:"
+    for i in "${!arr_setups[@]}"
+    do 
+        if [[ $(( i % 2 )) != 0 ]]
+        then
+            echo "[  ] ${arr_setups[$i]}"
+        fi
+    done
+    echo ""
+
+    # Ask about setting up everything
+    read -p "Setup everything given above? [y/n]: " -n 1 -r 
     echo -e "\n"
     case ${REPLY,,} in
         y|yes)
@@ -84,16 +101,37 @@ initial_questions()
             SETUP_EVERYTHING=false;;
     esac
 
-    if ! [[ $SETUP_EVERYTHING ]] ; then return ; fi
+    if $SETUP_EVERYTHING; then return 0; fi
 
-    # Yes/No questions
 
-    yesno_question vimdiff "vimdiff"
-    yesno_question gitdifftool "git difftool as vimdiff"
-    yesno_question trashcli "trash-cli and alias rm"
-    yesno_question gitcompletionbash "git completion bash"
-    
-    echo -e "\n$INIT_RESULTS"
+    # Ask about individual setups
+    ASK_INDIVIDUAL_SETUPS=true
+    while $ASK_INDIVIDUAL_SETUPS
+    do
+        echo -e "Choose which individual setups to do:"
+        for i in "${!arr_setups[@]}"
+        do 
+            if [[ $(( i % 2 )) == 0 ]]
+            then
+                yesno_question "${arr_setups[$i]}" "${arr_setups[(($i + 1))]}"
+            fi
+        done
+
+        # Ask if happy with choices and to continue
+        echo -e "\nSetups to be done:"
+        echo -e " ❌ = Not to be done"
+        echo -e "$INIT_RESULTS"
+        read -p "Start the setup with the choices above? [y/n/q]: " -n 1 -r
+        echo -e "\n"
+        case ${REPLY,,} in
+            y|yes)
+                ASK_INDIVIDUAL_SETUPS=false;;
+            q|quit|exit)
+                echo "Exiting script."; exit;;
+            *)
+                echo "Doesn't seem like you were happy with your choices.";;
+        esac
+    done
 }
 ################################
 ### END OF INITIAL QUESTIONS ###
@@ -176,6 +214,7 @@ EOF
         then # Content is already in the file
             echo -e ".vimrc already contains the relevant content.\n"
             return 0
+            echo "nnn"
         else # Append content to file
             echo -e "Append to .vimrc.\n"
             echo "$VIMRC_CONTENT" >> "$PATH_VIMRC/.vimrc"
