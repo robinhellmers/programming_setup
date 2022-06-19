@@ -80,7 +80,7 @@ yesno_question()
             INIT_RESULTS+="[  ] ";;
         *)
             declare -g SETUP_${1^^}=false
-            INIT_RESULTS+="[❌] ";;
+            INIT_RESULTS+="[🟠] ";;
     esac
     INIT_RESULTS+="$2\n"
 }
@@ -132,7 +132,7 @@ initial_questions()
 
         # Ask if happy with choices and to continue
         echo -e "\nSetups to be done:"
-        echo -e " ❌ = Not to be done"
+        echo -e " 🟠 = Not to be done"
         echo -e "$INIT_RESULTS"
         read -p "Start the setup with the choices above? [y/n/q]: " -n 1 -r
         echo -e "\n"
@@ -156,8 +156,17 @@ initial_questions()
 setup_vimdiff () {
     
     create_colorscheme
+    RETURN_COLORSCHEME=$?
 
     create_vimrc
+    RETURN_VIMRC=$?
+
+    if [[ $RETURN_COLORSCHEME == 255 && $RETURN_VIMRC == 255 ]]
+    then
+        return 255
+    else
+        return 0
+    fi
     
 }
 ###########################
@@ -183,7 +192,7 @@ EOF
         if existsInFile "$PATH_VIMCOLORSCHEME/$NAME_VIMCOLORSCHEME" "$VIMCOLORSCHEME"
         then # Content is already in the file
             echo -e "$NAME_VIMCOLORSCHEME already contains the relevant content.\n"
-            return 0
+            return 255
         else # Append content to file
             echo -e "Append to $NAME_VIMCOLORSCHEME.\n"
             echo "$VIMCOLORSCHEME" >> $NAME_VIMCOLORSCHEME
@@ -223,7 +232,7 @@ EOF
         if existsInFile "$PATH_VIMRC/.vimrc" "$VIMRC_CONTENT"
         then # Content is already in the file
             echo -e ".vimrc already contains the relevant content.\n"
-            return 0
+            return 255
             echo "nnn"
         else # Append content to file
             echo -e "Append to .vimrc.\n"
@@ -317,6 +326,7 @@ setup_gitcompletionbash()
 initial_questions
 
 # Go through every setup, calling their corresponding function if to be done
+TOTAL_RESULTS=true
 for i in "${!arr_setups[@]}"
 do 
     if [[ $(( i % 2 )) == 0 ]]
@@ -331,13 +341,43 @@ do
             echo -e "****************************************\n"
             # Function call
             setup_${arr_setups[$i]}
+            case $? in 
+                0)   # Success
+                    END_RESULTS+="[✔️] ";;
+                255) # Already done
+                    END_RESULTS+="[🔷] ";;
+                *)   # Failure
+                    END_RESULTS+="[❌] ";
+                    TOTAL_RESULTS=false;;
+            esac
             echo -e "****************************************"
             echo "End setup of \"${arr_setups[(($i + 1))]}\""
             echo -e "****************************************\n"
+        else
+            # Setup not to be done
+            END_RESULTS+="[🟠] "
         fi
+
+        END_RESULTS+="${arr_setups[(($i + 1))]}\n"
     fi
 done
 
-
+# Print end results
+echo -e "Results:\n"
+echo -e " 🟠 = Not to be done"
+echo -e " ✔️ = Success"
+echo -e " ❌ = Failure"
+echo -e " 🔷 = Already setup\n"
+echo -e "$END_RESULTS\n"
+echo -e "****************************************"
+TOTAL_RESULTS_PRINT="Total results: "
+if $TOTAL_RESULTS
+then
+    TOTAL_RESULTS_PRINT+="✔️ - SUCCESS"
+else
+    TOTAL_RESULTS_PRINT+="❌ - FAILURE"
+fi
+echo -e "$TOTAL_RESULTS_PRINT"
+echo -e "****************************************\n"
 
 
