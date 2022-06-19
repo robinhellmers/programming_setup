@@ -4,11 +4,19 @@ PATH_SCRIPT="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 echo -e "\nLocation of script:"
 echo -e "$PATH_SCRIPT\n"
 
-declare -a arr_setups=(vimdiff "vimdiff"
-                           gitdifftool "git difftool as vimdiff"
-                           trashcli "trash-cli and alias rm"
-                           gitcompletionbash "git completion bash")
+################
+### SETTINGS ###
+################
 
+# 2 entries per function
+# 1st entry - Suffix of function. Function name should then follow the
+#             naming "setup_<suffix>"
+# 2nd entry - Description of function.
+declare -a arr_setups=(vimdiff "vimdiff"
+                       gitdifftool "vimdiff as git difftool"
+                       trashcli "trash-cli and alias rm"
+                       gitcompletionbash "git completion bash"
+                       )
 
 PATH_VIMCOLORSCHEME=~/.vim/colors
 NAME_VIMCOLORSCHEME=mycolorscheme.vim
@@ -22,14 +30,19 @@ URL_GITCOMPLETIONBASH="https://raw.githubusercontent.com/git/git/master/contrib/
 PATH_GITCOMPLETIONBASH=~
 NAME_GITCOMPLETIONBASH=.git-completion.bash
 
+#######################
+### END OF SETTINGS ###
+#######################
+
 # Reads multiline text and inputs to variable
-define(){ IFS=$'\n' read -r -d '' ${1} || true; }
+#
 # Example usage:
 # define VAR <<'EOF'
 # abc'asdf"
 #     $(dont-execute-this)
 # foo"bar"'''
 # EOF
+define(){ IFS=$'\n' read -r -d '' ${1} || true; }
 
 # Checks if variable content exists in file
 # Input: 2 arguments
@@ -141,14 +154,11 @@ initial_questions()
 ### VIM COLORING ###
 ####################
 setup_vimdiff () {
-    echo -e "Start of \"Vimdiff setup\"\n"
     
     create_colorscheme
 
     create_vimrc
-
-    echo "End of \"Vimdiff setup\""
-    echo -e "****************************************\n"
+    
 }
 ###########################
 ### END OF VIM COLORING ###
@@ -298,28 +308,35 @@ setup_gitcompletionbash()
 ### END OF GIT COMPLETION SETUP ###
 ###################################
 
+
+
+############
+### MAIN ###
+############
+
 initial_questions
 
-if $SETUP_VIMDIFF || $SETUP_EVERYTHING
-then
-    create_vimrc
-    # setup_vimdiff
-fi
-
-if $SETUP_GITDIFFTOOL || $SETUP_EVERYTHING
-then
-    #setup_gitdifftool
-fi
-
-# if [[ SETUP_TRASHCLI ]] || [[ SETUP_EVERYTHING ]]
-# then
-#     setup_trashcli
-# fi
-
-# if [[ SETUP_GITCOMPLETIONBASH ]] || [[ SETUP_EVERYTHING ]]
-# then
-#     setup_gitcompletionbash
-# fi
+# Go through every setup, calling their corresponding function if to be done
+for i in "${!arr_setups[@]}"
+do 
+    if [[ $(( i % 2 )) == 0 ]]
+    then
+        # SETUP_INDIVIDUAL is used to call the magic variable through double
+        # evaluation with ${!SETUP_INDIVIDUAL}
+        SETUP_INDIVIDUAL=SETUP_${arr_setups[$i]^^}
+        if $SETUP_EVERYTHING || ${!SETUP_INDIVIDUAL}
+        then
+            echo -e "****************************************"
+            echo -e "Start setup of \"${arr_setups[(($i + 1))]}\""
+            echo -e "****************************************\n"
+            # Function call
+            setup_${arr_setups[$i]}
+            echo -e "****************************************"
+            echo "End setup of \"${arr_setups[(($i + 1))]}\""
+            echo -e "****************************************\n"
+        fi
+    fi
+done
 
 
 
