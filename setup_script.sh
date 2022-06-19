@@ -63,10 +63,10 @@ yesno_question()
 
     case ${REPLY,,} in
         y|yes)
-            declare SETUP_${1^^}=true
+            declare -g SETUP_${1^^}=true
             INIT_RESULTS+="[  ] ";;
         *)
-            declare SETUP_${1^^}=false
+            declare -g SETUP_${1^^}=false
             INIT_RESULTS+="[❌] ";;
     esac
     INIT_RESULTS+="$2\n"
@@ -299,16 +299,17 @@ setup_gitcompletionbash()
 ###################################
 
 initial_questions
-if [[ SETUP_VIMDIFF ]] || [[ SETUP_EVERYTHING ]]
+
+if $SETUP_VIMDIFF || $SETUP_EVERYTHING
 then
     create_vimrc
     # setup_vimdiff
 fi
 
-# if [[ SETUP_GITDIFFTOOL ]] || [[ SETUP_EVERYTHING ]]
-# then
-#     setup_gitdifftool
-# fi
+if $SETUP_GITDIFFTOOL || $SETUP_EVERYTHING
+then
+    #setup_gitdifftool
+fi
 
 # if [[ SETUP_TRASHCLI ]] || [[ SETUP_EVERYTHING ]]
 # then
