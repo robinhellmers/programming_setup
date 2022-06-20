@@ -176,7 +176,8 @@ initial_questions()
             q|quit|exit)
                 echo "Exiting script."; exit;;
             *)
-                echo "Doesn't seem like you were happy with your choices.";;
+                echo -e "Doesn't seem like you were happy with your choices.\n";
+                INIT_RESULTS="";;
         esac
     done
 }
