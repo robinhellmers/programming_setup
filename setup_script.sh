@@ -253,8 +253,38 @@ EOF
 setup_gitdifftool()
 {
     cd $PATH_GITCONFIG
-    git config --global diff.tool vimdiff
-    git config --global difftool.prompt false
+    RESULTS=$(git config --global --get diff.tool)
+    if [[ "$RESULTS" != "vimdiff" ]]
+    then # Not set to wished setting. Set it.
+        git config --global diff.tool vimdiff
+
+        RESULTS=$(git config --global --get diff.tool)
+        if [[ "$RESULTS" != "vimdiff" ]]
+        then # Could no set the setting
+            return -1
+        fi
+
+        return 0
+    else # Already set to the wished setting
+        return 255
+    fi
+
+    RESULTS=$(git config --global --get difftool.prompt)
+    if [[ "$RESULTS" != "vimdiff" ]]
+    then # Not set to wished setting. Set it.
+        git config --global diff.tool vimdiff
+
+        RESULTS=$(git config --global difftool.prompt false)
+        if [[ "$RESULTS" != "vimdiff" ]]
+        then # Could no set the setting
+            return -1
+        fi
+
+        return 0
+    else # Already set to the wished setting
+        return 255
+    fi
+    
     cd $PATH_SCRIPT
 }
 ###############################
