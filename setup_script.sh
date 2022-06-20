@@ -375,30 +375,8 @@ setup_trashcli()
 ############################
 setup_gitcompletionbash()
 {
-    if ! [[ -f $PATH_GITCOMPLETIONBASH/$NAME_GITCOMPLETIONBASH ]]
-    then
-        if ! [[ -x $(command -v curl) ]]
-        then
-            echo "Command \"curl\" not available"
-            if ! [[ -x $(command -v wget) ]]
-            then
-                echo -e "Command \"wget\" not available\n"
-                echo "Failed setup_gitcompletionbash()"
-                return -1
-            else
-                URL_CONTENT=$(wget $URL_GITCOMPLETIONBASH -q -O -)
-                echo URL_CONTENT > $PATH_GITCOMPLETIONBASH/$NAME_GITCOMPLETIONBASH
-                return 0
-            fi
-        else
-            URL_CONTENT=$(curl -L $URL_GITCOMPLETIONBASH)
-            echo URL_CONTENT > $PATH_GITCOMPLETIONBASH/$NAME_GITCOMPLETIONBASH
-            return 0
-        fi
-    else
-        echo "The $PATH_GITCOMPLETIONBASH/$NAME_GITCOMPLETIONBASH file already exists."
-        return 0
-    fi
+    get_internet_file "$PATH_GITCOMPLETIONBASH" "$NAME_GITCOMPLETIONBASH" "$URL_GITCOMPLETIONBASH"
+    return
 }
 ###################################
 ### END OF GIT COMPLETION SETUP ###
