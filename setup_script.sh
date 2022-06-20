@@ -48,7 +48,7 @@ define(){ IFS=$'\n' read -r -d '' ${1} || true; }
 # Input: 2 arguments
 # 1 - Filename
 # 2 - Multiline variable. Must be quoted
-existsInFile()
+exists_in_file()
 {
     FILECONTENT=$(<$1)
     REPLACED_CONTENT=${FILECONTENT/$2/}
@@ -59,6 +59,40 @@ existsInFile()
     fi
 
     return -1
+}
+
+# Makes sure file exists with the exact content given. If not, it creates or
+# appends it
+# 1 - Path to where file is
+# 2 - File name
+# 3 - Content to add to file
+add_content_to_file()
+{
+    PATH_FILE=$1
+    FILE_NAME=$2
+    CONTENT_TO_ADD=$3
+
+    if [[ -f $PATH_FILE/$FILE_NAME ]]
+    then # File already exists
+        echo -e "$FILE_NAME already exists."
+
+        if exists_in_file "$PATH_FILE/$FILE_NAME" "$CONTENT_TO_ADD"
+        then # Content is already in the file
+            echo -e "$FILE_NAME already contains the relevant content.\n"
+            return 255
+        else # Append content to file
+            echo -e "Append to $FILE_NAME\n"
+            echo "$CONTENT_TO_ADD" >> "$PATH_FILE/$FILE_NAME"
+            return 0;
+        fi
+    else # Create file with content
+        echo -e "Create directory: $PATH_FILE/\n"
+        mkdir -p $PATH_FILE
+        echo -e "Create file $PATH_FILE/$FILE_NAME\n"
+        echo "$CONTENT_TO_ADD" > $PATH_FILE/$FILE_NAME
+        return 0
+    fi
+    
 }
 
 #############################
@@ -94,7 +128,7 @@ yesno_question()
 initial_questions()
 {
     # List what this script will setup
-    echo "This script have to option to setup:"
+    echo "This script have the options to setup:"
     for i in "${!arr_setups[@]}"
     do 
         if [[ $(( i % 2 )) != 0 ]]
@@ -185,27 +219,8 @@ highlight DiffChange cterm=bold ctermfg=15 ctermbg=17 gui=none guifg=bg guibg=Re
 highlight DiffText   cterm=bold ctermfg=15 ctermbg=130 gui=none guifg=bg guibg=Red
 EOF
 
-    if [[ -f $PATH_VIMCOLORSCHEME/$NAME_VIMCOLORSCHEME ]]
-    then # File already exists
-        echo -e "$NAME_VIMCOLORSCHEME exists."
-
-        if existsInFile "$PATH_VIMCOLORSCHEME/$NAME_VIMCOLORSCHEME" "$VIMCOLORSCHEME"
-        then # Content is already in the file
-            echo -e "$NAME_VIMCOLORSCHEME already contains the relevant content.\n"
-            return 255
-        else # Append content to file
-            echo -e "Append to $NAME_VIMCOLORSCHEME.\n"
-            echo "$VIMCOLORSCHEME" >> $NAME_VIMCOLORSCHEME
-            return 0
-        fi
-    else # Create file with content
-        echo -e "Create directory: $PATH_VIMCOLORSCHEME/\n"
-        mkdir -p $PATH_VIMCOLORSCHEME
-        echo -e "Create file $PATH_VIMCOLORSCHEME/$NAME_VIMCOLORSCHEME"    
-        echo "$VIMCOLORSCHEME" > $PATH_VIMCOLORSCHEME/$NAME_VIMCOLORSCHEME
-        return 0
-    fi
-
+    add_content_to_file "$PATH_VIMCOLORSCHEME" "$NAME_VIMCOLORSCHEME" "$VIMCOLORSCHEME"
+    
 }
 ###################################
 ### END OF CREATING COLORSCHEME ###
@@ -224,28 +239,9 @@ if &diff
         au VimEnter * | execute 'windo set wrap' |
 endif
 EOF
-    
-    if [[ -f $PATH_VIMRC/.vimrc ]]
-    then # File already exists
-        echo -e "$PATH_VIMRC/.vimrc exists."
 
-        if existsInFile "$PATH_VIMRC/.vimrc" "$VIMRC_CONTENT"
-        then # Content is already in the file
-            echo -e ".vimrc already contains the relevant content.\n"
-            return 255
-            echo "nnn"
-        else # Append content to file
-            echo -e "Append to .vimrc.\n"
-            echo "$VIMRC_CONTENT" >> "$PATH_VIMRC/.vimrc"
-            return 0;
-        fi
-    else # Create file with content
-        echo -e "Create directory: $PATH_VIMCOLORSCHEME/\n"
-        mkdir -p $PATH_VIMCOLORSCHEME
-        echo -e "Create file $PATH_VIMRC/.vimrc\n"
-        echo "$VIMRC_CONTENT" > $PATH_VIMRC/.vimrc
-        return 0
-    fi
+    add_content_to_file "$PATH_VIMRC" ".vimrc" "$VIMRC_CONTENT"
+    
 }
 ############################
 ### END OF CREATNG VIMRC ###
