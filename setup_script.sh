@@ -51,7 +51,7 @@ define(){ IFS=$'\n' read -r -d '' ${1} || true; }
 exists_in_file()
 {
     FILECONTENT=$(<$1)
-    REPLACED_CONTENT=${FILECONTENT/$2/}
+    REPLACED_CONTENT=${FILECONTENT/"$2"/}
 
     if [[ "$FILECONTENT" != "$REPLACED_CONTENT" ]]
     then
