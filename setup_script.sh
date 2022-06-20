@@ -296,14 +296,23 @@ setup_gitdifftool()
 #################
 setup_trashcli()
 {
-    sudo apt install trash-cli
 
-    if [[ $? > 0 ]]
+    # See if package isn't installed
+    if ! (dpkg -l | grep -q trash-cli)
     then
-        echo -e "Failed setup_trashcli()\n"
-    else
-        echo "alias rm=trash" >> $PATH_BASHRC/$NAME_BASHRC
+        sudo apt install trash-cli
+        
+        if [[ $? != 0 ]]
+            then
+                echo -e "Failed installing 'trash-cli' package.\n"
+                return -1
+            fi
     fi
+
+    TRASHCLI_CONTENT="alias rm=trash"
+
+    add_content_to_file "$PATH_BASHRC" "$NAME_BASHRC" "$TRASHCLI_CONTENT"
+    
 }
 ########################
 ### END OF TRASH-CLI ###
