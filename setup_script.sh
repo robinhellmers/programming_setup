@@ -63,7 +63,7 @@ exists_in_file()
 
 # Makes sure file exists with the exact content given. If not, it creates or
 # appends it
-# 1 - Path to where file is
+# 1 - Path to file
 # 2 - File name
 # 3 - Content to add to file
 add_content_to_file()
@@ -92,7 +92,58 @@ add_content_to_file()
         echo "$CONTENT_TO_ADD" > $PATH_FILE/$FILE_NAME
         return 0
     fi
+}
+
+# Fetches file from URL using either curl or wget. Saves into given file.
+# 1 - Path to file
+# 2 - File name
+# 3 - URL with text content
+get_internet_file()
+{
     
+    PATH_FILE=$1
+    FILE_NAME=$2
+    FILE_URL=$3
+
+    IS_CURL_AVAILABLE="$(command -v curl)"
+    IS_WGET_AVAILABLE="$(command -v wget)"
+
+    # Use 'curl' if available
+    if [[ -z $IS_CURL_AVAILABLE ]]
+    then
+        URL_CONTENT=$(curl -L $FILE_URL)
+
+        if [[ $? != 0 ]]
+        then
+            echo "Failed. 'curl' command failed."
+            return -1
+        fi
+
+        FILE_CONTENT=$(<$PATH_FILE/$FILE_NAME)
+        add_content_to_file "$PATH_FILE" "$FILE_NAME" "$URL_CONTENT"
+        return
+    fi
+    echo -e "Command \"curl\" not available\n"
+
+    # Use 'wget' if available
+    if [[ -n $IS_WGET_AVAILABLE ]]
+    then
+        URL_CONTENT=$(wget -O- $FILE_URL)
+
+        if [[ $? != 0 ]]
+        then
+            echo "Failed. 'wget' command failed."
+            return -1
+        fi
+
+        add_content_to_file "$PATH_FILE" "$FILE_NAME" "$URL_CONTENT"
+        return
+    fi
+
+    echo -e "Command \"wget\" not available\n"
+    echo "Failed. Neither 'curl' or 'wget' is availale. Can't fetch content."
+
+    return -1
 }
 
 #############################
