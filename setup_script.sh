@@ -48,15 +48,34 @@ define(){ IFS=$'\n' read -r -d '' ${1} || true; }
 # Input: 2 arguments
 # 1 - Filename
 # 2 - Multiline variable. Must be quoted
+# 3 - Variable name for setting true/false depending on the results
 exists_in_file()
 {
+    DEBUG=false
     FILECONTENT=$(<$1)
     REPLACED_CONTENT=${FILECONTENT/"$2"/}
+    declare -g $3=false
 
+    if $DEBUG
+    then
+        echo -e "VARIABLE INPUT:\n$2\nEND OF VARIABLE INPUT"
+        echo "$2" | grep -q "export PROMPT_DIRTRIM=3"
+        if [[ "$?" == 0 ]]
+        then
+            vimdiff <(echo "$FILECONTENT") <(echo "$REPLACED_CONTENT")
+            echo -e "\n\nSTART DIFF:"
+            diff <(echo "$FILECONTENT") <(echo "$REPLACED_CONTENT")
+            echo -e "END DIFF\n\n"
+        fi
+    fi
+    
     if [[ "$FILECONTENT" != "$REPLACED_CONTENT" ]]
     then
+        echo "YESYESYES"
+        declare -g $3=true
         return 0
     fi
+    echo "NONONO"
 
     return -1
 }
@@ -76,7 +95,7 @@ add_content_to_file()
     then # File already exists
         echo -e "$FILE_NAME already exists."
 
-        if exists_in_file "$PATH_FILE/$FILE_NAME" "$CONTENT_TO_ADD"
+        if exists_in_file "$PATH_FILE/$FILE_NAME" "$CONTENT_TO_ADD" CONTENT_TO_ADD_EXISTS
         then # Content is already in the file
             echo -e "$FILE_NAME already contains the relevant content.\n"
             return 255
@@ -239,7 +258,7 @@ initial_questions()
 ####################
 ### VIM COLORING ###
 ####################
-setup_vimdiff () {
+setup_vimdiff() {
     
     create_colorscheme
     RETURN_COLORSCHEME=$?
@@ -375,8 +394,126 @@ setup_trashcli()
 ############################
 setup_gitcompletionbash()
 {
-    get_internet_file "$PATH_GITCOMPLETIONBASH" "$NAME_GITCOMPLETIONBASH" "$URL_GITCOMPLETIONBASH"
-    return
+    # get_internet_file "$PATH_GITCOMPLETIONBASH" "$NAME_GITCOMPLETIONBASH" "$URL_GITCOMPLETIONBASH"
+    # RETURN_GET_INTERNET_FILE=$?
+    
+    # case $RETURN_GET_INTERNET_FILE in 
+    #     0)   # Success
+    #         ;;
+    #     255) # Already done
+    #         ;;
+    #     *)   # Failure
+    #         return -1;;
+    # esac
+
+    # # Make it executable
+    # sudo chmod +x $PATH_GITCOMPLETIONBASH/$NAME_GITCOMPLETIONBASH
+    # RETURN_CHMOD=$?
+
+    # if [[ $RETURN_CHMOD != 0 ]]; then return -1; fi
+
+# Variable expansion line
+    BASHRC_INPUT1_1="$PATH_GITCOMPLETIONBASH/$NAME_GITCOMPLETIONBASH"
+# Doesn't include any variable expansion
+    define BASHRC_INPUT1_2 <<'EOF'
+export PROMPT_DIRTRIM=3
+export GIT_PS1_SHOWCOLORHINTS=true
+export GIT_PS1_SHOWDIRTYSTATE=true
+export GIT_PS1_SHOWUNTRACKEDFILES=true
+export GIT_PS1_SHOWUPSTREAM="auto"
+PS1_custom='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u\[\033[00m\]:\['\
+'\033[01;34m\]\w\[\033[00m\]\$ '
+PS1_original='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m'\
+'\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
+EOF
+# Concat the two above. OBS don't use \n for newline, seems good when doing diff
+# but doesn't work the same when doing the check in 'exists_in_file'
+    BASHRC_INPUT1="${BASHRC_INPUT1_1}
+${BASHRC_INPUT1_2}"
+
+    define BASHRC_INPUT2 <<'EOF'
+if [ "$color_prompt" = yes ]; then
+    PS1=$PS1_custom
+EOF
+    define BASHRC_INPUT3 <<'EOF'
+PROMPT_COMMAND=$(sed -r 's|^(.+)(\\\$\s*)$|__git_ps1 "\1" "\2"|' <<< $PS1)
+EOF
+
+    # Check if changes are done since before
+    exists_in_file "$PATH_BASHRC/$NAME_BASHRC" "$BASHRC_INPUT1" BASHRC_INPUT1_EXISTS
+    exists_in_file "$PATH_BASHRC/$NAME_BASHRC" "$BASHRC_INPUT2" BASHRC_INPUT2_EXISTS
+    exists_in_file "$PATH_BASHRC/$NAME_BASHRC" "$BASHRC_INPUT3" BASHRC_INPUT3_EXISTS
+
+    echo "BASHRC_INPUT1_EXISTS: $BASHRC_INPUT1_EXISTS"
+    echo "BASHRC_INPUT2_EXISTS: $BASHRC_INPUT2_EXISTS"
+    echo -e "BASHRC_INPUT3_EXISTS: $BASHRC_INPUT3_EXISTS\n"
+
+    if $BASHRC_INPUT1_EXISTS && $BASHRC_INPUT2_EXISTS && $BASHRC_INPUT3_EXISTS
+    then
+        echo "Changes done since before."
+        exit
+        return 255
+    fi
+
+
+
+
+    # Read file, line by line
+    # Start line to search for:
+    SEARCH_FOR_CONTENT="if [ \"\$color_prompt\" = yes ]; then"
+    FOUND=false
+    PREVIOUSLY_SET=false
+    LINE_COUNTER=1
+    arr_with_line_numbers=()
+    while IFS= read -r line; do
+
+        # Remove leading and trailing whitespace
+        line="$(echo -e "${line}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+
+        # If found previous loop
+        if $FOUND
+        then
+            if [[ "$line" == "PS1=\$PS1_custom" ]]
+            then
+                PREVIOUSLY_SET=true
+            else
+                PREVIOUSLY_SET=false
+            fi
+
+            # Find line interval to replace
+            FOUND=false
+            SEARCH_FOR_CONTENT="fi" # End of if statement
+        fi
+
+        if [[ "$line" == "$SEARCH_FOR_CONTENT" ]]
+        then
+            FOUND=true
+            echo "Found at line: $LINE_COUNTER"
+            arr_with_line_numbers+=("$LINE_COUNTER")
+
+            if [[ ${#arr_with_line_numbers[@]} == 2 ]]
+            then # Got start and ending line number
+                break
+            fi
+        fi
+
+        LINE_COUNTER=$((LINE_COUNTER + 1))
+    done < $PATH_BASHRC/$NAME_BASHRC
+
+    # Probably empty bashrc file
+    if ! $FOUND
+    then
+        echo "haaa" # Append to file
+    fi
+
+    if $FOUND
+    then
+        echo "Between line ${arr_with_line_numbers[0]} and ${arr_with_line_numbers[1]}"
+
+        sed -i "${arr_with_line_numbers[0]}i 
+        " "$PATH_BASHRC/$NAME_BASHRC"
+    fi
+
 }
 ###################################
 ### END OF GIT COMPLETION SETUP ###
