@@ -48,19 +48,26 @@ define(){ IFS=$'\n' read -r -d '' ${1} || true; }
 # Input: 2 arguments
 # 1 - Filename
 # 2 - Multiline variable. Must be quoted
-# 3 - Variable name for setting true/false depending on the results
+# 3 - Variable name to create results from. Creates:
+#     $3_EXISTS=true/false - Tells whether if $2 where found in $1
+#     $3_START - Start line number of where $2 where found in $1
+#     $3_END - End line number of where $2 where found in $1
 exists_in_file()
 {
-    DEBUG=false
+    DEBUG=true
     FILECONTENT=$(<$1)
     REPLACED_CONTENT=${FILECONTENT/"$2"/}
-    declare -g $3=false
+    declare -g $3_EXISTS=false
 
     if $DEBUG
     then
-        echo -e "VARIABLE INPUT:\n$2\nEND OF VARIABLE INPUT"
-        echo "$2" | grep -q "export PROMPT_DIRTRIM=3"
-        if [[ "$?" == 0 ]]
+        echo -e "VARIABLE INPUT:\n$2\nEND OF VARIABLE INPUT\n"
+        echo "Grep Start"
+        echo "$2" | grep 'if \[ "\$color_prompt" = yes \];'
+        RETURN=$?
+        echo "Grep End"
+        echo "RETURN $RETURN"
+        if [[ "$RETURN" == 0 ]]
         then
             vimdiff <(echo "$FILECONTENT") <(echo "$REPLACED_CONTENT")
             echo -e "\n\nSTART DIFF:"
@@ -70,12 +77,24 @@ exists_in_file()
     fi
     
     if [[ "$FILECONTENT" != "$REPLACED_CONTENT" ]]
-    then
-        echo "YESYESYES"
-        declare -g $3=true
+    then # Content to find where found and replaced
+
+        # Find between which line numbers the diff is (find where the content where replaced)
+        LINE_NUMBERS=$(diff <(echo "$FILECONTENT") <(echo "$REPLACED_CONTENT") | grep -E '^\s*[0-9]+')
+        # Split them up into an array
+        IFS=',cd' read -r -a line_numbers <<< "$LINE_NUMBERS"
+        # Sort the array, from min to max
+        IFS=$'\n' sorted_line_numbers=($(sort <<<"${line_numbers[*]}"))
+
+        declare -g $3_START=${sorted_line_numbers[0]}
+        declare -g $3_END=${sorted_line_numbers[${#sorted_line_numbers[@]} - 1]}
+        # For eval and print within this function
+        START=$3_START
+        END=$3_END
+        echo "START: ${!START}, END: ${!END}"
+        declare -g $3_EXISTS=true
         return 0
     fi
-    echo "NONONO"
 
     return -1
 }
@@ -95,7 +114,7 @@ add_content_to_file()
     then # File already exists
         echo -e "$FILE_NAME already exists."
 
-        if exists_in_file "$PATH_FILE/$FILE_NAME" "$CONTENT_TO_ADD" CONTENT_TO_ADD_EXISTS
+        if exists_in_file "$PATH_FILE/$FILE_NAME" "$CONTENT_TO_ADD" CONTENT_TO_ADD
         then # Content is already in the file
             echo -e "$FILE_NAME already contains the relevant content.\n"
             return 255
@@ -440,12 +459,12 @@ PROMPT_COMMAND=$(sed -r 's|^(.+)(\\\$\s*)$|__git_ps1 "\1" "\2"|' <<< $PS1)
 EOF
 
     # Check if changes are done since before
-    exists_in_file "$PATH_BASHRC/$NAME_BASHRC" "$BASHRC_INPUT1" BASHRC_INPUT1_EXISTS
-    exists_in_file "$PATH_BASHRC/$NAME_BASHRC" "$BASHRC_INPUT2" BASHRC_INPUT2_EXISTS
-    exists_in_file "$PATH_BASHRC/$NAME_BASHRC" "$BASHRC_INPUT3" BASHRC_INPUT3_EXISTS
+    exists_in_file "$PATH_BASHRC/$NAME_BASHRC" "$BASHRC_INPUT1" BASHRC_INPUT1
+    exists_in_file "$PATH_BASHRC/$NAME_BASHRC" "$BASHRC_INPUT2" BASHRC_INPUT2
+    exists_in_file "$PATH_BASHRC/$NAME_BASHRC" "$BASHRC_INPUT3" BASHRC_INPUT3
 
-    echo "BASHRC_INPUT1_EXISTS: $BASHRC_INPUT1_EXISTS"
-    echo "BASHRC_INPUT2_EXISTS: $BASHRC_INPUT2_EXISTS"
+    echo -e "BASHRC_INPUT1_EXISTS: $BASHRC_INPUT1_EXISTS"
+    echo -e "BASHRC_INPUT2_EXISTS: $BASHRC_INPUT2_EXISTS"
     echo -e "BASHRC_INPUT3_EXISTS: $BASHRC_INPUT3_EXISTS\n"
 
     if $BASHRC_INPUT1_EXISTS && $BASHRC_INPUT2_EXISTS && $BASHRC_INPUT3_EXISTS
@@ -456,63 +475,90 @@ EOF
     fi
 
 
-
-
-    # Read file, line by line
-    # Start line to search for:
-    SEARCH_FOR_CONTENT="if [ \"\$color_prompt\" = yes ]; then"
-    FOUND=false
-    PREVIOUSLY_SET=false
-    LINE_COUNTER=1
-    arr_with_line_numbers=()
-    while IFS= read -r line; do
-
-        # Remove leading and trailing whitespace
-        line="$(echo -e "${line}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
-
-        # If found previous loop
-        if $FOUND
-        then
-            if [[ "$line" == "PS1=\$PS1_custom" ]]
-            then
-                PREVIOUSLY_SET=true
-            else
-                PREVIOUSLY_SET=false
-            fi
-
-            # Find line interval to replace
-            FOUND=false
-            SEARCH_FOR_CONTENT="fi" # End of if statement
-        fi
-
-        if [[ "$line" == "$SEARCH_FOR_CONTENT" ]]
-        then
-            FOUND=true
-            echo "Found at line: $LINE_COUNTER"
-            arr_with_line_numbers+=("$LINE_COUNTER")
-
-            if [[ ${#arr_with_line_numbers[@]} == 2 ]]
-            then # Got start and ending line number
-                break
-            fi
-        fi
-
-        LINE_COUNTER=$((LINE_COUNTER + 1))
-    done < $PATH_BASHRC/$NAME_BASHRC
-
-    # Probably empty bashrc file
-    if ! $FOUND
+    if ! $BASHRC_INPUT2_EXISTS
     then
-        echo "haaa" # Append to file
+        IF_COLOR_PROMPT='if [ "$color_prompt" = yes ]; then'
+        exists_in_file "$PATH_BASHRC/$NAME_BASHRC" "$IF_COLOR_PROMPT" IF_COLOR_PROMPT
+
+        echo "IF_COLOR_PROMPT_START: $IF_COLOR_PROMPT_START IF_COLOR_PROMPT_END: $IF_COLOR_PROMPT_END"
+        if $IF_COLOR_PROMPT_EXISTS
+        then
+            COUNT=1
+            # Look for else/fi statement
+            while read line; do
+                echo "COUNT: $COUNT"
+                echo "line: $line" # do stuff
+                if [[ $COUNT == 3 ]]
+                then
+                    break
+                fi
+                COUNT=$((COUNT + 1))
+            done < <(tail -n "+$IF_COLOR_PROMPT_END" $PATH_BASHRC/$NAME_BASHRC)
+        else
+            echo "aha"
+        fi
     fi
 
-    if $FOUND
-    then
-        echo "Between line ${arr_with_line_numbers[0]} and ${arr_with_line_numbers[1]}"
 
-        sed -i "${arr_with_line_numbers[0]}i 
-        " "$PATH_BASHRC/$NAME_BASHRC"
-    fi
+
+
+
+
+    # # Read file, line by line
+    # # Start line to search for:
+    # SEARCH_FOR_CONTENT="if [ \"\$color_prompt\" = yes ]; then"
+    # FOUND=false
+    # PREVIOUSLY_SET=false
+    # LINE_COUNTER=1
+    # arr_with_line_numbers=()
+    # while IFS= read -r line; do
+
+    #     # Remove leading and trailing whitespace
+    #     line="$(echo -e "${line}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+
+    #     # If found previous loop
+    #     if $FOUND
+    #     then
+    #         if [[ "$line" == "PS1=\$PS1_custom" ]]
+    #         then
+    #             PREVIOUSLY_SET=true
+    #         else
+    #             PREVIOUSLY_SET=false
+    #         fi
+
+    #         # Find line interval to replace
+    #         FOUND=false
+    #         SEARCH_FOR_CONTENT="fi" # End of if statement
+    #     fi
+
+    #     if [[ "$line" == "$SEARCH_FOR_CONTENT" ]]
+    #     then
+    #         FOUND=true
+    #         echo "Found at line: $LINE_COUNTER"
+    #         arr_with_line_numbers+=("$LINE_COUNTER")
+
+    #         if [[ ${#arr_with_line_numbers[@]} == 2 ]]
+    #         then # Got start and ending line number
+    #             break
+    #         fi
+    #     fi
+
+    #     LINE_COUNTER=$((LINE_COUNTER + 1))
+    # done < $PATH_BASHRC/$NAME_BASHRC
+
+    # # Probably empty bashrc file
+    # if ! $FOUND
+    # then
+    #     echo "haaa" # Append to file
+    # fi
+
+    # if $FOUND
+    # then
+    #     echo "Between line ${arr_with_line_numbers[0]} and ${arr_with_line_numbers[1]}"
+
+    #     sed -i "${arr_with_line_numbers[0]}i 
+    #     " "$PATH_BASHRC/$NAME_BASHRC"
+    # fi
 
 }
 ###################################
