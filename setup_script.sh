@@ -76,6 +76,7 @@ exists_in_file()
                 echo "CONTENT_TO_CHECK: More than one line"
                 echo "CONTENT_TO_CHECK:"
                 echo "$CONTENT_TO_CHECK"
+                echo ""
             fi
             ;;
         *) # CONTENT_TO_CHECK is one line
@@ -84,7 +85,7 @@ exists_in_file()
                 echo "CONTENT_TO_CHECK: Is one line"
                 echo "CONTENT_TO_CHECK:"
                 echo "$CONTENT_TO_CHECK"
-                echo "GREP output:"
+                echo -e "\nGREP output:"
                 echo "$FILECONTENT" | grep -Fxn "$CONTENT_TO_CHECK" --color
                 echo ""
             fi
@@ -290,7 +291,6 @@ adjust_else_elif_fi_linenumbers()
 {
     INPUT="$1"
 
-    echo "TEST THIS TEST &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&"
     # Increment if statement variables as they got shifted
     echo "IF_STATEMENT_START before:        $IF_STATEMENT_START"
     NUM_LINES=$(echo -n "$INPUT" | grep -c '^')
@@ -305,6 +305,8 @@ adjust_else_elif_fi_linenumbers()
     echo "ELSE_ELIF_LINE_NUMBER updated to: $ELSE_ELIF_LINE_NUMBER"
     echo "FI_LINE_NUMBER updated to:        $FI_LINE_NUMBER"
 }
+
+
 
 #############################
 ### YESNO QUESTION HELPER ###
@@ -586,6 +588,9 @@ EOF
 
 
     # Find if statement to know where to place content (above,in-between,below)
+    echo "*****************************************************************************"
+    echo "***** Time for finding if statement *****************************************"
+    echo "*****************************************************************************"
     IF_STATEMENT='if [ "$color_prompt" = yes ]; then'
     exists_in_file "$PATH_BASHRC/$NAME_BASHRC" "$IF_STATEMENT" IF_STATEMENT
     echo "IF_STATEMENT_EXISTS: $IF_STATEMENT_EXISTS"
@@ -602,7 +607,9 @@ EOF
         #################################################################
         ############################ INPUT 1 ############################
         #################################################################
-        echo "Time for INPUT 1 ******************************************************"
+        echo "*****************************************************************************"
+        echo "***** Time for INPUT 1 ******************************************************"
+        echo "*****************************************************************************"
         exists_in_file "$PATH_BASHRC/$NAME_BASHRC" "$BASHRC_INPUT1" BASHRC_INPUT1
 
         if ! $BASHRC_INPUT1_EXISTS
@@ -642,7 +649,6 @@ EOF
                     fi
                 else # Content doesn't exist
                     # If ending with backslash, add another one to behave as wanted with sed
-                    echo "***************************************************************************************%%%%%%%%%%"
                     line=$(echo "$line" | sed -E 's/[\\]$/\\\\/gm')
                     # line=$(echo "$line" | sed 's/[][\\*.%$]/\\&/g') # Alternative way of above
                     # Place content before if statement
@@ -659,14 +665,15 @@ EOF
 
         if $BASHRC_INPUT1_EXISTS
         then
-            echo "BASHRC_INPUT1 already done."
+            echo -e "BASHRC_INPUT1 already done.\n"
         fi
 
         #################################################################
         ############################ INPUT 2 ############################
         #################################################################
-        
-        echo "Time for INPUT 2 ******************************************************"
+        echo "*****************************************************************************"
+        echo "***** Time for INPUT 2 ******************************************************"
+        echo "*****************************************************************************"
         exists_in_file "$PATH_BASHRC/$NAME_BASHRC" "$BASHRC_INPUT2" BASHRC_INPUT2
 
         if $BASHRC_INPUT2_EXISTS
@@ -730,7 +737,9 @@ EOF
         #################################################################
         ############################ INPUT 3 ############################
         #################################################################
-        echo "Time for INPUT 3 ******************************************************"
+        echo "*****************************************************************************"
+        echo "***** Time for INPUT 3 ******************************************************"
+        echo "*****************************************************************************"
         exists_in_file "$PATH_BASHRC/$NAME_BASHRC" "$BASHRC_INPUT3" BASHRC_INPUT3
 
         if $BASHRC_INPUT3_EXISTS
@@ -773,7 +782,6 @@ EOF
                 return -1
             fi
         else
-            echo "********************************************************************"
             echo "BASHRC_INPUT3:"
             echo "$BASHRC_INPUT3"
             # Replace backslashes with double backslashes to have 'sed' insert line at
@@ -795,7 +803,9 @@ EOF
         #################################################################
         ############################ INPUT 4 ############################
         #################################################################
-        echo "Time for INPUT 4 ******************************************************"
+        echo "*****************************************************************************"
+        echo "***** Time for INPUT 4 ******************************************************"
+        echo "*****************************************************************************"
         exists_in_file "$PATH_BASHRC/$NAME_BASHRC" "$BASHRC_INPUT4" BASHRC_INPUT4
 
         if ! $BASHRC_INPUT4_EXISTS
@@ -814,11 +824,14 @@ EOF
                 echo "Insert somewhere else"
             fi
         fi
+        echo ""
 
         #################################################################
         ############################ INPUT 5 ############################
         #################################################################
-        echo "Time for INPUT 5 ******************************************************"
+        echo "*****************************************************************************"
+        echo "***** Time for INPUT 5 ******************************************************"
+        echo "*****************************************************************************"
         exists_in_file "$PATH_BASHRC/$NAME_BASHRC" "$BASHRC_INPUT5" BASHRC_INPUT5
 
 
