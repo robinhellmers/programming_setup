@@ -386,9 +386,9 @@ add_multiline_content()
     EVAL_VAR_NAME_EXISTS=${VAR_NAME}_EXISTS # ${!EVAL_VAR_NAME_EXISTS}
     EVAL_VAR_NAME_START=${VAR_NAME}_START # ${!EVAL_VAR_NAME_START}
     EVAL_VAR_NAME_END=${VAR_NAME}_END # ${!EVAL_VAR_NAME_END}
-    echo -e "\n********************************************************************************************"
+    echo -e "\n*****************************************************************************************"
     echo "***** Time for INPUT $VAR_NAME ******************************************************"
-    echo "********************************************************************************************"
+    echo "*****************************************************************************************"
     exists_in_file "$FILE_PATH/$FILE_NAME" "${!EVAL_VAR_NAME}" $VAR_NAME
 
     if ${!EVAL_VAR_NAME_EXISTS}
@@ -771,76 +771,11 @@ EOF
         
         add_multiline_content "$PATH_BASHRC" "$NAME_BASHRC" BASHRC_INPUT2
 
-        if $BASHRC_INPUT2_EXISTS
-        then
-            echo -e "BASHRC_INPUT2 already done.\n"
-        fi
-
         #################################################################
         ############################ INPUT 3 ############################
         #################################################################
-        echo "*****************************************************************************"
-        echo "***** Time for INPUT 3 ******************************************************"
-        echo "*****************************************************************************"
-        exists_in_file "$PATH_BASHRC/$NAME_BASHRC" "$BASHRC_INPUT3" BASHRC_INPUT3
-
-        if $BASHRC_INPUT3_EXISTS
-        then
-            echo "BASHRC_INPUT3_START: $BASHRC_INPUT3_START"
-            if (( $BASHRC_INPUT3_START < $IF_STATEMENT_START ))
-            then # Line is before if statement
-                echo -e "Line exists and is before if statement.\n"
-            elif (( $FI_LINE_NUMBER < $BASHRC_INPUT3_START ))
-            then # Lines are after whole if statement (fi)
-                # Remove content of that line
-                echo "Content exists, but is after if statement."
-                echo "Remove content of lines $BASHRC_INPUT3_START-$BASHRC_INPUT3_END"
-                sed -i "${BASHRC_INPUT3_START},${BASHRC_INPUT3_END}d" "$PATH_BASHRC/$NAME_BASHRC"
-                
-                # Commented out below does not work as intended.
-                # If ending with backslash, but not a backslash before that (double or more)
-                # then replace with double backslash. Making sure that a single one is 
-                # replaced with a double
-                # https://stackoverflow.com/a/9306228/12374737
-                # "Where (?<!x) means "only if it doesn't have 'x' before this point"."
-                # BASHRC_INPUT3=$(echo "$BASHRC_INPUT3" | sed 's/(?<!\\)[\\]{1}$/\\\\/gm')
-
-                # Replace backslashes with double backslashes
-                BASHRC_INPUT3=$(echo "$BASHRC_INPUT3" | sed 's/\\/\\\\/g')
-                # Replace backslash at end of line with an extra backslash
-                BASHRC_INPUT3=$(echo "$BASHRC_INPUT3" | sed -E 's/[\\]$/\\\\/gm')
-
-                sed -i "${IF_STATEMENT_START}i $BASHRC_INPUT3" "$PATH_BASHRC/$NAME_BASHRC"
-                
-                # Increment if statement variables as they got shifted
-                adjust_else_elif_fi_linenumbers "$BASHRC_INPUT3"
-
-                BASHRC_INPUT1_EXISTS=false
-            else
-                echo "Content found in if statement even though it shouldn't be there."
-                echo "LINE FOUND:"
-                echo "$BASHRC_INPUT3"
-                echo "AT LINES: $BASHRC_INPUT3_START-$BASHRC_INPUT3_END"
-                return -1
-            fi
-        else
-            echo "BASHRC_INPUT3:"
-            echo "$BASHRC_INPUT3"
-            # Replace backslashes with double backslashes to have 'sed' insert line at
-            # line number later work as expected
-            BASHRC_INPUT3=$(echo "$BASHRC_INPUT3" | sed 's/\\/\\\\/g')
-            # Replace backslash at end of line with an extra backslash to have 'sed' 
-            # insert line at line number later work as expected
-            BASHRC_INPUT3=$(echo "$BASHRC_INPUT3" | sed -E 's/[\\]$/\\\\/gm')
-
-            echo "BASHRC_INPUT3 after adding extra backslashes:"
-            echo "$BASHRC_INPUT3"
-
-            sed -i "${IF_STATEMENT_START}i $BASHRC_INPUT3" "$PATH_BASHRC/$NAME_BASHRC"
-            
-            # Increment if statement variables as they got shifted
-            adjust_else_elif_fi_linenumbers "$BASHRC_INPUT3"
-        fi
+        
+        add_multiline_content "$PATH_BASHRC" "$NAME_BASHRC" BASHRC_INPUT3
 
         #################################################################
         ############################ INPUT 4 ############################
