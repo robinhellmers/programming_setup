@@ -56,8 +56,47 @@ exists_in_file()
 {
     DEBUG=false
     FILECONTENT=$(<$1)
-    REPLACED_CONTENT=${FILECONTENT/"$2"/}
+    CONTENT_TO_CHECK="$2"
+
     declare -g $3_EXISTS=false
+
+    # Remove trailing whitespace
+    FILECONTENT="$(echo -e "${FILECONTENT}" | sed -e 's/[[:space:]]*$//')"
+    # NewLine character
+    NL='
+'
+    case "$CONTENT_TO_CHECK" in
+        *"$NL"*)
+            echo "CONTENT_TO_CHECK: More than one line"
+            # echo "CONTENT_TO_CHECK:"
+            # echo "$CONTENT_TO_CHECK"
+            ;;
+        *) 
+            echo "CONTENT_TO_CHECK: Is one line"
+            echo "CONTENT:"
+            echo "$CONTENT_TO_CHECK"
+            echo ""
+            
+            LINE_NUMBER=$(echo "$FILECONTENT" | grep -Fxn "$CONTENT_TO_CHECK" | head -1 | cut -f1 -d:)
+            echo "LINE_NUMBER: $LINE_NUMBER"
+            if [[ -n "$LINE_NUMBER" ]] ;
+            then
+                echo "TRUE. Did find at line $LINE_NUMBER"
+                declare -g $3_START=${LINE_NUMBER}
+                declare -g $3_END=${LINE_NUMBER}
+                # For eval and print within this function
+                START=$3_START
+                END=$3_END
+                echo "START: ${!START}, END: ${!END}"
+                declare -g $3_EXISTS=true
+                return 0
+            else
+                echo "FALSE. Did not find **"
+                return -1
+            fi ;;
+    esac
+
+    REPLACED_CONTENT=${FILECONTENT/"$2"/}
 
     if $DEBUG
     then
@@ -524,6 +563,7 @@ EOF
     # Find if statement
     IF_STATEMENT='if [ "$color_prompt" = yes ]; then'
     exists_in_file "$PATH_BASHRC/$NAME_BASHRC" "$IF_STATEMENT" IF_STATEMENT
+    echo "IF_STATEMENT_EXISTS: $IF_STATEMENT_EXISTS"
     echo "IF_STATEMENT_START: $IF_STATEMENT_START IF_STATEMENT_END: $IF_STATEMENT_END"
     if $IF_STATEMENT_EXISTS
     then
@@ -533,76 +573,81 @@ EOF
             echo "Problem in finding else/elif/fi statement."
             return -1
         fi
-    fi
+    
 
-    if ! $BASHRC_INPUT1_EXISTS
-    then
-        BASHRC_INPUT1_EXISTS=true
-        # BASHRC INPUT 1
-        # Iterate over every line as they are independent
-        while IFS= read -r line
-        do
-            exists_in_file "$PATH_BASHRC/$NAME_BASHRC" "$line" LINE
-            if $LINE_EXISTS
-            then
-                if (( $LINE_START < $IF_STATEMENT_START ))
-                then # Line is before if statement
-                    echo "It's good."
-                elif (( $FI_LINE_NUMBER < $LINE_START ))
-                then # Line is after whole if statement (fi)
-                    # Remove content of that line
-                    echo "Remove content of line $LINE_START"
-                    sed -i "${LINE_START}d" "$PATH_BASHRC/$NAME_BASHRC" # Remove the line
+        if ! $BASHRC_INPUT1_EXISTS
+        then
+            BASHRC_INPUT1_EXISTS=true
+            # BASHRC INPUT 1
+            # Iterate over every line as they are independent
+            while IFS= read -r line
+            do
+                exists_in_file "$PATH_BASHRC/$NAME_BASHRC" "$line" LINE
+                if $LINE_EXISTS
+                then
+                    if (( $LINE_START < $IF_STATEMENT_START ))
+                    then # Line is before if statement
+                        echo -n "Line exists and is before if statement.\n"
+                    elif (( $FI_LINE_NUMBER < $LINE_START ))
+                    then # Line is after whole if statement (fi)
+                        # Remove content of that line
+                        echo "Line exists, but is after if statement."
+                        echo -e "Remove content of line $LINE_START\n"
+                        sed -i "${LINE_START}d" "$PATH_BASHRC/$NAME_BASHRC" # Remove the line
+                        # Place content before if statement
+                        sed -i "${IF_STATEMENT_START}i $line" "$PATH_BASHRC/$NAME_BASHRC"
+
+                        # Increment if statement variables as they got shifted
+                        IF_STATEMENT_START=$((IF_STATEMENT_START + 1))
+                        IF_STATEMENT_END=$((IF_STATEMENT_END + 1))
+                        ELSE_ELIF_LINE_NUMBER=$((ELSE_ELIF_LINE_NUMBER + 1))
+                        FI_LINE_NUMBER=$((FI_LINE_NUMBER + 1))
+
+                        echo "IF_STATEMENT_START updated to:    $IF_STATEMENT_START"
+                        echo "IF_STATEMENT_END updated to:      $IF_STATEMENT_END"
+                        echo "ELSE_ELIF_LINE_NUMBER updated to: $ELSE_ELIF_LINE_NUMBER"
+                        echo "FI_LINE_NUMBER updated to:        $FI_LINE_NUMBER"
+
+                        BASHRC_INPUT1_EXISTS=false
+                    else
+                        echo "Content found in if statement even though it shouldn't be there."
+                        echo -e "LINE FOUND:\n$line\n AT LINE: $LINE_START"
+                        return -1
+                    fi
+                else # Content doesn't exists in if statement
                     # Place content before if statement
                     sed -i "${IF_STATEMENT_START}i $line" "$PATH_BASHRC/$NAME_BASHRC"
-
-                    # Increment if statement variables as they got shifted
-                    IF_STATEMENT_START=$((IF_STATEMENT_START + 1))
-                    IF_STATEMENT_END=$((IF_STATEMENT_END + 1))
-                    ELSE_ELIF_LINE_NUMBER=$((ELSE_ELIF_LINE_NUMBER + 1))
-                    FI_LINE_NUMBER=$((FI_LINE_NUMBER + 1))
-
-                    echo "IF_STATEMENT_START updated to:    $IF_STATEMENT_START"
-                    echo "IF_STATEMENT_END updated to:      $IF_STATEMENT_END"
-                    echo "ELSE_ELIF_LINE_NUMBER updated to: $ELSE_ELIF_LINE_NUMBER"
-                    echo "FI_LINE_NUMBER updated to:        $FI_LINE_NUMBER"
-
                     BASHRC_INPUT1_EXISTS=false
-                else
-                    echo "Content found in if statement even though it shouldn't be there."
-                    echo -e "LINE FOUND:\n$line\n AT LINE: $LINE_START"
-                    return -1
                 fi
-            else # Content doesn't exists in if statement
-                # Place content before if statement
-                sed -i "${IF_STATEMENT_START}i $line" "$PATH_BASHRC/$NAME_BASHRC"
-                BASHRC_INPUT1_EXISTS=false
-            fi
-        done <<< "$BASHRC_INPUT1"
-    fi
-
-    if $BASHRC_INPUT1_EXISTS
-    then
-        echo "BASHRC_INPUT1 already done."
-    fi
-
-    if ! $BASHRC_INPUT2_EXISTS
-    then
-        if $IF_STATEMENT_EXISTS
-        then
-            BASHRC_INPUT_PS1='\    PS1=$PS1_custom'
-            # Insert relevant line
-            if $ELSE_ELIF_EXISTS
-            then # Insert before 'else'/'elif'
-                sed -i "${ELSE_ELIF_LINE_NUMBER}i $BASHRC_INPUT_PS1" "$PATH_BASHRC/$NAME_BASHRC"
-            else # Insert before 'fi' instead
-                sed -i "${FI_LINE_NUMBER}i $BASHRC_INPUT_PS1" "$PATH_BASHRC/$NAME_BASHRC"
-            fi
-        else
-            echo "Insert somewhere else"
-            # Insert somewhere else
+            done <<< "$BASHRC_INPUT1"
         fi
+
+        if $BASHRC_INPUT1_EXISTS
+        then
+            echo "BASHRC_INPUT1 already done."
+        fi
+
+        if ! $BASHRC_INPUT2_EXISTS
+        then
+            if $IF_STATEMENT_EXISTS
+            then
+                BASHRC_INPUT_PS1='\    PS1=$PS1_custom'
+                # Insert relevant line
+                if $ELSE_ELIF_EXISTS
+                then # Insert before 'else'/'elif'
+                    sed -i "${ELSE_ELIF_LINE_NUMBER}i $BASHRC_INPUT_PS1" "$PATH_BASHRC/$NAME_BASHRC"
+                else # Insert before 'fi' instead
+                    sed -i "${FI_LINE_NUMBER}i $BASHRC_INPUT_PS1" "$PATH_BASHRC/$NAME_BASHRC"
+                fi
+            else
+                echo "Insert somewhere else"
+                # Insert somewhere else
+            fi
+        fi
+
     fi
+
+    
 
 
     if $BASHRC_INPUT1_EXISTS && $BASHRC_INPUT2_EXISTS && $BASHRC_INPUT3_EXISTS
