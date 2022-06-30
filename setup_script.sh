@@ -34,7 +34,9 @@ NAME_GITCOMPLETIONBASH=.git-completion.bash
 ### END OF SETTINGS ###
 #######################
 
-
+declare -g INBETWEEN=99
+declare -g AFTER=98
+declare -g BEFORE=97
 declare -g NL='
 '
 
@@ -426,7 +428,7 @@ add_multiline_content()
             # Increment if statement variables as they got shifted
             adjust_else_elif_fi_linenumbers "${!EVAL_VAR_NAME}"
 
-            BASHRC_INPUT1_EXISTS=false
+            declare -g "$VARNAME_EXISTS=false"
         else
             echo "Content found in if statement even though it shouldn't be there."
             echo "LINE FOUND:"
