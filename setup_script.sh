@@ -308,6 +308,75 @@ adjust_else_elif_fi_linenumbers()
 
 
 
+
+add_single_line_content()
+{
+
+    FILE_PATH="$1"
+    FILE_NAME="$2"
+    VAR_NAME="$3"
+
+    EVAL_VAR_NAME=$VAR_NAME # ${!EVAL_VAR_NAME}
+    EVAL_VAR_NAME_EXISTS=${VAR_NAME}_EXISTS # ${!EVAL_VAR_NAME_EXISTS}
+    echo -e "\n********************************************************************************************"
+    echo "***** Time for input of $VAR_NAME ******************************************************"
+    echo "********************************************************************************************"
+    exists_in_file "$FILE_PATH/$FILE_NAME" "${!EVAL_VAR_NAME}" $VAR_NAME
+
+    if ! ${!EVAL_VAR_NAME_EXISTS}
+    then
+        declare -g ${VAR_NAME}_EXISTS=true
+
+        # Iterate over every line of VAR_NAME as they are independent
+        # These are assument to be above if statement
+        while IFS= read -r line
+        do
+            exists_in_file "$FILE_PATH/$FILE_NAME" "$line" LINE
+            if $LINE_EXISTS
+            then
+                if (( $LINE_START < $IF_STATEMENT_START ))
+                then # Line is before if statement
+                    echo -e "Line exists and is before if statement.\n"
+                elif (( $FI_LINE_NUMBER < $LINE_START ))
+                then # Line is after whole if statement (fi)
+                    # Remove content of that line
+                    echo "Line exists, but is after if statement."
+                    echo -e "Remove content of line $LINE_START\n"
+                    sed -i "${LINE_START},${LINE_END}d" "$FILE_PATH/$FILE_NAME" # Remove the line
+                    
+                    # If ending with backslash, add another one to behave as wanted with sed
+                    line=$(echo "$line" | sed -E 's/[\\]$/\\\\/gm')
+                    # Place content before if statement
+                    sed -i "${IF_STATEMENT_START}i $line" "$FILE_PATH/$FILE_NAME"
+
+                    # Increment if statement variables as they got shifted down
+                    adjust_else_elif_fi_linenumbers "$line"
+
+                    declare -g ${VAR_NAME}_EXISTS=false
+                else
+                    echo "Content found in if statement even though it shouldn't be there."
+                    echo -e "LINE FOUND:\n$line\n AT LINE: $LINE_START"
+                    return -1
+                fi
+            else # Content doesn't exist
+                # If ending with backslash, add another one to behave as wanted with sed
+                line=$(echo "$line" | sed -E 's/[\\]$/\\\\/gm')
+                # line=$(echo "$line" | sed 's/[][\\*.%$]/\\&/g') # Alternative way of above
+                # Place content before if statement
+                echo "Insert the following line into line number $IF_STATEMENT_START"
+                sed -i "${IF_STATEMENT_START}i ${line}" "$FILE_PATH/$FILE_NAME"
+
+                # Increment if statement variables as they got shifted
+                adjust_else_elif_fi_linenumbers "$line"
+
+                declare -g ${VAR_NAME}_EXISTS=false
+            fi
+        done <<< "${!EVAL_VAR_NAME}"
+    fi
+}
+
+
+
 #############################
 ### YESNO QUESTION HELPER ###
 #############################
@@ -607,61 +676,8 @@ EOF
         #################################################################
         ############################ INPUT 1 ############################
         #################################################################
-        echo "*****************************************************************************"
-        echo "***** Time for INPUT 1 ******************************************************"
-        echo "*****************************************************************************"
-        exists_in_file "$PATH_BASHRC/$NAME_BASHRC" "$BASHRC_INPUT1" BASHRC_INPUT1
 
-        if ! $BASHRC_INPUT1_EXISTS
-        then
-            BASHRC_INPUT1_EXISTS=true
-
-            # Iterate over every line of BASHRC_INPUT1 as they are independent
-            # These are assument to be above if statement
-            while IFS= read -r line
-            do
-                exists_in_file "$PATH_BASHRC/$NAME_BASHRC" "$line" LINE
-                if $LINE_EXISTS
-                then
-                    if (( $LINE_START < $IF_STATEMENT_START ))
-                    then # Line is before if statement
-                        echo -e "Line exists and is before if statement.\n"
-                    elif (( $FI_LINE_NUMBER < $LINE_START ))
-                    then # Line is after whole if statement (fi)
-                        # Remove content of that line
-                        echo "Line exists, but is after if statement."
-                        echo -e "Remove content of line $LINE_START\n"
-                        sed -i "${LINE_START},${LINE_END}d" "$PATH_BASHRC/$NAME_BASHRC" # Remove the line
-                        
-                        # If ending with backslash, add another one to behave as wanted with sed
-                        line=$(echo "$line" | sed -E 's/[\\]$/\\\\/gm')
-                        # Place content before if statement
-                        sed -i "${IF_STATEMENT_START}i $line" "$PATH_BASHRC/$NAME_BASHRC"
-
-                        # Increment if statement variables as they got shifted down
-                        adjust_else_elif_fi_linenumbers "$line"
-
-                        BASHRC_INPUT1_EXISTS=false
-                    else
-                        echo "Content found in if statement even though it shouldn't be there."
-                        echo -e "LINE FOUND:\n$line\n AT LINE: $LINE_START"
-                        return -1
-                    fi
-                else # Content doesn't exist
-                    # If ending with backslash, add another one to behave as wanted with sed
-                    line=$(echo "$line" | sed -E 's/[\\]$/\\\\/gm')
-                    # line=$(echo "$line" | sed 's/[][\\*.%$]/\\&/g') # Alternative way of above
-                    # Place content before if statement
-                    echo "Insert the following line into line number $IF_STATEMENT_START"
-                    sed -i "${IF_STATEMENT_START}i ${line}" "$PATH_BASHRC/$NAME_BASHRC"
-
-                    # Increment if statement variables as they got shifted
-                    adjust_else_elif_fi_linenumbers "$line"
-
-                    BASHRC_INPUT1_EXISTS=false
-                fi
-            done <<< "$BASHRC_INPUT1"
-        fi
+        add_single_line_content "$PATH_BASHRC" "$NAME_BASHRC" BASHRC_INPUT1
 
         if $BASHRC_INPUT1_EXISTS
         then
