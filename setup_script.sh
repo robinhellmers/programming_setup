@@ -34,6 +34,10 @@ NAME_GITCOMPLETIONBASH=.git-completion.bash
 ### END OF SETTINGS ###
 #######################
 
+
+declare -g NL='
+'
+
 # Reads multiline text and inputs to variable
 #
 # Example usage:
@@ -54,58 +58,67 @@ define(){ IFS=$'\n' read -r -d '' ${1} || true; }
 #     $3_END - End line number of where $2 where found in $1
 exists_in_file()
 {
-    DEBUG=false
+    DEBUG=true
     FILECONTENT=$(<$1)
     CONTENT_TO_CHECK="$2"
 
     declare -g $3_EXISTS=false
 
     # Remove trailing whitespace
-    FILECONTENT="$(echo -e "${FILECONTENT}" | sed -e 's/[[:space:]]*$//')"
-    # NewLine character
-    NL='
-'
+    FILECONTENT="$(echo "${FILECONTENT}" | sed -e 's/[[:space:]]*$//')"
+    # FILECONTENT=$(echo "$FILECONTENT" | sed 's/\\*$//g')
+
+    
     case "$CONTENT_TO_CHECK" in
-        *"$NL"*)
-            echo "CONTENT_TO_CHECK: More than one line"
-            # echo "CONTENT_TO_CHECK:"
-            # echo "$CONTENT_TO_CHECK"
+        *"$NL"*) # CONTENT_TO_CHECK is multiple lines
+            if $DEBUG
+            then
+                echo "CONTENT_TO_CHECK: More than one line"
+                echo "CONTENT_TO_CHECK:"
+                echo "$CONTENT_TO_CHECK"
+            fi
             ;;
-        *) 
-            echo "CONTENT_TO_CHECK: Is one line"
-            echo "CONTENT:"
-            echo "$CONTENT_TO_CHECK"
-            echo ""
+        *) # CONTENT_TO_CHECK is one line
+            if $DEBUG
+            then
+                echo "CONTENT_TO_CHECK: Is one line"
+                echo "CONTENT_TO_CHECK:"
+                echo "$CONTENT_TO_CHECK"
+                echo "GREP output:"
+                echo "$FILECONTENT" | grep -Fxn "$CONTENT_TO_CHECK" --color
+                echo ""
+            fi
             
             LINE_NUMBER=$(echo "$FILECONTENT" | grep -Fxn "$CONTENT_TO_CHECK" | head -1 | cut -f1 -d:)
-            echo "LINE_NUMBER: $LINE_NUMBER"
+            
             if [[ -n "$LINE_NUMBER" ]] ;
             then
-                echo "TRUE. Did find at line $LINE_NUMBER"
+                if $DEBUG; then echo "TRUE. Did find the content at line $LINE_NUMBER"; fi
                 declare -g $3_START=${LINE_NUMBER}
                 declare -g $3_END=${LINE_NUMBER}
                 # For eval and print within this function
                 START=$3_START
                 END=$3_END
-                echo "START: ${!START}, END: ${!END}"
                 declare -g $3_EXISTS=true
+
+                if $DEBUG; then echo "START: ${!START}, END: ${!END}"; fi
                 return 0
             else
-                echo "FALSE. Did not find **"
+                if $DEBUG; then echo "FALSE. Did not find the content."; fi
                 return -1
             fi ;;
     esac
 
-    REPLACED_CONTENT=${FILECONTENT/"$2"/}
+    # If multiple lines
+    REPLACED_CONTENT=${FILECONTENT/"$CONTENT_TO_CHECK"/}
 
     if $DEBUG
     then
-        echo -e "VARIABLE INPUT:\n$2\nEND OF VARIABLE INPUT\n"
-        echo "Grep Start"
-        echo "$2" | grep 'if \[ "\$color_prompt" = yes \];'
-        RETURN=$?
-        echo "Grep End"
-        echo "RETURN $RETURN"
+        # echo "Grep Start"
+        # echo "$2" | grep 'if \[ "\$color_prompt" = yes \];'
+        # RETURN=$?
+        # echo "Grep End"
+        # echo "RETURN $RETURN"
         if [[ "$RETURN" == 0 ]]
         then
             vimdiff <(echo "$FILECONTENT") <(echo "$REPLACED_CONTENT")
@@ -133,6 +146,8 @@ exists_in_file()
         echo "START: ${!START}, END: ${!END}"
         declare -g $3_EXISTS=true
         return 0
+    else
+        echo "Did not find multiline content"
     fi
 
     return -1
@@ -517,50 +532,40 @@ setup_gitcompletionbash()
 
     # if [[ $RETURN_CHMOD != 0 ]]; then return -1; fi
 
-# Variable expansion line
+    # Variable expansion line
     BASHRC_INPUT1_1="$PATH_GITCOMPLETIONBASH/$NAME_GITCOMPLETIONBASH"
-# Doesn't include any variable expansion
+    # Doesn't include any variable expansion
     define BASHRC_INPUT1_2 <<'EOF'
 export PROMPT_DIRTRIM=3
 export GIT_PS1_SHOWCOLORHINTS=true
 export GIT_PS1_SHOWDIRTYSTATE=true
 export GIT_PS1_SHOWUNTRACKEDFILES=true
 export GIT_PS1_SHOWUPSTREAM="auto"
-PS1_custom='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u\[\033[00m\]:\['\
-'\033[01;34m\]\w\[\033[00m\]\$ '
-PS1_original='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m'\
-'\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
 EOF
 # Concat the two above. OBS don't use \n for newline, seems good when doing diff
 # but doesn't work the same when doing the check in 'exists_in_file'
     BASHRC_INPUT1="${BASHRC_INPUT1_1}
 ${BASHRC_INPUT1_2}"
-
+    # Multi-line needs to be handled as multi-line. Not go through iteration while loop
     define BASHRC_INPUT2 <<'EOF'
+PS1_custom='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u\[\033[00m\]:\['\
+'\033[01;34m\]\w\[\033[00m\]\$ '
+EOF
+    define BASHRC_INPUT3 <<'EOF'
+PS1_original='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m'\
+'\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
+EOF
+    define BASHRC_INPUT4 <<'EOF'
 if [ "$color_prompt" = yes ]; then
     PS1=$PS1_custom
 EOF
-    define BASHRC_INPUT3 <<'EOF'
+    define BASHRC_INPUT5 <<'EOF'
 PROMPT_COMMAND=$(sed -r 's|^(.+)(\\\$\s*)$|__git_ps1 "\1" "\2"|' <<< $PS1)
 EOF
 
-    # Check if changes are done since before
     exists_in_file "$PATH_BASHRC/$NAME_BASHRC" "$BASHRC_INPUT1" BASHRC_INPUT1
-    exists_in_file "$PATH_BASHRC/$NAME_BASHRC" "$BASHRC_INPUT2" BASHRC_INPUT2
-    exists_in_file "$PATH_BASHRC/$NAME_BASHRC" "$BASHRC_INPUT3" BASHRC_INPUT3
 
-    echo -e "BASHRC_INPUT1_EXISTS: $BASHRC_INPUT1_EXISTS"
-    echo -e "BASHRC_INPUT2_EXISTS: $BASHRC_INPUT2_EXISTS"
-    echo -e "BASHRC_INPUT3_EXISTS: $BASHRC_INPUT3_EXISTS\n"
-
-    if $BASHRC_INPUT1_EXISTS && $BASHRC_INPUT2_EXISTS && $BASHRC_INPUT3_EXISTS
-    then
-        echo "Changes done since before."
-        exit
-        return 255
-    fi
-
-    # Find if statement
+    # Find if statement to know where to place content (above,in-between,below)
     IF_STATEMENT='if [ "$color_prompt" = yes ]; then'
     exists_in_file "$PATH_BASHRC/$NAME_BASHRC" "$IF_STATEMENT" IF_STATEMENT
     echo "IF_STATEMENT_EXISTS: $IF_STATEMENT_EXISTS"
@@ -578,8 +583,9 @@ EOF
         if ! $BASHRC_INPUT1_EXISTS
         then
             BASHRC_INPUT1_EXISTS=true
-            # BASHRC INPUT 1
-            # Iterate over every line as they are independent
+
+            # Iterate over every line of BASHRC_INPUT1 as they are independent
+            # These are assument to be above if statement
             while IFS= read -r line
             do
                 exists_in_file "$PATH_BASHRC/$NAME_BASHRC" "$line" LINE
@@ -587,13 +593,16 @@ EOF
                 then
                     if (( $LINE_START < $IF_STATEMENT_START ))
                     then # Line is before if statement
-                        echo -n "Line exists and is before if statement.\n"
+                        echo -e "Line exists and is before if statement.\n"
                     elif (( $FI_LINE_NUMBER < $LINE_START ))
                     then # Line is after whole if statement (fi)
                         # Remove content of that line
                         echo "Line exists, but is after if statement."
                         echo -e "Remove content of line $LINE_START\n"
-                        sed -i "${LINE_START}d" "$PATH_BASHRC/$NAME_BASHRC" # Remove the line
+                        sed -i "${LINE_START},${LINE_END}d" "$PATH_BASHRC/$NAME_BASHRC" # Remove the line
+                        
+                        # If ending with backslash, add another one to behave as wanted with sed
+                        line=$(echo "$line" | sed -E 's/[\\]$/\\\\/gm')
                         # Place content before if statement
                         sed -i "${IF_STATEMENT_START}i $line" "$PATH_BASHRC/$NAME_BASHRC"
 
@@ -614,9 +623,26 @@ EOF
                         echo -e "LINE FOUND:\n$line\n AT LINE: $LINE_START"
                         return -1
                     fi
-                else # Content doesn't exists in if statement
+                else # Content doesn't exist
+                    # If ending with backslash, add another one to behave as wanted with sed
+                    echo "***************************************************************************************%%%%%%%%%%"
+                    line=$(echo "$line" | sed -E 's/[\\]$/\\\\/gm')
+                    # line=$(echo "$line" | sed 's/[][\\*.%$]/\\&/g') # Alternative way of above
                     # Place content before if statement
-                    sed -i "${IF_STATEMENT_START}i $line" "$PATH_BASHRC/$NAME_BASHRC"
+                    echo "Insert the following line into line number $IF_STATEMENT_START"
+                    sed -i "${IF_STATEMENT_START}i ${line}" "$PATH_BASHRC/$NAME_BASHRC"
+
+                    # Increment if statement variables as they got shifted
+                    IF_STATEMENT_START=$((IF_STATEMENT_START + 1))
+                    IF_STATEMENT_END=$((IF_STATEMENT_END + 1))
+                    ELSE_ELIF_LINE_NUMBER=$((ELSE_ELIF_LINE_NUMBER + 1))
+                    FI_LINE_NUMBER=$((FI_LINE_NUMBER + 1))
+                    
+                    echo "IF_STATEMENT_START updated to:    $IF_STATEMENT_START"
+                    echo "IF_STATEMENT_END updated to:      $IF_STATEMENT_END"
+                    echo "ELSE_ELIF_LINE_NUMBER updated to: $ELSE_ELIF_LINE_NUMBER"
+                    echo "FI_LINE_NUMBER updated to:        $FI_LINE_NUMBER"
+
                     BASHRC_INPUT1_EXISTS=false
                 fi
             done <<< "$BASHRC_INPUT1"
@@ -626,8 +652,107 @@ EOF
         then
             echo "BASHRC_INPUT1 already done."
         fi
+        
+        echo "Time for INPUT 2 ******************************************************"
+        echo "BASHRC_INPUT2:"
+        echo "$BASHRC_INPUT2"
+        exists_in_file "$PATH_BASHRC/$NAME_BASHRC" "$BASHRC_INPUT2" BASHRC_INPUT2
 
-        if ! $BASHRC_INPUT2_EXISTS
+        if $BASHRC_INPUT2_EXISTS
+        then
+            echo "BASHRC_INPUT2_START: $BASHRC_INPUT2_START"
+            if (( $BASHRC_INPUT2_START < $IF_STATEMENT_START ))
+            then # Line is before if statement
+                echo -e "Line exists and is before if statement.\n"
+            elif (( $FI_LINE_NUMBER < $BASHRC_INPUT2_START ))
+            then # Lines are after whole if statement (fi)
+                # Remove content of that line
+                echo "Content exists, but is after if statement."
+                echo "Remove content of lines $BASHRC_INPUT2_START-$BASHRC_INPUT2_END"
+                sed -i "${BASHRC_INPUT2_START},${BASHRC_INPUT2_END}d" "$PATH_BASHRC/$NAME_BASHRC"
+                
+                # Commented out below does not work as intended.
+                # If ending with backslash, but not a backslash before that (double or more)
+                # then replace with double backslash. Making sure that a single one is 
+                # replaced with a double
+                # https://stackoverflow.com/a/9306228/12374737
+                # "Where (?<!x) means "only if it doesn't have 'x' before this point"."
+                # BASHRC_INPUT2=$(echo "$BASHRC_INPUT2" | sed 's/(?<!\\)[\\]{1}$/\\\\/gm')
+
+                # Replace backslashes with double backslashes
+                BASHRC_INPUT2=$(echo "$BASHRC_INPUT2" | sed 's/\\/\\\\/g')
+                # Replace backslash at end of line with an extra backslash
+                BASHRC_INPUT2=$(echo "$BASHRC_INPUT2" | sed -E 's/[\\]$/\\\\/gm')
+
+                sed -i "${IF_STATEMENT_START}i $BASHRC_INPUT2" "$PATH_BASHRC/$NAME_BASHRC"
+                
+                # Increment if statement variables as they got shifted
+                echo "IF_STATEMENT_START before:        $IF_STATEMENT_START"
+                NUM_LINES=$(echo -n "$BASHRC_INPUT2" | grep -c '^')
+                echo "NUM_LINES:                        $NUM_LINES"
+                IF_STATEMENT_START=$((IF_STATEMENT_START + NUM_LINES))
+                IF_STATEMENT_END=$((IF_STATEMENT_END + NUM_LINES))
+                ELSE_ELIF_LINE_NUMBER=$((ELSE_ELIF_LINE_NUMBER + NUM_LINES))
+                FI_LINE_NUMBER=$((FI_LINE_NUMBER + NUM_LINES))
+
+                echo "IF_STATEMENT_START updated to:    $IF_STATEMENT_START"
+                echo "IF_STATEMENT_END updated to:      $IF_STATEMENT_END"
+                echo "ELSE_ELIF_LINE_NUMBER updated to: $ELSE_ELIF_LINE_NUMBER"
+                echo "FI_LINE_NUMBER updated to:        $FI_LINE_NUMBER"
+
+                BASHRC_INPUT1_EXISTS=false
+            else
+                echo "Content found in if statement even though it shouldn't be there."
+                echo "LINE FOUND:"
+                echo "$BASHRC_INPUT2"
+                echo "AT LINES: $BASHRC_INPUT2_START-$BASHRC_INPUT2_END"
+                return -1
+            fi
+        else
+            echo "********************************************************************"
+            echo "BASHRC_INPUT2:"
+            echo "$BASHRC_INPUT2"
+            # Replace backslashes with double backslashes to have 'sed' insert line at
+            # line number later work as expected
+            BASHRC_INPUT2=$(echo "$BASHRC_INPUT2" | sed 's/\\/\\\\/g')
+            # Replace backslash at end of line with an extra backslash to have 'sed' 
+            # insert line at line number later work as expected
+            BASHRC_INPUT2=$(echo "$BASHRC_INPUT2" | sed -E 's/[\\]$/\\\\/gm')
+
+            echo "BASHRC_INPUT2 after adding extra backslashes:"
+            echo "$BASHRC_INPUT2"
+
+            sed -i "${IF_STATEMENT_START}i $BASHRC_INPUT2" "$PATH_BASHRC/$NAME_BASHRC"
+            
+
+            # Increment if statement variables as they got shifted
+            echo "IF_STATEMENT_START before:        $IF_STATEMENT_START"
+            NUM_LINES=$(echo -n "$BASHRC_INPUT2" | grep -c '^')
+            echo "NUM_LINES:                        $NUM_LINES"
+            IF_STATEMENT_START=$((IF_STATEMENT_START + NUM_LINES))
+            IF_STATEMENT_END=$((IF_STATEMENT_END + NUM_LINES))
+            ELSE_ELIF_LINE_NUMBER=$((ELSE_ELIF_LINE_NUMBER + NUM_LINES))
+            FI_LINE_NUMBER=$((FI_LINE_NUMBER + NUM_LINES))
+
+            echo "IF_STATEMENT_START updated to:    $IF_STATEMENT_START"
+            echo "IF_STATEMENT_END updated to:      $IF_STATEMENT_END"
+            echo "ELSE_ELIF_LINE_NUMBER updated to: $ELSE_ELIF_LINE_NUMBER"
+            echo "FI_LINE_NUMBER updated to:        $FI_LINE_NUMBER"
+        fi
+
+        echo "Time for INPUT 3 ******************************************************"
+
+        if ! $BASHRC_INPUT3_EXISTS
+        then
+            if $IF_STATEMENT_EXISTS
+            then
+                echo "bla"
+            else 
+                echo "Insert somewhere else"
+            fi
+        fi
+
+        if ! $BASHRC_INPUT4_EXISTS
         then
             if $IF_STATEMENT_EXISTS
             then
@@ -641,7 +766,6 @@ EOF
                 fi
             else
                 echo "Insert somewhere else"
-                # Insert somewhere else
             fi
         fi
 
