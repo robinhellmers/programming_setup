@@ -584,7 +584,6 @@ EOF
 PROMPT_COMMAND=$(sed -r 's|^(.+)(\\\$\s*)$|__git_ps1 "\1" "\2"|' <<< $PS1)
 EOF
 
-    exists_in_file "$PATH_BASHRC/$NAME_BASHRC" "$BASHRC_INPUT1" BASHRC_INPUT1
 
     # Find if statement to know where to place content (above,in-between,below)
     IF_STATEMENT='if [ "$color_prompt" = yes ]; then'
@@ -599,7 +598,12 @@ EOF
             echo "Problem in finding else/elif/fi statement."
             return -1
         fi
-    
+
+        #################################################################
+        ############################ INPUT 1 ############################
+        #################################################################
+        echo "Time for INPUT 1 ******************************************************"
+        exists_in_file "$PATH_BASHRC/$NAME_BASHRC" "$BASHRC_INPUT1" BASHRC_INPUT1
 
         if ! $BASHRC_INPUT1_EXISTS
         then
@@ -657,10 +661,12 @@ EOF
         then
             echo "BASHRC_INPUT1 already done."
         fi
+
+        #################################################################
+        ############################ INPUT 2 ############################
+        #################################################################
         
         echo "Time for INPUT 2 ******************************************************"
-        echo "BASHRC_INPUT2:"
-        echo "$BASHRC_INPUT2"
         exists_in_file "$PATH_BASHRC/$NAME_BASHRC" "$BASHRC_INPUT2" BASHRC_INPUT2
 
         if $BASHRC_INPUT2_EXISTS
@@ -703,7 +709,6 @@ EOF
                 return -1
             fi
         else
-            echo "********************************************************************"
             echo "BASHRC_INPUT2:"
             echo "$BASHRC_INPUT2"
             # Replace backslashes with double backslashes to have 'sed' insert line at
@@ -718,22 +723,80 @@ EOF
 
             sed -i "${IF_STATEMENT_START}i $BASHRC_INPUT2" "$PATH_BASHRC/$NAME_BASHRC"
             
-
             # Increment if statement variables as they got shifted
             adjust_else_elif_fi_linenumbers "$BASHRC_INPUT2"
         fi
 
+        #################################################################
+        ############################ INPUT 3 ############################
+        #################################################################
         echo "Time for INPUT 3 ******************************************************"
+        exists_in_file "$PATH_BASHRC/$NAME_BASHRC" "$BASHRC_INPUT3" BASHRC_INPUT3
 
-        if ! $BASHRC_INPUT3_EXISTS
+        if $BASHRC_INPUT3_EXISTS
         then
-            if $IF_STATEMENT_EXISTS
-            then
-                echo "bla"
-            else 
-                echo "Insert somewhere else"
+            echo "BASHRC_INPUT3_START: $BASHRC_INPUT3_START"
+            if (( $BASHRC_INPUT3_START < $IF_STATEMENT_START ))
+            then # Line is before if statement
+                echo -e "Line exists and is before if statement.\n"
+            elif (( $FI_LINE_NUMBER < $BASHRC_INPUT3_START ))
+            then # Lines are after whole if statement (fi)
+                # Remove content of that line
+                echo "Content exists, but is after if statement."
+                echo "Remove content of lines $BASHRC_INPUT3_START-$BASHRC_INPUT3_END"
+                sed -i "${BASHRC_INPUT3_START},${BASHRC_INPUT3_END}d" "$PATH_BASHRC/$NAME_BASHRC"
+                
+                # Commented out below does not work as intended.
+                # If ending with backslash, but not a backslash before that (double or more)
+                # then replace with double backslash. Making sure that a single one is 
+                # replaced with a double
+                # https://stackoverflow.com/a/9306228/12374737
+                # "Where (?<!x) means "only if it doesn't have 'x' before this point"."
+                # BASHRC_INPUT3=$(echo "$BASHRC_INPUT3" | sed 's/(?<!\\)[\\]{1}$/\\\\/gm')
+
+                # Replace backslashes with double backslashes
+                BASHRC_INPUT3=$(echo "$BASHRC_INPUT3" | sed 's/\\/\\\\/g')
+                # Replace backslash at end of line with an extra backslash
+                BASHRC_INPUT3=$(echo "$BASHRC_INPUT3" | sed -E 's/[\\]$/\\\\/gm')
+
+                sed -i "${IF_STATEMENT_START}i $BASHRC_INPUT3" "$PATH_BASHRC/$NAME_BASHRC"
+                
+                # Increment if statement variables as they got shifted
+                adjust_else_elif_fi_linenumbers "$BASHRC_INPUT3"
+
+                BASHRC_INPUT1_EXISTS=false
+            else
+                echo "Content found in if statement even though it shouldn't be there."
+                echo "LINE FOUND:"
+                echo "$BASHRC_INPUT3"
+                echo "AT LINES: $BASHRC_INPUT3_START-$BASHRC_INPUT3_END"
+                return -1
             fi
+        else
+            echo "********************************************************************"
+            echo "BASHRC_INPUT3:"
+            echo "$BASHRC_INPUT3"
+            # Replace backslashes with double backslashes to have 'sed' insert line at
+            # line number later work as expected
+            BASHRC_INPUT3=$(echo "$BASHRC_INPUT3" | sed 's/\\/\\\\/g')
+            # Replace backslash at end of line with an extra backslash to have 'sed' 
+            # insert line at line number later work as expected
+            BASHRC_INPUT3=$(echo "$BASHRC_INPUT3" | sed -E 's/[\\]$/\\\\/gm')
+
+            echo "BASHRC_INPUT3 after adding extra backslashes:"
+            echo "$BASHRC_INPUT3"
+
+            sed -i "${IF_STATEMENT_START}i $BASHRC_INPUT3" "$PATH_BASHRC/$NAME_BASHRC"
+            
+            # Increment if statement variables as they got shifted
+            adjust_else_elif_fi_linenumbers "$BASHRC_INPUT3"
         fi
+
+        #################################################################
+        ############################ INPUT 4 ############################
+        #################################################################
+        echo "Time for INPUT 4 ******************************************************"
+        exists_in_file "$PATH_BASHRC/$NAME_BASHRC" "$BASHRC_INPUT4" BASHRC_INPUT4
 
         if ! $BASHRC_INPUT4_EXISTS
         then
@@ -751,6 +814,13 @@ EOF
                 echo "Insert somewhere else"
             fi
         fi
+
+        #################################################################
+        ############################ INPUT 5 ############################
+        #################################################################
+        echo "Time for INPUT 5 ******************************************************"
+        exists_in_file "$PATH_BASHRC/$NAME_BASHRC" "$BASHRC_INPUT5" BASHRC_INPUT5
+
 
     fi
 
