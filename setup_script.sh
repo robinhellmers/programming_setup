@@ -285,6 +285,27 @@ find_else_elif_fi_statement()
     return -1
 }
 
+
+adjust_else_elif_fi_linenumbers()
+{
+    INPUT="$1"
+
+    echo "TEST THIS TEST &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&"
+    # Increment if statement variables as they got shifted
+    echo "IF_STATEMENT_START before:        $IF_STATEMENT_START"
+    NUM_LINES=$(echo -n "$INPUT" | grep -c '^')
+    echo "NUM_LINES:                        $NUM_LINES"
+    IF_STATEMENT_START=$((IF_STATEMENT_START + NUM_LINES))
+    IF_STATEMENT_END=$((IF_STATEMENT_END + NUM_LINES))
+    ELSE_ELIF_LINE_NUMBER=$((ELSE_ELIF_LINE_NUMBER + NUM_LINES))
+    FI_LINE_NUMBER=$((FI_LINE_NUMBER + NUM_LINES))
+
+    echo "IF_STATEMENT_START updated to:    $IF_STATEMENT_START"
+    echo "IF_STATEMENT_END updated to:      $IF_STATEMENT_END"
+    echo "ELSE_ELIF_LINE_NUMBER updated to: $ELSE_ELIF_LINE_NUMBER"
+    echo "FI_LINE_NUMBER updated to:        $FI_LINE_NUMBER"
+}
+
 #############################
 ### YESNO QUESTION HELPER ###
 #############################
@@ -606,16 +627,8 @@ EOF
                         # Place content before if statement
                         sed -i "${IF_STATEMENT_START}i $line" "$PATH_BASHRC/$NAME_BASHRC"
 
-                        # Increment if statement variables as they got shifted
-                        IF_STATEMENT_START=$((IF_STATEMENT_START + 1))
-                        IF_STATEMENT_END=$((IF_STATEMENT_END + 1))
-                        ELSE_ELIF_LINE_NUMBER=$((ELSE_ELIF_LINE_NUMBER + 1))
-                        FI_LINE_NUMBER=$((FI_LINE_NUMBER + 1))
-
-                        echo "IF_STATEMENT_START updated to:    $IF_STATEMENT_START"
-                        echo "IF_STATEMENT_END updated to:      $IF_STATEMENT_END"
-                        echo "ELSE_ELIF_LINE_NUMBER updated to: $ELSE_ELIF_LINE_NUMBER"
-                        echo "FI_LINE_NUMBER updated to:        $FI_LINE_NUMBER"
+                        # Increment if statement variables as they got shifted down
+                        adjust_else_elif_fi_linenumbers "$line"
 
                         BASHRC_INPUT1_EXISTS=false
                     else
@@ -633,15 +646,7 @@ EOF
                     sed -i "${IF_STATEMENT_START}i ${line}" "$PATH_BASHRC/$NAME_BASHRC"
 
                     # Increment if statement variables as they got shifted
-                    IF_STATEMENT_START=$((IF_STATEMENT_START + 1))
-                    IF_STATEMENT_END=$((IF_STATEMENT_END + 1))
-                    ELSE_ELIF_LINE_NUMBER=$((ELSE_ELIF_LINE_NUMBER + 1))
-                    FI_LINE_NUMBER=$((FI_LINE_NUMBER + 1))
-                    
-                    echo "IF_STATEMENT_START updated to:    $IF_STATEMENT_START"
-                    echo "IF_STATEMENT_END updated to:      $IF_STATEMENT_END"
-                    echo "ELSE_ELIF_LINE_NUMBER updated to: $ELSE_ELIF_LINE_NUMBER"
-                    echo "FI_LINE_NUMBER updated to:        $FI_LINE_NUMBER"
+                    adjust_else_elif_fi_linenumbers "$line"
 
                     BASHRC_INPUT1_EXISTS=false
                 fi
@@ -687,18 +692,7 @@ EOF
                 sed -i "${IF_STATEMENT_START}i $BASHRC_INPUT2" "$PATH_BASHRC/$NAME_BASHRC"
                 
                 # Increment if statement variables as they got shifted
-                echo "IF_STATEMENT_START before:        $IF_STATEMENT_START"
-                NUM_LINES=$(echo -n "$BASHRC_INPUT2" | grep -c '^')
-                echo "NUM_LINES:                        $NUM_LINES"
-                IF_STATEMENT_START=$((IF_STATEMENT_START + NUM_LINES))
-                IF_STATEMENT_END=$((IF_STATEMENT_END + NUM_LINES))
-                ELSE_ELIF_LINE_NUMBER=$((ELSE_ELIF_LINE_NUMBER + NUM_LINES))
-                FI_LINE_NUMBER=$((FI_LINE_NUMBER + NUM_LINES))
-
-                echo "IF_STATEMENT_START updated to:    $IF_STATEMENT_START"
-                echo "IF_STATEMENT_END updated to:      $IF_STATEMENT_END"
-                echo "ELSE_ELIF_LINE_NUMBER updated to: $ELSE_ELIF_LINE_NUMBER"
-                echo "FI_LINE_NUMBER updated to:        $FI_LINE_NUMBER"
+                adjust_else_elif_fi_linenumbers "$BASHRC_INPUT2"
 
                 BASHRC_INPUT1_EXISTS=false
             else
@@ -726,18 +720,7 @@ EOF
             
 
             # Increment if statement variables as they got shifted
-            echo "IF_STATEMENT_START before:        $IF_STATEMENT_START"
-            NUM_LINES=$(echo -n "$BASHRC_INPUT2" | grep -c '^')
-            echo "NUM_LINES:                        $NUM_LINES"
-            IF_STATEMENT_START=$((IF_STATEMENT_START + NUM_LINES))
-            IF_STATEMENT_END=$((IF_STATEMENT_END + NUM_LINES))
-            ELSE_ELIF_LINE_NUMBER=$((ELSE_ELIF_LINE_NUMBER + NUM_LINES))
-            FI_LINE_NUMBER=$((FI_LINE_NUMBER + NUM_LINES))
-
-            echo "IF_STATEMENT_START updated to:    $IF_STATEMENT_START"
-            echo "IF_STATEMENT_END updated to:      $IF_STATEMENT_END"
-            echo "ELSE_ELIF_LINE_NUMBER updated to: $ELSE_ELIF_LINE_NUMBER"
-            echo "FI_LINE_NUMBER updated to:        $FI_LINE_NUMBER"
+            adjust_else_elif_fi_linenumbers "$BASHRC_INPUT2"
         fi
 
         echo "Time for INPUT 3 ******************************************************"
