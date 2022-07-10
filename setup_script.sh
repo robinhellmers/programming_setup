@@ -34,6 +34,67 @@ NAME_GITCOMPLETIONBASH=.git-completion.bash
 ### END OF SETTINGS ###
 #######################
 
+main()
+{
+    initial_questions
+
+    # Go through every setup, calling their corresponding function if to be done
+    TOTAL_RESULTS=true
+    for ind_arr_setups in "${!arr_setups[@]}"
+    do 
+        if [[ $(( ind_arr_setups % 2 )) == 0 ]]
+        then
+            # SETUP_INDIVIDUAL is used to call the magic variable through double
+            # evaluation with ${!SETUP_INDIVIDUAL}
+            SETUP_INDIVIDUAL=SETUP_${arr_setups[$ind_arr_setups]^^}
+            if $SETUP_EVERYTHING || ${!SETUP_INDIVIDUAL}
+            then
+                echo -e "****************************************"
+                echo -e "Start setup of \"${arr_setups[(($ind_arr_setups + 1))]}\""
+                echo -e "****************************************\n"
+                # Function call
+                setup_${arr_setups[$ind_arr_setups]}
+                case $? in 
+                    0)   # Success
+                        END_RESULTS+="[✔️] ";;
+                    255) # Already done
+                        END_RESULTS+="[🔷] ";;
+                    *)   # Failure
+                        END_RESULTS+="[❌] ";
+                        TOTAL_RESULTS=false;;
+                esac
+                echo -e "****************************************"
+                echo "End setup of \"${arr_setups[(($ind_arr_setups + 1))]}\""
+                echo -e "****************************************\n"
+            else
+                # Setup not to be done
+                END_RESULTS+="[🟠] "
+            fi
+
+            END_RESULTS+="${arr_setups[(($ind_arr_setups + 1))]}\n"
+        fi
+    done
+
+    # Print end results
+    echo -e "Results:\n"
+    echo -e " 🟠 = Not to be done"
+    echo -e " ✔️ = Success"
+    echo -e " ❌ = Failure"
+    echo -e " 🔷 = Already setup\n"
+    echo -e "$END_RESULTS\n"
+    echo -e "****************************************"
+    TOTAL_RESULTS_PRINT="Total results: "
+    if $TOTAL_RESULTS
+    then
+        TOTAL_RESULTS_PRINT+="✔️ - SUCCESS"
+    else
+        TOTAL_RESULTS_PRINT+="❌ - FAILURE"
+    fi
+    echo -e "$TOTAL_RESULTS_PRINT"
+    echo -e "****************************************\n"
+
+}
+
 declare -g NL='
 '
 
@@ -268,46 +329,110 @@ get_internet_file()
 # Look for else/elif/fi statement
 # 1 - File
 # 2 - If statement start line number
-# 3 - Max lines to check through
-# Creates ELSE_ELIF_LINE_NUMBER containing the line number of the first else/elif/fi 
-# statement after the given line number $2
+# 3 - Variable name. Function will create the following
+#     array ${VAR_NAME}_LNs  - Contains line numbers of 'if', 'elif', 'else', 'fi'
+#     array ${VAR_NAME}_type - Contains info about whether it is an if', 'elif', 'else' or 'fi'
+#                              for the same index in ${VAR_NAME}_LNs
+# 4 - Max number of if statements/Max if statement level.
+#     E.g. 2 levels of if statement:
+#     if ...
+#         if ...
+#         fi
+#     else
+#         if ...
+#         fi
+#     fi
+#     E.g. 3 levels of if statement:
+#     if ...
+#         if ...
+#             if ...
+#             fi
+#         fi
+#     fi
 #
-# Does not support nested if statements yet. Needs to count number of found if cases
 find_else_elif_fi_statement()
 {
     FILE=$1
     IF_LINE_NUMBER=$2
-    MAX_COUNT=$3
+    VAR_NAME=$3
+    MAX_LEVEL=$4
 
-    echo ""
-    echo "FILE: $FILE"
-    echo "IF_LINE_NUMBER: $IF_LINE_NUMBER"
-    echo "MAX_COUNT: $MAX_COUNT"
-    echo ""
-    
-    declare -g ELSE_ELIF_EXISTS=false
-    COUNT=1
+    # Declare dynamic name for array ${VAR_NAME}_LNs
+    # https://stackoverflow.com/questions/4582137/bash-indirect-array-addressing
+    declare -ag "${VAR_NAME}_LNs=()"
+    declare -n var_name_LNs="${VAR_NAME}_LNs"
+    eval_var_name_LNs="${VAR_NAME}_LNs[@]"
+    declare  eval_index_var_name_LNs="${VAR_NAME}_LNs[index]"
+    ## Example Usage inside of function ##
+    # var_name_LNs+=(1)
+    # var_name_LNs+=(2)
+    # var_name_LNs[2]=4
+    # index=0
+    # echo "${!eval_index_var_name_LNs}"
+    # index=1
+    # echo "${!eval_index_var_name_LNs}"
+    # echo "${!eval_var_name_LNs}"
+
+    # Declare dynamic name array ${VAR_NAME}_type
+    declare -ag "${VAR_NAME}_type=()"
+    declare -n var_name_type="${VAR_NAME}_type"
+    eval_var_name_type="${VAR_NAME}_type[@]"
+    declare  eval_index_var_name_type="${VAR_NAME}_type[index]"
+
+    echo "********************************************************"
+    echo "***** Update if statement variables ********************"
+    echo "********************************************************"
+
+    if_statement_level=0
+    line_count=0
     while read -r line; do
         # Get first word of line
-        FIRST_WORD=$(echo "$line" | head -n1 | awk '{print $1;}')
-
-        if [[ "$FIRST_WORD" == "fi" ]]
-        then
-            declare -g FI_LINE_NUMBER=$(($IF_LINE_NUMBER + $COUNT))
-            echo "Found fi at line: $FI_LINE_NUMBER"
-            return 0
-        elif [[ "$FIRST_WORD" == "else" ]] || [[ "$FIRST_WORD" == "elif" ]]
-        then # Found it 
-            # PROBLEM: Will overwrite if e.g. both elif and else exists. Or if multiple elif exists
-            # Line number of else/elif/fi
-            declare -g ELSE_ELIF_LINE_NUMBER=$(($IF_LINE_NUMBER + $COUNT))
-            declare -g ELSE_ELIF_EXISTS=true
-            echo "Found else/elif at line: $ELSE_ELIF_LINE_NUMBER"
-        fi
+        first_word=$(echo "$line" | head -n1 | awk '{print $1;}')
         
-        if [[ $COUNT == $MAX_COUNT ]]; then break; fi
-        COUNT=$((COUNT + 1))
-    done < <(tail -n "+$((IF_LINE_NUMBER + 1))" $FILE)
+        case $first_word in
+        'if')
+            ((if_statement_level++))
+
+            if (( if_statement_level <= MAX_LEVEL ))
+            then
+                var_name_LNs+=( $((IF_LINE_NUMBER + $line_count)) )
+                var_name_type+=( 'if' )
+            fi
+            ;;
+        'elif')
+            if (( if_statement_level <= MAX_LEVEL ))
+            then
+                var_name_LNs+=( $((IF_LINE_NUMBER + $line_count)) )
+                var_name_type+=( 'elif' )
+            fi
+            ;;
+        'else')
+            if (( if_statement_level <= MAX_LEVEL ))
+            then
+                var_name_LNs+=( $((IF_LINE_NUMBER + $line_count)) )
+                var_name_type+=( 'else' )
+            fi
+            ;;
+        'fi')
+            ((if_statement_level--))
+
+            if ((if_statement_level <= MAX_LEVEL - 1))
+            then
+                var_name_LNs+=( $((IF_LINE_NUMBER + $line_count)) )
+                var_name_type+=( 'fi' )
+
+                if ((if_statement_level == 0))
+                then
+                    return 0
+                fi
+            fi
+            ;;
+        *)
+            ;;
+        esac
+        
+        ((line_count++))
+    done < <(tail -n "+$IF_LINE_NUMBER" $FILE)
 
     return -1
 }
@@ -523,14 +648,14 @@ add_single_line_content()
         echo "Length of Intervals: ${#_intervals[@]}"
         echo "Length of Preferred intervals: ${#preferred_interval[@]}"
         echo "Preferred intervals is not the right length to match Intervals."
-        echo "Preferred intervals should be of length $((#_intervals[@]} + 1))"
+        echo "Preferred intervals should be of length $((${#_intervals[@]} + 1))"
         return -1
     elif (( ${#_intervals[@]} + 1 != ${#allowed_intervals[@]} ))
     then
         echo "Length of Intervals: ${#_intervals[@]}"
         echo "Length of Allowed intervals: ${#allowed_intervals[@]}"
         echo "Allowed intervals is not the right length to match Intervals."
-        echo "Allowed intervals should be of length $((#_intervals[@]} + 1))"
+        echo "Allowed intervals should be of length $((${#_intervals[@]} + 1))"
         return -1
     fi
 
@@ -1012,14 +1137,14 @@ add_multiline_content()
         echo "Length of Intervals: ${#_intervals[@]}"
         echo "Length of Preferred intervals: ${#preferred_interval[@]}"
         echo "Preferred intervals is not the right length to match Intervals."
-        echo "Preferred intervals should be of length $((#_intervals[@]} + 1))"
+        echo "Preferred intervals should be of length $((${#_intervals[@]} + 1))"
         return -1
     elif (( ${#_intervals[@]} + 1 != ${#allowed_intervals[@]} ))
     then
         echo "Length of Intervals: ${#_intervals[@]}"
         echo "Length of Allowed intervals: ${#allowed_intervals[@]}"
         echo "Allowed intervals is not the right length to match Intervals."
-        echo "Allowed intervals should be of length $((#_intervals[@]} + 1))"
+        echo "Allowed intervals should be of length $((${#_intervals[@]} + 1))"
         return -1
     fi
 
@@ -1587,12 +1712,18 @@ setup_gitcompletionbash()
     echo "IF_STATEMENT_START: $IF_STATEMENT_START IF_STATEMENT_END: $IF_STATEMENT_END"
     if $IF_STATEMENT_EXISTS
     then
-        find_else_elif_fi_statement "$PATH_BASHRC/$NAME_BASHRC" "$IF_STATEMENT_START" 100
+        find_else_elif_fi_statement "$PATH_BASHRC/$NAME_BASHRC" "$IF_STATEMENT_START" if_statement 1
         if [[ "$?" != 0 ]]
         then
             echo "Problem in finding else/elif/fi statement."
             return -1
         fi
+
+        echo ""
+        echo "Found if statement at..."
+        echo "if_statement_LNs: ${if_statement_LNs[@]}"
+        echo "if_statement_type: ${if_statement_type[@]}"
+        echo ""
 
         #################################################################
         ############################ INPUT 1 ############################
@@ -1614,7 +1745,7 @@ EOF
 ${BASHRC_INPUT1_2}"
 
         IF_STATEMENT='if [ "$color_prompt" = yes ]; then'
-        declare -a intervals=($IF_STATEMENT_START $FI_LINE_NUMBER)
+        declare -a intervals=("${if_statement_LNs[@]}")
         declare -a allowed_intervals=(true false true)
         declare -a preferred_interval=(true false false)
 
@@ -1633,8 +1764,8 @@ EOF
         # Update if statement variables with new line numbers
         IF_STATEMENT='if [ "$color_prompt" = yes ]; then'
         exists_in_file "$PATH_BASHRC/$NAME_BASHRC" "$IF_STATEMENT" IF_STATEMENT
-        find_else_elif_fi_statement "$PATH_BASHRC/$NAME_BASHRC" "$IF_STATEMENT_START" 100
-        declare -a intervals=($IF_STATEMENT_START $FI_LINE_NUMBER)
+        find_else_elif_fi_statement "$PATH_BASHRC/$NAME_BASHRC" "$IF_STATEMENT_START" if_statement 1
+        declare -a intervals=("${if_statement_LNs[@]}")
         declare -a allowed_intervals=(true false false)
         declare -a preferred_interval=(true false false)
         
@@ -1651,26 +1782,22 @@ EOF
         # Update if statement variables with new line numbers
         IF_STATEMENT='if [ "$color_prompt" = yes ]; then'
         exists_in_file "$PATH_BASHRC/$NAME_BASHRC" "$IF_STATEMENT" IF_STATEMENT
-        find_else_elif_fi_statement "$PATH_BASHRC/$NAME_BASHRC" "$IF_STATEMENT_START" 100
-        declare -a intervals=($IF_STATEMENT_START $ELSE_ELIF_LINE_NUMBER $FI_LINE_NUMBER)
-        declare -a allowed_intervals=(false true true false)
-        declare -a preferred_interval=(false true false false)
+        find_else_elif_fi_statement "$PATH_BASHRC/$NAME_BASHRC" "$IF_STATEMENT_START" if_statement 1
+        declare -a intervals=("${if_statement_LNs[@]}")
+        declare -a allowed_intervals=(true false false false)
+        declare -a preferred_interval=(true flase false false)
         
-        add_multiline_content "$PATH_BASHRC" "$NAME_BASHRC" BASHRC_INPUT3 "INBETWEEN" "START" "${#intervals[@]}" "${intervals[@]}" "${#allowed_intervals[@]}" "${allowed_intervals[@]}" "${#preferred_interval[@]}" "${preferred_interval[@]}"
+        add_multiline_content "$PATH_BASHRC" "$NAME_BASHRC" BASHRC_INPUT3 "INBETWEEN" "END" "${#intervals[@]}" "${intervals[@]}" "${#allowed_intervals[@]}" "${allowed_intervals[@]}" "${#preferred_interval[@]}" "${preferred_interval[@]}"
 
         #################################################################
         ############################ INPUT 4 ############################
         #################################################################
 
-        define BASHRC_INPUT4 <<'EOF'
-if [ "$color_prompt" = yes ]; then
-    PS1=$PS1_custom
-EOF
         # Update if statement variables with new line numbers
         IF_STATEMENT='if [ "$color_prompt" = yes ]; then'
         exists_in_file "$PATH_BASHRC/$NAME_BASHRC" "$IF_STATEMENT" IF_STATEMENT
-        find_else_elif_fi_statement "$PATH_BASHRC/$NAME_BASHRC" "$IF_STATEMENT_START" 100
-        declare -a intervals=($IF_STATEMENT_START $ELSE_ELIF_LINE_NUMBER $FI_LINE_NUMBER)
+        find_else_elif_fi_statement "$PATH_BASHRC/$NAME_BASHRC" "$IF_STATEMENT_START" if_statement 1
+        declare -a intervals=("${if_statement_LNs[@]}")
         declare -a allowed_intervals=(false true false false)
         declare -a preferred_interval=(false true false false)
         
@@ -1707,65 +1834,9 @@ EOF
 
 
 
-############
-### MAIN ###
-############
-
-initial_questions
-
-# Go through every setup, calling their corresponding function if to be done
-TOTAL_RESULTS=true
-for ind_arr_setups in "${!arr_setups[@]}"
-do 
-    if [[ $(( ind_arr_setups % 2 )) == 0 ]]
-    then
-        # SETUP_INDIVIDUAL is used to call the magic variable through double
-        # evaluation with ${!SETUP_INDIVIDUAL}
-        SETUP_INDIVIDUAL=SETUP_${arr_setups[$ind_arr_setups]^^}
-        if $SETUP_EVERYTHING || ${!SETUP_INDIVIDUAL}
-        then
-            echo -e "****************************************"
-            echo -e "Start setup of \"${arr_setups[(($ind_arr_setups + 1))]}\""
-            echo -e "****************************************\n"
-            # Function call
-            setup_${arr_setups[$ind_arr_setups]}
-            case $? in 
-                0)   # Success
-                    END_RESULTS+="[✔️] ";;
-                255) # Already done
-                    END_RESULTS+="[🔷] ";;
-                *)   # Failure
-                    END_RESULTS+="[❌] ";
-                    TOTAL_RESULTS=false;;
-            esac
-            echo -e "****************************************"
-            echo "End setup of \"${arr_setups[(($ind_arr_setups + 1))]}\""
-            echo -e "****************************************\n"
-        else
-            # Setup not to be done
-            END_RESULTS+="[🟠] "
-        fi
-
-        END_RESULTS+="${arr_setups[(($ind_arr_setups + 1))]}\n"
-    fi
-done
-
-# Print end results
-echo -e "Results:\n"
-echo -e " 🟠 = Not to be done"
-echo -e " ✔️ = Success"
-echo -e " ❌ = Failure"
-echo -e " 🔷 = Already setup\n"
-echo -e "$END_RESULTS\n"
-echo -e "****************************************"
-TOTAL_RESULTS_PRINT="Total results: "
-if $TOTAL_RESULTS
-then
-    TOTAL_RESULTS_PRINT+="✔️ - SUCCESS"
-else
-    TOTAL_RESULTS_PRINT+="❌ - FAILURE"
-fi
-echo -e "$TOTAL_RESULTS_PRINT"
-echo -e "****************************************\n"
-
-
+#################
+### CALL MAIN ###
+#################
+main
+#################
+#################
