@@ -63,6 +63,10 @@ exists_in_file()
 
     declare -g $3_EXISTS=false
 
+    echo -e "\n*****************************"
+    echo "Start checking for content"
+    echo -e "*****************************\n"
+
     # Remove trailing whitespace
     FILECONTENT="$(echo "${FILECONTENT}" | sed -e 's/[[:space:]]*$//')"
     # FILECONTENT=$(echo "$FILECONTENT" | sed 's/\\*$//g')
@@ -74,7 +78,7 @@ exists_in_file()
         *"$NL"*) # CONTENT_TO_CHECK is multiple lines
             if $DEBUG
             then
-                echo "CONTENT_TO_CHECK: More than one line"
+                echo "Content to check is MULTIPLE lines"
                 echo "CONTENT_TO_CHECK:"
                 echo "$CONTENT_TO_CHECK"
                 echo ""
@@ -83,7 +87,7 @@ exists_in_file()
         *) # CONTENT_TO_CHECK is one line
             if $DEBUG
             then
-                echo "CONTENT_TO_CHECK: Is one line"
+                echo "Content to check is ONE line"
                 echo "CONTENT_TO_CHECK:"
                 echo "$CONTENT_TO_CHECK"
                 # Remove leading & trailing whitespace
@@ -111,9 +115,17 @@ exists_in_file()
                 declare -g $3_EXISTS=true
 
                 if $DEBUG; then echo "START: ${!START}, END: ${!END}"; fi
+
+                echo -e "\n*****************************"
+                echo "DONE checking for content"
+                echo -e "*****************************\n"
                 return 0
             else
                 if $DEBUG; then echo "FALSE. Did not find the content."; fi
+
+                echo -e "\n*****************************"
+                echo "DONE checking for content"
+                echo -e "*****************************\n"
                 return -1
             fi ;;
     esac
@@ -154,11 +166,17 @@ exists_in_file()
         END=$3_END
         echo "START: ${!START}, END: ${!END}"
         declare -g $3_EXISTS=true
+        echo -e "\n*****************************"
+        echo "DONE checking for content"
+        echo -e "*****************************\n"
         return 0
     else
         echo "Did not find multiline content"
     fi
 
+    echo -e "\n*****************************"
+    echo "DONE checking for content"
+    echo -e "*****************************\n"
     return -1
 }
 
@@ -474,18 +492,21 @@ add_single_line_content()
         # These are assument to be above if statement
         while IFS= read -r line
         do
+            echo "##################################################################"
+            echo "Checking new line of variable. ###################################"
+            echo -e "##################################################################\n"
             exists_in_file "$FILE_PATH/$FILE_NAME" "$line" LINE
 
             if [[ $REF_TYPE == "INBETWEEN" ]]
             then
-                echo "INBETWEEN"
+                echo -e "\nReference type: INBETWEEN\n"
                 if ! $LINE_EXISTS
                 then
                     ADD_TO_PREFERRED_INTERVAL=true
                 else
+
+                    # Mark in which intervals the content exists
                     declare -i num_items=${#_intervals[@]}
-                    declare -i end_loop=$((num_items))
-                    
                     declare found_in_interval
                     declare -a exists_in_intervals=()
                     for ((i=0;i<=num_items;i++))
@@ -524,10 +545,10 @@ add_single_line_content()
                         echo ""
 
                         exists_in_intervals+=( $found_in_interval )
-                        
                     done
 
 
+                    # Compare where it exists with where it is allowed and preferred to exist
                     ADD_TO_PREFERRED_INTERVAL=false
                     echo "exists_in_intervals: [${exists_in_intervals[@]}]"
                     echo "allowed_intervals:   [${allowed_intervals[@]}]"
@@ -538,7 +559,9 @@ add_single_line_content()
                         # Add start and end of intervals. _intervals could have been updated
                         # since last calculation
                         tmp_intervals=(0 ${_intervals[@]} $(wc -l ~/.bashrc | cut -f1 -d' '))
-                        echo "Checking interval $j **********************************************"
+                        echo "-------------------------"
+                        echo "Checking interval $j"
+                        echo -e "-------------------------\n"
                         if ${exists_in_intervals[$j]}
                         then
                             if ${allowed_intervals[$j]}
@@ -570,12 +593,17 @@ add_single_line_content()
                                 
                             fi
                         fi
+                        echo "-^-^-^-^-^-^-^-^-^-"
+                        echo "DONE with interval"
+                        echo -e "-^-^-^-^-^-^-^-^-^-\n"
                     done
-                    echo "Checked all intervals ********************************************"
+                    echo -e "-*-*-*-*-*-*-*-*-*-*-*-*-"
+                    echo "Checked all intervals."
+                    echo "-*-*-*-*-*-*-*-*-*-*-*-*-"
                 fi
 
                 # Done afterwards as it messes with the line numbering when inserting.
-                # Only remove content of lines before this line, but don't remove the actual line.
+                # Only remove content of lines before this line, but don't remove the actual lines.
                 if $ADD_TO_PREFERRED_INTERVAL
                 then
                     echo "Place in preferred interval."
@@ -1139,7 +1167,6 @@ EOF
         ############################ INPUT 1 ############################
         #################################################################
         declare -a intervals=($IF_STATEMENT_START $FI_LINE_NUMBER)
-        declare -p intervals
         declare -a allowed_intervals=(true false true)
         declare -a preferred_interval=(true false false)
         # add_single_line_content "$PATH_BASHRC" "$NAME_BASHRC" BASHRC_INPUT1 "LINE" "BEFORE" "${#allowed_intervals[@]}" "${allowed_intervals[@]}" "${#preferred_interval[@]}" "${preferred_interval[@]}"
