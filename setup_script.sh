@@ -282,12 +282,12 @@ find_else_elif_fi_statement()
     echo ""
     echo "FILE: $FILE"
     echo "IF_LINE_NUMBER: $IF_LINE_NUMBER"
-    echo "COUNT: $COUNT"
+    echo "MAX_COUNT: $MAX_COUNT"
     echo ""
     
     declare -g ELSE_ELIF_EXISTS=false
     COUNT=1
-    while read line; do
+    while read -r line; do
         # Get first word of line
         FIRST_WORD=$(echo "$line" | head -n1 | awk '{print $1;}')
 
@@ -571,7 +571,6 @@ add_single_line_content()
         declare -g ${VAR_NAME}_EXISTS=true
 
         # Iterate over every line of VAR_NAME as they are independent
-        # These are assument to be above if statement
         while IFS= read -r line
         do
             echo "##################################################################"
@@ -594,35 +593,35 @@ add_single_line_content()
                     for ((i=0;i<=num_items;i++))
                     do
                         case $i in
-                            0)
-                                if (( LINE_START < _intervals[i] ))
-                                then
-                                    echo "Line number $LINE_START IS in the interval < ${_intervals[$i]}. #####"
-                                    found_in_interval=true
-                                else
-                                    echo "Line number $LINE_START is NOT in the interval < ${_intervals[$i]}. *****"
-                                    found_in_interval=false
-                                fi;;
+                        0)
+                            if (( LINE_START < _intervals[i] ))
+                            then
+                                echo "Line number $LINE_START IS in the interval < ${_intervals[$i]}. #####"
+                                found_in_interval=true
+                            else
+                                echo "Line number $LINE_START is NOT in the interval < ${_intervals[$i]}. *****"
+                                found_in_interval=false
+                            fi;;
 
-                            $num_items)
-                                if (( _intervals[i-1] < LINE_START ))
-                                then
-                                    echo "Line number $LINE_START IS in the interval > ${_intervals[$((i-1))]}. #####"
-                                    found_in_interval=true
-                                else
-                                    echo "Line number $LINE_START is NOT in the interval > ${_intervals[$((i-1))]}. *****"
-                                    found_in_interval=false
-                                fi;;
+                        $num_items)
+                            if (( _intervals[i-1] < LINE_START ))
+                            then
+                                echo "Line number $LINE_START IS in the interval > ${_intervals[$((i-1))]}. #####"
+                                found_in_interval=true
+                            else
+                                echo "Line number $LINE_START is NOT in the interval > ${_intervals[$((i-1))]}. *****"
+                                found_in_interval=false
+                            fi;;
 
-                            *)
-                                if (( _intervals[i-1] <= LINE_START )) && (( LINE_START <= _intervals[i] ))
-                                then
-                                    echo "Line number $LINE_START IS in interval ${_intervals[$((i-1))]} - ${_intervals[$i]}. #####"
-                                    found_in_interval=true
-                                else
-                                    echo "Line number $LINE_START is NOT in interval ${_intervals[$((i-1))]} - ${_intervals[$i]}. *****"
-                                    found_in_interval=false
-                                fi;;
+                        *)
+                            if (( _intervals[i-1] <= LINE_START )) && (( LINE_START <= _intervals[i] ))
+                            then
+                                echo "Line number $LINE_START IS in interval ${_intervals[$((i-1))]} - ${_intervals[$i]}. #####"
+                                found_in_interval=true
+                            else
+                                echo "Line number $LINE_START is NOT in interval ${_intervals[$((i-1))]} - ${_intervals[$i]}. *****"
+                                found_in_interval=false
+                            fi;;
                         esac
                         echo ""
 
@@ -634,7 +633,7 @@ add_single_line_content()
                     ADD_TO_PREFERRED_INTERVAL=false
                     echo "exists_in_intervals: [${exists_in_intervals[@]}]"
                     echo "allowed_intervals:   [${allowed_intervals[@]}]"
-                    echo "preferred_interval: [${preferred_interval[@]}]"
+                    echo "preferred_interval:  [${preferred_interval[@]}]"
                     echo ""
                     for ((j=0;j<${#exists_in_intervals[@]};j++))
                     do
@@ -655,15 +654,19 @@ add_single_line_content()
                                 else
                                     echo "Is not in the preferred interval."
                                     echo -e "Remove content of line $LINE_START\n"
-                                    # Remove the content of the line, but keeping the line
-                                    sed -i "${LINE_START},${LINE_END}d" "$FILE_PATH/$FILE_NAME"
+                                    # Remove the line
+                                    sed -i "${LINE_START}d" "$FILE_PATH/$FILE_NAME"
+                                    # Insert empty line in its place
+                                    sed -i "$((LINE_START - 1))a $NL" "$FILE_PATH/$FILE_NAME"
                                 fi
                             else # Exists in DISALLOWED interval
 
                                 echo "Exists in DISALLOWED interval."
                                 echo -e "Remove content of line $LINE_START\n"
-                                # Remove the content of the line, but keeping the line
-                                sed -i "${LINE_START},${LINE_END}d" "$FILE_PATH/$FILE_NAME"
+                                # Remove the line
+                                sed -i "${LINE_START}d" "$FILE_PATH/$FILE_NAME"
+                                # Insert empty line in its place
+                                sed -i "$((LINE_START - 1))a $NL" "$FILE_PATH/$FILE_NAME"
                             fi
                         else # Does NOT exist in interval
                             if ${preferred_interval[$j]}
@@ -672,6 +675,7 @@ add_single_line_content()
                                 echo "To be added in preferred interval"
                                 
                                 ADD_TO_PREFERRED_INTERVAL=true
+                                ADD_TO_PREFERRED_INTERVAL_INDEX=$j
                                 
                             fi
                         fi
@@ -703,7 +707,7 @@ add_single_line_content()
                     esac
                     echo "Placed in preferred interval."
                     # Update interval numbers
-                    adjust_interval_linenumbers "$line" $j
+                    adjust_interval_linenumbers "$line" $ADD_TO_PREFERRED_INTERVAL_INDEX
                 fi
                 echo ""
             fi
@@ -711,6 +715,10 @@ add_single_line_content()
 
         done <<< "${!EVAL_VAR_NAME}"
     fi
+
+    echo -e "\n*****************************************************************************************"
+    echo "***** END of INPUT $VAR_NAME ********************************************************"
+    echo "*****************************************************************************************"
 }
 
 
@@ -869,9 +877,174 @@ add_single_line_content()
 
 add_multiline_content()
 {
-    FILE_PATH="$1"
-    FILE_NAME="$2"
-    VAR_NAME="$3"
+    if (( $# < 5 ))
+    then
+        echo "Function 'add_multiline_content' need at least 5 inputs, you gave $#."
+        return -1
+    fi
+
+    FILE_PATH="$1"; shift       # 1
+    FILE_NAME="$1"; shift       # 2
+    VAR_NAME="$1"; shift        # 3
+    REF_TYPE="$1"; shift        # 4
+    REF_PLACEMENT="$1"; shift   # 5
+
+    echo ""
+    echo "FILE_PATH: $FILE_PATH"
+    echo "FILE_NAME: $FILE_NAME"
+    echo "VAR_NAME: $VAR_NAME"
+    echo "REF_TYPE: $REF_TYPE"
+    echo "REF_PLACEMENT: $REF_PLACEMENT"
+
+     # Check validity of input: 'REF_TYPE' & 'REF_PLACEMENT'
+    case "$REF_TYPE" in
+    "INBETWEEN")
+        case "$REF_PLACEMENT" in
+        "START")
+            ;;
+        "END")
+            ;;
+        *)
+            echo "Reference placement: $REF_PLACEMENT"
+            echo "Reference placement does not have a valid value."
+            echo "Options to choose from:"
+            echo "- 'START'"
+            echo "- 'END'"
+            return -1
+            ;;
+        esac
+        ;;
+    "LINE")
+        case "$REF_PLACEMENT" in
+        "BEFORE")
+            ;;
+        "AFTER")
+            ;;
+        *)
+            echo "Reference placement: $REF_PLACEMENT"
+            echo "Reference placement does not have a valid value."
+            echo "Options to choose from:"
+            echo "- 'BEFORE'"
+            echo "- 'AFTER'"
+            return -1
+            ;;
+        esac
+        ;;
+    *)
+        echo "Reference type: $REF_TYPE"
+        echo "Reference type does not have a valid value."
+        echo "Options to choose from:"
+        echo "- 'INBETWEEN'"
+        echo "- 'LINE'"
+        return -1
+        ;;
+    esac
+
+
+    if [[ $REF_TYPE == "INBETWEEN" ]]
+    then
+        declare -i array_num=1 # Extra array for '_intervals'
+    else
+        declare -i array_num=2
+    fi
+
+    declare -i num_args
+    declare -ag _intervals=() # Values may be updated with external function
+    declare -a allowed_intervals=()
+    declare -a preferred_interval=()
+
+    # Get ending input arrays
+    while (( $# )) ; do
+        num_args=$1; shift
+        while (( num_args-- > 0 )) 
+        do
+            case $array_num in
+            1)
+                _intervals+=( "$1" ); shift;;
+            2)
+                allowed_intervals+=( "$1" ); shift;;
+            3)
+                preferred_interval+=( "$1" ); shift;;
+            *)
+                ;;
+            esac
+
+        done
+        ((array_num++))
+    done
+
+    echo ""
+    echo "_intervals =         [ ${_intervals[@]} ]"
+    echo "allowed_intervals =  [ ${allowed_intervals[@]} ]"
+    echo "preferred_interval = [ ${preferred_interval[@]} ]"
+    echo ""
+
+    # Check validity of input lengths: 'intervals', 'preferred_intervals' & 'allowed_intervals'
+    if (( ${#_intervals[@]} < 2 ))
+    then
+        echo "Length of Intervals: ${#_intervals[@]}"
+        echo "Intervals length is too short."
+        echo "Intervals should have a length of at least 2."
+        return -1
+    elif (( ${#_intervals[@]} + 1 != ${#preferred_interval[@]} ))
+    then
+        echo "Length of Intervals: ${#_intervals[@]}"
+        echo "Length of Preferred intervals: ${#preferred_interval[@]}"
+        echo "Preferred intervals is not the right length to match Intervals."
+        echo "Preferred intervals should be of length $((#_intervals[@]} + 1))"
+        return -1
+    elif (( ${#_intervals[@]} + 1 != ${#allowed_intervals[@]} ))
+    then
+        echo "Length of Intervals: ${#_intervals[@]}"
+        echo "Length of Allowed intervals: ${#allowed_intervals[@]}"
+        echo "Allowed intervals is not the right length to match Intervals."
+        echo "Allowed intervals should be of length $((#_intervals[@]} + 1))"
+        return -1
+    fi
+
+    # Get index of preferred interval
+    # Check validity of input matching: 'preferred_interval' & 'allowed_intervals'
+    declare -i preferred_index
+    declare -i num_preferred=0
+    for i in "${!preferred_interval[@]}"
+    do
+        if [[ "${preferred_interval[i]}" == true ]]
+        then
+            preferred_index=$i
+            ((num_preferred++))
+
+            if [[ "${allowed_intervals}" == false ]]
+            then
+                echo "Allowed intervals = [ ${allowed_intervals[@]} ]"
+                echo "Preferred interval: [ ${preferred_interval[@]} ]"
+                echo "Allowed intervals and Preferred interval does not match."
+                echo "The Preferred interval must also be an Allowed interval."
+                return -1
+            fi
+        fi
+    done
+
+    # Check validity of input: 'preferred_interval'
+    case "$num_preferred" in
+    0)
+        echo "Preferred interval: [ ${preferred_interval[@]} ]"
+        echo "Preferred interval does not contain valid values."
+        echo "Contains 0 true values, should contain exactly 1 true value."
+        return -1
+        ;;
+    1)
+        ;;
+    *)
+        echo "Preferred interval: [ ${preferred_interval[@]} ]"
+        echo "Preferred interval does not contain valid values."
+        echo "Contains $num_preferred true values, should contain exactly 1 true value."
+        return -1
+        ;;
+    esac
+
+    echo "Found preferred interval in index $i."
+
+
 
     EVAL_VAR_NAME=$VAR_NAME # ${!EVAL_VAR_NAME}
     EVAL_VAR_NAME_EXISTS=${VAR_NAME}_EXISTS # ${!EVAL_VAR_NAME_EXISTS}
@@ -882,26 +1055,11 @@ add_multiline_content()
     echo "*****************************************************************************************"
     exists_in_file "$FILE_PATH/$FILE_NAME" "${!EVAL_VAR_NAME}" $VAR_NAME
 
-    if ${!EVAL_VAR_NAME_EXISTS}
-    then
-        if (( ${!EVAL_VAR_NAME_START} < $IF_STATEMENT_START ))
-        then # Line is before if statement
-            echo -e "Line exists and is before if statement.\n"
-        elif (( $FI_LINE_NUMBER < ${!EVAL_VAR_NAME_START} ))
-        then # Lines are after whole if statement (fi)
-            # Remove content of that line
-            echo "Content exists, but is after if statement."
-            echo "Remove content of lines ${!EVAL_VAR_NAME_START}-${!EVAL_VAR_NAME_END}"
-            sed -i "${!EVAL_VAR_NAME_START},${!EVAL_VAR_NAME_END}d" "$FILE_PATH/$FILE_NAME"
-            
-            # Commented out below does not work as intended.
-            # If ending with backslash, but not a backslash before that (double or more)
-            # then replace with double backslash. Making sure that a single one is 
-            # replaced with a double
-            # https://stackoverflow.com/a/9306228/12374737
-            # "Where (?<!x) means "only if it doesn't have 'x' before this point"."
-            # BASHRC_INPUT2=$(echo "$BASHRC_INPUT2" | sed 's/(?<!\\)[\\]{1}$/\\\\/gm')
+    EVALUATED_VAR_NAME_START=${!EVAL_VAR_NAME_START}
+    EVALUATED_VAR_NAME_END=${!EVAL_VAR_NAME_END}
 
+    if ! ${!EVAL_VAR_NAME_EXISTS}
+    then
             # Replace backslashes with double backslashes to have 'sed' insert line at
             # line number later work as expected
             TMP=$(echo "${!EVAL_VAR_NAME}")
@@ -909,42 +1067,213 @@ add_multiline_content()
             # Replace backslash at end of line with an extra backslash to have 'sed' 
             # insert line at line number later work as expected
             TMP=$(echo "$TMP" | sed -E 's/[\\]$/\\\\/gm')
-            
+
             declare -g "${VAR_NAME}=${TMP}"
+
+            echo "$VAR_NAME after adding extra backslashes:"
+            echo "${!EVAL_VAR_NAME}"
 
             sed -i "${IF_STATEMENT_START}i ${!EVAL_VAR_NAME}" "$FILE_PATH/$FILE_NAME"
             
             # Increment if statement variables as they got shifted
             adjust_else_elif_fi_linenumbers "${!EVAL_VAR_NAME}"
-
-            declare -g "$VARNAME_EXISTS=false"
-        else
-            echo "Content found in if statement even though it shouldn't be there."
-            echo "LINE FOUND:"
-            echo "${!EVAL_VAR_NAME}"
-            echo "AT LINES: ${!EVAL_VAR_NAME_START}-${!EVAL_VAR_NAME_END}"
-            return -1
-        fi
     else
-        echo "$VAR_NAME:"
-        echo "${!EVAL_VAR_NAME}"
-        # Replace backslashes with double backslashes to have 'sed' insert line at
-        # line number later work as expected
-        TMP=$(echo "${!EVAL_VAR_NAME}")
-        TMP=$(echo "$TMP" | sed 's/\\/\\\\/g')
-        # Replace backslash at end of line with an extra backslash to have 'sed' 
-        # insert line at line number later work as expected
-        TMP=$(echo "$TMP" | sed -E 's/[\\]$/\\\\/gm')
+        if [[ $REF_TYPE == "INBETWEEN" ]]
+        then
+            echo -e "\nReference type: INBETWEEN\n"
 
-        declare -g "${VAR_NAME}=${TMP}"
+            # Mark in which intervals the content exists
+            declare -i num_items=${#_intervals[@]}
+            declare found_in_interval
+            declare -a exists_in_intervals=()
+            for ((i=0;i<=num_items;i++))
+            do
+                case $i in
+                0)
+                    if (( EVALUATED_VAR_NAME_START < _intervals[i] )) && \
+                       (( EVALUATED_VAR_NAME_END   < _intervals[i] ))
+                    then
+                        echo "Line number $EVALUATED_VAR_NAME_START-$EVALUATED_VAR_NAME_END ARE in the interval < ${_intervals[$i]}. #####"
+                        found_in_interval=true
+                    else
+                        echo "Line number $EVALUATED_VAR_NAME_START-$EVALUATED_VAR_NAME_END are NOT in the interval < ${_intervals[$i]}. *****"
+                        found_in_interval=false
+                    fi;;
 
-        echo "$VAR_NAME after adding extra backslashes:"
-        echo "${!EVAL_VAR_NAME}"
+                $num_items)
+                    if (( _intervals[i-1] < EVALUATED_VAR_NAME_START )) && \
+                       (( _intervals[i-1] < EVALUATED_VAR_NAME_END   ))
+                    then
+                        echo "Line numbers $EVALUATED_VAR_NAME_START-$EVALUATED_VAR_NAME_END ARE in the interval > ${_intervals[$((i-1))]}. #####"
+                        found_in_interval=true
+                    else
+                        echo "Line number $EVALUATED_VAR_NAME_START-$EVALUATED_VAR_NAME_END are NOT in the interval > ${_intervals[$((i-1))]}. *****"
+                        found_in_interval=false
+                    fi;;
 
-        sed -i "${IF_STATEMENT_START}i ${!EVAL_VAR_NAME}" "$FILE_PATH/$FILE_NAME"
-        
-        # Increment if statement variables as they got shifted
-        adjust_else_elif_fi_linenumbers "${!EVAL_VAR_NAME}"
+                *)
+                    if (( _intervals[i-1] <= EVALUATED_VAR_NAME_START )) && (( EVALUATED_VAR_NAME_START <= _intervals[i] )) && \
+                       (( _intervals[i-1] <= EVALUATED_VAR_NAME_END   )) && (( EVALUATED_VAR_NAME_END   <= _intervals[i] ))
+                    then
+                        echo "Line number $EVALUATED_VAR_NAME_START-$EVALUATED_VAR_NAME_END ARE in interval ${_intervals[$((i-1))]} - ${_intervals[$i]}. #####"
+                        found_in_interval=true
+                    else
+                        echo "Line number $EVALUATED_VAR_NAME_START-$EVALUATED_VAR_NAME_END are NOT in interval ${_intervals[$((i-1))]} - ${_intervals[$i]}. *****"
+                        found_in_interval=false
+                    fi;;
+                esac
+                echo ""
+
+            exists_in_intervals+=( $found_in_interval )
+            done
+
+            # Compare where it exists with where it is allowed and preferred to exist
+            ADD_TO_PREFERRED_INTERVAL=false
+            echo "exists_in_intervals: [${exists_in_intervals[@]}]"
+            echo "allowed_intervals:   [${allowed_intervals[@]}]"
+            echo "preferred_interval:  [${preferred_interval[@]}]"
+            echo ""
+            for ((j=0;j<${#exists_in_intervals[@]};j++))
+            do
+                # Add start and end of intervals. _intervals could have been updated
+                # since last calculation
+                tmp_intervals=(0 ${_intervals[@]} $(wc -l ~/.bashrc | cut -f1 -d' '))
+                echo "-------------------------"
+                echo "Checking interval $j"
+                echo -e "-------------------------\n"
+                if ${exists_in_intervals[$j]}
+                then
+                    if ${allowed_intervals[$j]}
+                    then
+                        echo "Exists in allowed interval."
+                        if ${preferred_interval[$j]}
+                        then
+                            echo "Exists in the preferred interval."
+                        else
+                            echo "Is not in the preferred interval."
+                            echo -e "Remove content of lines ${EVALUATED_VAR_NAME_START}-${EVALUATED_VAR_NAME_END}\n"
+                            # Remove the lines
+                            sed -i "${EVALUATED_VAR_NAME_START},${EVALUATED_VAR_NAME_END}d" "$FILE_PATH/$FILE_NAME"
+                            # Insert empty lines in its place
+                            for ((i=1; i<=(EVALUATED_VAR_NAME_END - EVALUATED_VAR_NAME_START + 1); i++))
+                            do
+                                sed -i "$((EVALUATED_VAR_NAME_START - 1))a $NL" "$FILE_PATH/$FILE_NAME"
+                            done
+                        fi
+                    else # Exists in DISALLOWED interval
+
+                        echo "Exists in DISALLOWED interval."
+                        echo -e "Remove content of lines ${EVALUATED_VAR_NAME_START}-${EVALUATED_VAR_NAME_END}\n"
+                        # Remove the lines
+                        sed -i "${EVALUATED_VAR_NAME_START},${EVALUATED_VAR_NAME_END}d" "$FILE_PATH/$FILE_NAME"
+                        # Insert empty lines in its place
+                        for ((i=1; i<=(EVALUATED_VAR_NAME_END - EVALUATED_VAR_NAME_START + 1); i++))
+                        do
+                            sed -i "$((EVALUATED_VAR_NAME_START - 1))a $NL" "$FILE_PATH/$FILE_NAME"
+                        done
+                    fi
+                else # Does NOT exist in interval
+                    if ${preferred_interval[$j]}
+                    then
+                        echo "Does NOT exist in preferred interval"
+                        echo "To be added in preferred interval"
+                        
+                        ADD_TO_PREFERRED_INTERVAL=true
+                        ADD_TO_PREFERRED_INTERVAL_INDEX=$j
+                        
+                    fi
+                fi
+                echo "-^-^-^-^-^-^-^-^-^-"
+                echo "DONE with interval"
+                echo -e "-^-^-^-^-^-^-^-^-^-\n"
+            done
+            echo -e "-*-*-*-*-*-*-*-*-*-*-*-*-"
+            echo "Checked all intervals."
+            echo "-*-*-*-*-*-*-*-*-*-*-*-*-"
+
+
+            # Done afterwards as it messes with the line numbering when inserting.
+            # Only remove content of lines before this line, but don't remove the actual lines.
+            if $ADD_TO_PREFERRED_INTERVAL
+            then
+                echo "Place in preferred interval."
+
+                # Replace backslashes with double backslashes to have 'sed' insert line at
+                # line number later work as expected
+                TMP=$(echo "${!EVAL_VAR_NAME}")
+                TMP=$(echo "$TMP" | sed 's/\\/\\\\/g')
+                # Replace backslash at end of line with an extra backslash to have 'sed' 
+                # insert line at line number later work as expected
+                TMP=$(echo "$TMP" | sed -E 's/[\\]$/\\\\/gm')
+
+                declare -g "${VAR_NAME}=${TMP}"
+
+                # Place content in allowed interval
+                case "$REF_PLACEMENT" in
+                    "START")
+                        sed -i "$((tmp_intervals[preferred_index] + 1))i ${!EVAL_VAR_NAME}" "$FILE_PATH/$FILE_NAME"
+                        ;;
+                    *)
+                        sed -i "$((tmp_intervals[preferred_index + 1] - 1))i ${!EVAL_VAR_NAME}" "$FILE_PATH/$FILE_NAME"
+                        ;;
+                esac
+                echo "Placed in preferred interval."
+                # Increment if statement variables as they got shifted
+                adjust_else_elif_fi_linenumbers "${!EVAL_VAR_NAME}"
+                # Update interval numbers
+                adjust_interval_linenumbers "${!EVAL_VAR_NAME}" $ADD_TO_PREFERRED_INTERVAL_INDEX
+
+                declare -g "${VAR_NAME}_EXISTS=false"
+            fi
+            echo ""
+            echo -e "\n*****************************************************************************************"
+            echo "***** END of INPUT $VAR_NAME ********************************************************"
+            echo "*****************************************************************************************"
+            
+        fi
+
+
+        # if (( ${!EVAL_VAR_NAME_START} < $IF_STATEMENT_START ))
+        # then # Line is before if statement
+        #     echo -e "Line exists and is before if statement.\n"
+        # elif (( $FI_LINE_NUMBER < ${!EVAL_VAR_NAME_START} ))
+        # then # Lines are after whole if statement (fi)
+        #     # Remove content of that line
+        #     echo "Content exists, but is after if statement."
+        #     echo "Remove content of lines ${!EVAL_VAR_NAME_START}-${!EVAL_VAR_NAME_END}"
+        #     sed -i "${!EVAL_VAR_NAME_START},${!EVAL_VAR_NAME_END}d" "$FILE_PATH/$FILE_NAME"
+            
+        #     # Commented out below does not work as intended.
+        #     # If ending with backslash, but not a backslash before that (double or more)
+        #     # then replace with double backslash. Making sure that a single one is 
+        #     # replaced with a double
+        #     # https://stackoverflow.com/a/9306228/12374737
+        #     # "Where (?<!x) means "only if it doesn't have 'x' before this point"."
+        #     # BASHRC_INPUT2=$(echo "$BASHRC_INPUT2" | sed 's/(?<!\\)[\\]{1}$/\\\\/gm')
+
+        #     # Replace backslashes with double backslashes to have 'sed' insert line at
+        #     # line number later work as expected
+        #     TMP=$(echo "${!EVAL_VAR_NAME}")
+        #     TMP=$(echo "$TMP" | sed 's/\\/\\\\/g')
+        #     # Replace backslash at end of line with an extra backslash to have 'sed' 
+        #     # insert line at line number later work as expected
+        #     TMP=$(echo "$TMP" | sed -E 's/[\\]$/\\\\/gm')
+            
+        #     declare -g "${VAR_NAME}=${TMP}"
+
+        #     sed -i "${IF_STATEMENT_START}i ${!EVAL_VAR_NAME}" "$FILE_PATH/$FILE_NAME"
+            
+        #     # Increment if statement variables as they got shifted
+        #     adjust_else_elif_fi_linenumbers "${!EVAL_VAR_NAME}"
+
+        #     declare -g "$VARNAME_EXISTS=false"
+        # else
+        #     echo "Content found in if statement even though it shouldn't be there."
+        #     echo "LINE FOUND:"
+        #     echo "${!EVAL_VAR_NAME}"
+        #     echo "AT LINES: ${!EVAL_VAR_NAME_START}-${!EVAL_VAR_NAME_END}"
+        #     return -1
+        # fi
     fi
 }
 
@@ -1238,7 +1567,7 @@ EOF
     echo "IF_STATEMENT_START: $IF_STATEMENT_START IF_STATEMENT_END: $IF_STATEMENT_END"
     if $IF_STATEMENT_EXISTS
     then
-        find_else_elif_fi_statement "$PATH_BASHRC/$NAME_BASHRC" "$IF_STATEMENT_END" 100
+        find_else_elif_fi_statement "$PATH_BASHRC/$NAME_BASHRC" "$IF_STATEMENT_START" 100
         if [[ "$?" != 0 ]]
         then
             echo "Problem in finding else/elif/fi statement."
@@ -1262,14 +1591,28 @@ EOF
         #################################################################
         ############################ INPUT 2 ############################
         #################################################################
+
+        # Update if statement variables with new line numbers
+        exists_in_file "$PATH_BASHRC/$NAME_BASHRC" "$IF_STATEMENT" IF_STATEMENT
+        find_else_elif_fi_statement "$PATH_BASHRC/$NAME_BASHRC" "$IF_STATEMENT_START" 100
+        declare -a intervals=($IF_STATEMENT_START $FI_LINE_NUMBER)
+        declare -a allowed_intervals=(true false false)
+        declare -a preferred_interval=(true false false)
         
-        add_multiline_content "$PATH_BASHRC" "$NAME_BASHRC" BASHRC_INPUT2
+        add_multiline_content "$PATH_BASHRC" "$NAME_BASHRC" BASHRC_INPUT2 "INBETWEEN" "END" "${#intervals[@]}" "${intervals[@]}" "${#allowed_intervals[@]}" "${allowed_intervals[@]}" "${#preferred_interval[@]}" "${preferred_interval[@]}"
 
         #################################################################
         ############################ INPUT 3 ############################
         #################################################################
+
+        # Update if statement variables with new line numbers
+        exists_in_file "$PATH_BASHRC/$NAME_BASHRC" "$IF_STATEMENT" IF_STATEMENT
+        find_else_elif_fi_statement "$PATH_BASHRC/$NAME_BASHRC" "$IF_STATEMENT_START" 100
+        declare -a intervals=($IF_STATEMENT_START $FI_LINE_NUMBER)
+        declare -a allowed_intervals=(true false false)
+        declare -a preferred_interval=(true false false)
         
-        add_multiline_content "$PATH_BASHRC" "$NAME_BASHRC" BASHRC_INPUT3
+        add_multiline_content "$PATH_BASHRC" "$NAME_BASHRC" BASHRC_INPUT3 "INBETWEEN" "END" "${#intervals[@]}" "${intervals[@]}" "${#allowed_intervals[@]}" "${allowed_intervals[@]}" "${#preferred_interval[@]}" "${preferred_interval[@]}"
 
         #################################################################
         ############################ INPUT 4 ############################
@@ -1392,20 +1735,20 @@ initial_questions
 
 # Go through every setup, calling their corresponding function if to be done
 TOTAL_RESULTS=true
-for i in "${!arr_setups[@]}"
+for ind_arr_setups in "${!arr_setups[@]}"
 do 
-    if [[ $(( i % 2 )) == 0 ]]
+    if [[ $(( ind_arr_setups % 2 )) == 0 ]]
     then
         # SETUP_INDIVIDUAL is used to call the magic variable through double
         # evaluation with ${!SETUP_INDIVIDUAL}
-        SETUP_INDIVIDUAL=SETUP_${arr_setups[$i]^^}
+        SETUP_INDIVIDUAL=SETUP_${arr_setups[$ind_arr_setups]^^}
         if $SETUP_EVERYTHING || ${!SETUP_INDIVIDUAL}
         then
             echo -e "****************************************"
-            echo -e "Start setup of \"${arr_setups[(($i + 1))]}\""
+            echo -e "Start setup of \"${arr_setups[(($ind_arr_setups + 1))]}\""
             echo -e "****************************************\n"
             # Function call
-            setup_${arr_setups[$i]}
+            setup_${arr_setups[$ind_arr_setups]}
             case $? in 
                 0)   # Success
                     END_RESULTS+="[✔️] ";;
@@ -1416,14 +1759,14 @@ do
                     TOTAL_RESULTS=false;;
             esac
             echo -e "****************************************"
-            echo "End setup of \"${arr_setups[(($i + 1))]}\""
+            echo "End setup of \"${arr_setups[(($ind_arr_setups + 1))]}\""
             echo -e "****************************************\n"
         else
             # Setup not to be done
             END_RESULTS+="[🟠] "
         fi
 
-        END_RESULTS+="${arr_setups[(($i + 1))]}\n"
+        END_RESULTS+="${arr_setups[(($ind_arr_setups + 1))]}\n"
     fi
 done
 
