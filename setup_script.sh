@@ -402,6 +402,7 @@ add_single_line_content()
     REF_TYPE="$1"; shift        # 4
     REF_PLACEMENT="$1"; shift   # 5
 
+    echo ""
     echo "FILE_PATH: $FILE_PATH"
     echo "FILE_NAME: $FILE_NAME"
     echo "VAR_NAME: $VAR_NAME"
@@ -410,21 +411,49 @@ add_single_line_content()
 
     # https://stackoverflow.com/questions/10953833/passing-multiple-distinct-arrays-to-a-shell-function
     
-
-
-    if ! ( [[ $REF_TYPE == "INBETWEEN" ]] || [[ $REF_TYPE == "LINE" ]] )
-    then
-        echo "Input 4, reference type, have an invalid input."
+    # Check validity of input: 'REF_TYPE' & 'REF_PLACEMENT'
+    case "$REF_TYPE" in
+    "INBETWEEN")
+        case "$REF_PLACEMENT" in
+        "START")
+            ;;
+        "END")
+            ;;
+        *)
+            echo "Reference placement: $REF_PLACEMENT"
+            echo "Reference placement does not have a valid value."
+            echo "Options to choose from:"
+            echo "- 'START'"
+            echo "- 'END'"
+            return -1
+            ;;
+        esac
+        ;;
+    "LINE")
+        case "$REF_PLACEMENT" in
+        "BEFORE")
+            ;;
+        "AFTER")
+            ;;
+        *)
+            echo "Reference placement: $REF_PLACEMENT"
+            echo "Reference placement does not have a valid value."
+            echo "Options to choose from:"
+            echo "- 'BEFORE'"
+            echo "- 'AFTER'"
+            return -1
+            ;;
+        esac
+        ;;
+    *)
+        echo "Reference type: $REF_TYPE"
+        echo "Reference type does not have a valid value."
+        echo "Options to choose from:"
+        echo "- 'INBETWEEN'"
+        echo "- 'LINE'"
         return -1
-    fi
-
-    if ! ( [[ "$REF_PLACEMENT" == "BEFORE" ]] || [[ $REF_PLACEMENT == "AFTER" ]] \
-        || [[ $REF_PLACEMENT == "START" ]]    || [[ $REF_PLACEMENT == "END" ]] )
-    then
-        echo "Input 5, reference placement, have an invalid input."
-        return -1
-    fi
-
+        ;;
+    esac
 
 
     if [[ $REF_TYPE == "INBETWEEN" ]]
@@ -460,22 +489,75 @@ add_single_line_content()
     done
 
     echo ""
-    echo "_intervals =          [ ${_intervals[@]} ]"
+    echo "_intervals =         [ ${_intervals[@]} ]"
     echo "allowed_intervals =  [ ${allowed_intervals[@]} ]"
     echo "preferred_interval = [ ${preferred_interval[@]} ]"
     echo ""
     
+    # Check validity of input lengths: 'intervals', 'preferred_intervals' & 'allowed_intervals'
+    if (( ${#_intervals[@]} < 2 ))
+    then
+        echo "Length of Intervals: ${#_intervals[@]}"
+        echo "Intervals length is too short."
+        echo "Intervals should have a length of at least 2."
+        return -1
+    elif (( ${#_intervals[@]} + 1 != ${#preferred_interval[@]} ))
+    then
+        echo "Length of Intervals: ${#_intervals[@]}"
+        echo "Length of Preferred intervals: ${#preferred_interval[@]}"
+        echo "Preferred intervals is not the right length to match Intervals."
+        echo "Preferred intervals should be of length $((#_intervals[@]} + 1))"
+        return -1
+    elif (( ${#_intervals[@]} + 1 != ${#allowed_intervals[@]} ))
+    then
+        echo "Length of Intervals: ${#_intervals[@]}"
+        echo "Length of Allowed intervals: ${#allowed_intervals[@]}"
+        echo "Allowed intervals is not the right length to match Intervals."
+        echo "Allowed intervals should be of length $((#_intervals[@]} + 1))"
+        return -1
+    fi
 
+    # Get index of preferred interval
+    # Check validity of input matching: 'preferred_interval' & 'allowed_intervals'
     declare -i preferred_index
+    declare -i num_preferred=0
     for i in "${!preferred_interval[@]}"
     do
-        if ${preferred_interval[i]}
+        if [[ "${preferred_interval[i]}" == true ]]
         then
-            echo "Found preferred interval in index $i."
             preferred_index=$i
+            ((num_preferred++))
+
+            if [[ "${allowed_intervals}" == false ]]
+            then
+                echo "Allowed intervals = [ ${allowed_intervals[@]} ]"
+                echo "Preferred interval: [ ${preferred_interval[@]} ]"
+                echo "Allowed intervals and Preferred interval does not match."
+                echo "The Preferred interval must also be an Allowed interval."
+                return -1
+            fi
         fi
     done
 
+    # Check validity of input: 'preferred_interval'
+    case "$num_preferred" in
+    0)
+        echo "Preferred interval: [ ${preferred_interval[@]} ]"
+        echo "Preferred interval does not contain valid values."
+        echo "Contains 0 true values, should contain exactly 1 true value."
+        return -1
+        ;;
+    1)
+        ;;
+    *)
+        echo "Preferred interval: [ ${preferred_interval[@]} ]"
+        echo "Preferred interval does not contain valid values."
+        echo "Contains $num_preferred true values, should contain exactly 1 true value."
+        return -1
+        ;;
+    esac
+
+    echo "Found preferred interval in index $i."
 
     EVAL_VAR_NAME=$VAR_NAME # ${!EVAL_VAR_NAME}
     EVAL_VAR_NAME_EXISTS=${VAR_NAME}_EXISTS # ${!EVAL_VAR_NAME_EXISTS}
