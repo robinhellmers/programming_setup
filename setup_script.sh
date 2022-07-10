@@ -417,7 +417,7 @@ add_single_line_content()
     fi
 
     declare -i num_args
-    declare -ag _intervals=()
+    declare -ag _intervals=() # Values may be updated with external function
     declare -a allowed_intervals=()
     declare -a preferred_interval=()
 
@@ -475,15 +475,14 @@ add_single_line_content()
         while IFS= read -r line
         do
             exists_in_file "$FILE_PATH/$FILE_NAME" "$line" LINE
-            # if $LINE_EXISTS
-            # then
-                if [[ $REF_TYPE == "INBETWEEN" ]]
+
+            if [[ $REF_TYPE == "INBETWEEN" ]]
+            then
+                echo "INBETWEEN"
+                if ! $LINE_EXISTS
                 then
-                    echo "INBETWEEN"
-                    # [1 2]
-                    # x x x
-                    # [1 2 3]
-                    # x x x x
+                    ADD_TO_PREFERRED_INTERVAL=true
+                else
                     declare -i num_items=${#_intervals[@]}
                     declare -i end_loop=$((num_items))
                     
@@ -526,55 +525,19 @@ add_single_line_content()
 
                         exists_in_intervals+=( $found_in_interval )
                         
-
-                        # if (( i == 0 ))
-                        # then
-                        #     if (( LINE_START < intervals[i] ))
-                        #     then
-                        #         echo "Line number $LINE_START IS in the interval < ${intervals[$i]}. #####"
-                        #     else
-                        #         echo "Line number $LINE_START is NOT in the interval < ${intervals[$i]}. *****"
-                        #     fi
-                        # elif (( i == num_items ))
-                        # then
-                        #     if (( intervals[i-1] < LINE_START ))
-                        #     then
-                        #         echo "Line number $LINE_START IS in the interval > ${intervals[$((i-1))]}. #####"
-                        #     else
-                        #         echo "Line number $LINE_START is NOT in the interval > ${intervals[$((i-1))]}. *****"
-                        #     fi
-                        # else
-                        #     if (( intervals[i-1] <= LINE_START )) && (( LINE_START <= intervals[i] ))
-                        #     then 
-                        #         echo "Line number $LINE_START IS in interval ${intervals[$((i-1))]} - ${intervals[$i]}. #####"
-                        #     else
-                        #         echo "Line number $LINE_START is NOT in interval ${intervals[$((i-1))]} - ${intervals[$i]}. *****"
-                        #     fi
-                        # fi
                     done
 
 
-                    
-                    
-                    # [1 2]
-                    # x x x
-                    # [1 2 3]
-                    # x x x x
                     ADD_TO_PREFERRED_INTERVAL=false
                     echo "exists_in_intervals: [${exists_in_intervals[@]}]"
                     echo "allowed_intervals:   [${allowed_intervals[@]}]"
                     echo "preferred_interval: [${preferred_interval[@]}]"
-                    echo "----------------------------------------------------"
+                    echo ""
                     for ((j=0;j<${#exists_in_intervals[@]};j++))
                     do
-                        # Add start and end of intervals
+                        # Add start and end of intervals. _intervals could have been updated
+                        # since last calculation
                         tmp_intervals=(0 ${_intervals[@]} $(wc -l ~/.bashrc | cut -f1 -d' '))
-                        # [1 2]
-                        # [0 1 2 3]
-                        # x x x
-                        # [1 2 3]
-                        # [0 1 2 3 4]
-                        # x x x x
                         echo "Checking interval $j **********************************************"
                         if ${exists_in_intervals[$j]}
                         then
@@ -608,69 +571,34 @@ add_single_line_content()
                             fi
                         fi
                     done
-                    echo "Checked all intervals *********************************************"
-
-
-                    if $ADD_TO_PREFERRED_INTERVAL
-                    then
-                        echo "Place in preferred interval."
-                        # If ending with backslash, add another one to behave as wanted with sed
-                        line=$(echo "$line" | sed -E 's/[\\]$/\\\\/gm')
-                        
-                        # Place content in allowed interval
-                        case "$REF_PLACEMENT" in
-                            "START")
-                                sed -i "$((tmp_intervals[preferred_index] + 1))i $line" "$FILE_PATH/$FILE_NAME"
-                                ;;
-                            *)
-                                sed -i "$((tmp_intervals[preferred_index + 1] - 1))i $line" "$FILE_PATH/$FILE_NAME"
-                                ;;
-                        esac
-                        echo "Placed in preferred interval."
-                        # Update interval numbers
-                        adjust_interval_linenumbers "$line" $j
-                    fi
-                    echo ""
+                    echo "Checked all intervals ********************************************"
                 fi
 
-                # if (( $LINE_START < $IF_STATEMENT_START ))
-                # then # Line is before if statement
-                #     echo -e "Line exists and is before if statement.\n"
-                # elif (( $FI_LINE_NUMBER < $LINE_START ))
-                # then # Line is after whole if statement (fi)
-                #     # Remove content of that line
-                #     echo "Line exists, but is after if statement."
-                #     echo -e "Remove content of line $LINE_START\n"
-                #     sed -i "${LINE_START},${LINE_END}d" "$FILE_PATH/$FILE_NAME" # Remove the line
+                # Done afterwards as it messes with the line numbering when inserting.
+                # Only remove content of lines before this line, but don't remove the actual line.
+                if $ADD_TO_PREFERRED_INTERVAL
+                then
+                    echo "Place in preferred interval."
+                    # If ending with backslash, add another one to behave as wanted with sed
+                    line=$(echo "$line" | sed -E 's/[\\]$/\\\\/gm')
                     
-                #     # If ending with backslash, add another one to behave as wanted with sed
-                #     line=$(echo "$line" | sed -E 's/[\\]$/\\\\/gm')
-                #     # Place content before if statement
-                #     sed -i "${IF_STATEMENT_START}i $line" "$FILE_PATH/$FILE_NAME"
+                    # Place content in allowed interval
+                    case "$REF_PLACEMENT" in
+                        "START")
+                            sed -i "$((tmp_intervals[preferred_index] + 1))i $line" "$FILE_PATH/$FILE_NAME"
+                            ;;
+                        *)
+                            sed -i "$((tmp_intervals[preferred_index + 1] - 1))i $line" "$FILE_PATH/$FILE_NAME"
+                            ;;
+                    esac
+                    echo "Placed in preferred interval."
+                    # Update interval numbers
+                    adjust_interval_linenumbers "$line" $j
+                fi
+                echo ""
+            fi
 
-                #     # Increment if statement variables as they got shifted down
-                #     adjust_else_elif_fi_linenumbers "$line"
 
-                #     declare -g ${VAR_NAME}_EXISTS=false
-                # else
-                #     echo "Content found in if statement even though it shouldn't be there."
-                #     echo -e "LINE FOUND:\n$line\n AT LINE: $LINE_START"
-                #     return -1
-                # fi
-
-            # else # Content doesn't exist
-            #     # If ending with backslash, add another one to behave as wanted with sed
-            #     line=$(echo "$line" | sed -E 's/[\\]$/\\\\/gm')
-            #     # line=$(echo "$line" | sed 's/[][\\*.%$]/\\&/g') # Alternative way of above
-            #     # Place content before if statement
-            #     echo "Insert the following line into line number $IF_STATEMENT_START"
-            #     sed -i "${IF_STATEMENT_START}i ${line}" "$FILE_PATH/$FILE_NAME"
-
-            #     # Increment if statement variables as they got shifted
-            #     adjust_else_elif_fi_linenumbers "$line"
-
-            #     declare -g ${VAR_NAME}_EXISTS=false
-            # fi
         done <<< "${!EVAL_VAR_NAME}"
     fi
 }
