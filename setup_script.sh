@@ -1,8 +1,6 @@
 #!/bin/bash
 
 PATH_SCRIPT="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
-echo -e "\nLocation of script:"
-echo -e "$PATH_SCRIPT\n"
 
 ################
 ### SETTINGS ###
@@ -30,7 +28,7 @@ URL_GITCOMPLETIONBASH="https://raw.githubusercontent.com/git/git/master/contrib/
 PATH_GITCOMPLETIONBASH=~
 NAME_GITCOMPLETIONBASH=.git-completion.bash
 
-DEBUG_LEVEL=1
+DEBUG_LEVEL=0
 
 #######################
 ### END OF SETTINGS ###
@@ -38,6 +36,11 @@ DEBUG_LEVEL=1
 
 main()
 {
+    debug_echo 0 ""
+    debug_echo 0 "Location of script:"
+    debug_echo 0 "$PATH_SCRIPT"
+    debug_echo 0 ""
+
     initial_questions
 
     # Go through every setup, calling their corresponding function if to be done
@@ -51,9 +54,10 @@ main()
             SETUP_INDIVIDUAL=SETUP_${arr_setups[$ind_arr_setups]^^}
             if $SETUP_EVERYTHING || ${!SETUP_INDIVIDUAL}
             then
-                echo -e "****************************************"
-                echo -e "Start setup of \"${arr_setups[(($ind_arr_setups + 1))]}\""
-                echo -e "****************************************\n"
+                debug_echo 0 "****************************************"
+                debug_echo 0 "Start setup of \"${arr_setups[(($ind_arr_setups + 1))]}\""
+                debug_echo 0 "****************************************"
+                debug_echo 0 ""
                 # Function call
                 setup_${arr_setups[$ind_arr_setups]}
                 case $? in 
@@ -65,9 +69,10 @@ main()
                         END_RESULTS+="[❌] ";
                         TOTAL_RESULTS=false;;
                 esac
-                echo -e "****************************************"
-                echo "End setup of \"${arr_setups[(($ind_arr_setups + 1))]}\""
-                echo -e "****************************************\n"
+                debug_echo 0 "****************************************"
+                debug_echo 0 "End setup of \"${arr_setups[(($ind_arr_setups + 1))]}\""
+                debug_echo 0 "****************************************"
+                debug_echo 0 ""
             else
                 # Setup not to be done
                 END_RESULTS+="[🟠] "
@@ -201,7 +206,7 @@ exists_in_file()
                 declare -g $3_EXISTS=true
 
                 debug_echo 1 "TRUE. Did find the content at line $LINE_NUMBER"
-                debug_echo 1 "START: ${!START}, END: ${!END}"debug_echo 1
+                debug_echo 1 "START: ${!START}, END: ${!END}"
                 debug_echo 1 ""
                 debug_echo 1 "*****************************"
                 debug_echo 1 "DONE checking for content"
@@ -271,21 +276,22 @@ add_content_to_file()
 
     if [[ -f $PATH_FILE/$FILE_NAME ]]
     then # File already exists
-        echo -e "$FILE_NAME already exists."
+        debug_echo 100 "$FILE_NAME already exists."
 
         if exists_in_file "$PATH_FILE/$FILE_NAME" "$CONTENT_TO_ADD" CONTENT_TO_ADD
         then # Content is already in the file
-            echo -e "$FILE_NAME already contains the relevant content.\n"
+            debug_echo 100 "$FILE_NAME already contains the relevant content."
             return 255
         else # Append content to file
-            echo -e "Append to $FILE_NAME\n"
+            debug_echo 100 "Append to $FILE_NAME"
+            debug_echo 100 ""
             echo "$CONTENT_TO_ADD" >> "$PATH_FILE/$FILE_NAME"
             return 0;
         fi
     else # Create file with content
-        echo -e "Create directory: $PATH_FILE/\n"
+        debug_echo 100 -e "Create directory: $PATH_FILE/\n"
         mkdir -p $PATH_FILE
-        echo -e "Create file $PATH_FILE/$FILE_NAME\n"
+        debug_echo 100 -e "Create file $PATH_FILE/$FILE_NAME\n"
         echo "$CONTENT_TO_ADD" > $PATH_FILE/$FILE_NAME
         return 0
     fi
@@ -312,7 +318,7 @@ get_internet_file()
 
         if [[ $? != 0 ]]
         then
-            echo "Failed. 'curl' command failed."
+            debug_echo 100 "Failed. 'curl' command failed."
             return -1
         fi
 
@@ -320,7 +326,8 @@ get_internet_file()
         add_content_to_file "$PATH_FILE" "$FILE_NAME" "$URL_CONTENT"
         return
     fi
-    echo -e "Command \"curl\" not available\n"
+    debug_echo 100 "Command \"curl\" not available"
+    debug_echo 100 ""
 
     # Use 'wget' if available
     if [[ -n $IS_WGET_AVAILABLE ]]
@@ -329,7 +336,7 @@ get_internet_file()
 
         if [[ $? != 0 ]]
         then
-            echo "Failed. 'wget' command failed."
+            debug_echo 100 "Failed. 'wget' command failed."
             return -1
         fi
 
@@ -337,8 +344,9 @@ get_internet_file()
         return
     fi
 
-    echo -e "Command \"wget\" not available\n"
-    echo "Failed. Neither 'curl' or 'wget' is availale. Can't fetch content."
+    debug_echo 100 "Command \"wget\" not available"
+    debug_echo 100 ""
+    debug_echo 100 "Failed. Neither 'curl' or 'wget' is availale. Can't fetch content."
 
     return -1
 }
@@ -396,9 +404,9 @@ find_else_elif_fi_statement()
     eval_var_name_type="${VAR_NAME}_type[@]"
     declare  eval_index_var_name_type="${VAR_NAME}_type[index]"
 
-    echo "********************************************************"
-    echo "***** Update if statement variables ********************"
-    echo "********************************************************"
+    debug_echo 100 "********************************************************"
+    debug_echo 100 "***** Update if statement variables ********************"
+    debug_echo 100 "********************************************************"
 
     if_statement_level=0
     line_count=0
@@ -461,12 +469,12 @@ adjust_else_elif_fi_linenumbers()
     INPUT_LINE_START="$2"
     
     # Increment if statement variables as they got shifted
-    echo "IF_STATEMENT_START before:        $IF_STATEMENT_START"
-    echo "IF_STATEMENT_END before:          $IF_STATEMENT_END"
-    echo "ELSE_ELIF_LINE_NUMBER before:     $ELSE_ELIF_LINE_NUMBER"
-    echo "FI_LINE_NUMBER before:            $FI_LINE_NUMBER"
+    debug_echo 100 "IF_STATEMENT_START before:        $IF_STATEMENT_START"
+    debug_echo 100 "IF_STATEMENT_END before:          $IF_STATEMENT_END"
+    debug_echo 100 "ELSE_ELIF_LINE_NUMBER before:     $ELSE_ELIF_LINE_NUMBER"
+    debug_echo 100 "FI_LINE_NUMBER before:            $FI_LINE_NUMBER"
     NUM_LINES=$(echo -n "$INPUT" | grep -c '^')
-    echo "NUM_LINES:                        $NUM_LINES"
+    debug_echo 100 "NUM_LINES:                        $NUM_LINES"
 
     if (( INPUT_LINE_START < IF_STATEMENT_START ))
     then
@@ -485,10 +493,10 @@ adjust_else_elif_fi_linenumbers()
         FI_LINE_NUMBER=$((FI_LINE_NUMBER + NUM_LINES))
     fi
     
-    echo "IF_STATEMENT_START updated to:    $IF_STATEMENT_START"
-    echo "IF_STATEMENT_END updated to:      $IF_STATEMENT_END"
-    echo "ELSE_ELIF_LINE_NUMBER updated to: $ELSE_ELIF_LINE_NUMBER"
-    echo "FI_LINE_NUMBER updated to:        $FI_LINE_NUMBER"
+    debug_echo 100 "IF_STATEMENT_START updated to:    $IF_STATEMENT_START"
+    debug_echo 100 "IF_STATEMENT_END updated to:      $IF_STATEMENT_END"
+    debug_echo 100 "ELSE_ELIF_LINE_NUMBER updated to: $ELSE_ELIF_LINE_NUMBER"
+    debug_echo 100 "FI_LINE_NUMBER updated to:        $FI_LINE_NUMBER"
 }
 
 adjust_interval_linenumbers()
@@ -497,10 +505,10 @@ adjust_interval_linenumbers()
     INDEX_LIMIT="$2"
 
     # Increment if statement variables as they got shifted
-    echo "_intervals before:         ${_intervals[@]}"
-    echo "index to change:          $INDEX_LIMIT"
+    debug_echo 100 "_intervals before:         ${_intervals[@]}"
+    debug_echo 100 "index to change:          $INDEX_LIMIT"
     NUM_LINES=$(echo -n "$INPUT" | grep -c '^')
-    echo "number of lines in input: $NUM_LINES"
+    debug_echo 100 "number of lines in input: $NUM_LINES"
     for i in "${!_intervals[@]}"
     do
         if (( i >= INDEX_LIMIT ))
@@ -508,7 +516,7 @@ adjust_interval_linenumbers()
             _intervals[$i]=$((_intervals[i] + NUM_LINES))
         fi
     done
-    echo "_intervals after:          ${_intervals[@]}"
+    debug_echo 100 "_intervals after:          ${_intervals[@]}"
 }
 
 
@@ -551,7 +559,7 @@ add_single_line_content()
 {
     if (( $# < 5 ))
     then
-        echo "Function 'add_single_line_content' need at least 5 inputs, you gave $#."
+        debug_echo 100 "Function 'add_single_line_content' need at least 5 inputs, you gave $#."
         return -1
     fi
 
@@ -561,12 +569,12 @@ add_single_line_content()
     REF_TYPE="$1"; shift        # 4
     REF_PLACEMENT="$1"; shift   # 5
 
-    echo ""
-    echo "FILE_PATH: $FILE_PATH"
-    echo "FILE_NAME: $FILE_NAME"
-    echo "VAR_NAME: $VAR_NAME"
-    echo "REF_TYPE: $REF_TYPE"
-    echo "REF_PLACEMENT: $REF_PLACEMENT"
+    debug_echo 100 ""
+    debug_echo 100 "FILE_PATH: $FILE_PATH"
+    debug_echo 100 "FILE_NAME: $FILE_NAME"
+    debug_echo 100 "VAR_NAME: $VAR_NAME"
+    debug_echo 100 "REF_TYPE: $REF_TYPE"
+    debug_echo 100 "REF_PLACEMENT: $REF_PLACEMENT"
 
     # https://stackoverflow.com/questions/10953833/passing-multiple-distinct-arrays-to-a-shell-function
     
@@ -579,11 +587,11 @@ add_single_line_content()
         "END")
             ;;
         *)
-            echo "Reference placement: $REF_PLACEMENT"
-            echo "Reference placement does not have a valid value."
-            echo "Options to choose from:"
-            echo "- 'START'"
-            echo "- 'END'"
+            debug_echo 100 "Reference placement: $REF_PLACEMENT"
+            debug_echo 100 "Reference placement does not have a valid value."
+            debug_echo 100 "Options to choose from:"
+            debug_echo 100 "- 'START'"
+            debug_echo 100 "- 'END'"
             return -1
             ;;
         esac
@@ -595,21 +603,21 @@ add_single_line_content()
         "AFTER")
             ;;
         *)
-            echo "Reference placement: $REF_PLACEMENT"
-            echo "Reference placement does not have a valid value."
-            echo "Options to choose from:"
-            echo "- 'BEFORE'"
-            echo "- 'AFTER'"
+            debug_echo 100 "Reference placement: $REF_PLACEMENT"
+            debug_echo 100 "Reference placement does not have a valid value."
+            debug_echo 100 "Options to choose from:"
+            debug_echo 100 "- 'BEFORE'"
+            debug_echo 100 "- 'AFTER'"
             return -1
             ;;
         esac
         ;;
     *)
-        echo "Reference type: $REF_TYPE"
-        echo "Reference type does not have a valid value."
-        echo "Options to choose from:"
-        echo "- 'INBETWEEN'"
-        echo "- 'LINE'"
+        debug_echo 100 "Reference type: $REF_TYPE"
+        debug_echo 100 "Reference type does not have a valid value."
+        debug_echo 100 "Options to choose from:"
+        debug_echo 100 "- 'INBETWEEN'"
+        debug_echo 100 "- 'LINE'"
         return -1
         ;;
     esac
@@ -647,32 +655,32 @@ add_single_line_content()
         ((array_num++))
     done
 
-    echo ""
-    echo "_intervals =         [ ${_intervals[@]} ]"
-    echo "allowed_intervals =  [ ${allowed_intervals[@]} ]"
-    echo "preferred_interval = [ ${preferred_interval[@]} ]"
-    echo ""
+    debug_echo 100 ""
+    debug_echo 100 "_intervals =         [ ${_intervals[@]} ]"
+    debug_echo 100 "allowed_intervals =  [ ${allowed_intervals[@]} ]"
+    debug_echo 100 "preferred_interval = [ ${preferred_interval[@]} ]"
+    debug_echo 100 ""
     
     # Check validity of input lengths: 'intervals', 'preferred_intervals' & 'allowed_intervals'
     if (( ${#_intervals[@]} < 2 ))
     then
-        echo "Length of Intervals: ${#_intervals[@]}"
-        echo "Intervals length is too short."
-        echo "Intervals should have a length of at least 2."
+        debug_echo 100 "Length of Intervals: ${#_intervals[@]}"
+        debug_echo 100 "Intervals length is too short."
+        debug_echo 100 "Intervals should have a length of at least 2."
         return -1
     elif (( ${#_intervals[@]} + 1 != ${#preferred_interval[@]} ))
     then
-        echo "Length of Intervals: ${#_intervals[@]}"
-        echo "Length of Preferred intervals: ${#preferred_interval[@]}"
-        echo "Preferred intervals is not the right length to match Intervals."
-        echo "Preferred intervals should be of length $((${#_intervals[@]} + 1))"
+        debug_echo 100 "Length of Intervals: ${#_intervals[@]}"
+        debug_echo 100 "Length of Preferred intervals: ${#preferred_interval[@]}"
+        debug_echo 100 "Preferred intervals is not the right length to match Intervals."
+        debug_echo 100 "Preferred intervals should be of length $((${#_intervals[@]} + 1))"
         return -1
     elif (( ${#_intervals[@]} + 1 != ${#allowed_intervals[@]} ))
     then
-        echo "Length of Intervals: ${#_intervals[@]}"
-        echo "Length of Allowed intervals: ${#allowed_intervals[@]}"
-        echo "Allowed intervals is not the right length to match Intervals."
-        echo "Allowed intervals should be of length $((${#_intervals[@]} + 1))"
+        debug_echo 100 "Length of Intervals: ${#_intervals[@]}"
+        debug_echo 100 "Length of Allowed intervals: ${#allowed_intervals[@]}"
+        debug_echo 100 "Allowed intervals is not the right length to match Intervals."
+        debug_echo 100 "Allowed intervals should be of length $((${#_intervals[@]} + 1))"
         return -1
     fi
 
@@ -682,49 +690,49 @@ add_single_line_content()
     declare -i num_preferred=0
     for i in "${!preferred_interval[@]}"
     do
-        echo "allowed_intervals[$i]: ${allowed_intervals[$i]}"
-        echo "preferred_interval[$i]: ${preferred_interval[$i]}"
+        debug_echo 100 "allowed_intervals[$i]: ${allowed_intervals[$i]}"
+        debug_echo 100 "preferred_interval[$i]: ${preferred_interval[$i]}"
         if [[ "${preferred_interval[$i]}" == true ]]
         then
-            echo "preferred_interval[$i] is true"
+            debug_echo 100 "preferred_interval[$i] is true"
             preferred_index=$i
             ((num_preferred++))
 
             if [[ "${allowed_intervals[$i]}" == false ]]
             then
-                echo "allowed_intervals[$i] is false"
-                echo "Allowed intervals = [ ${allowed_intervals[@]} ]"
-                echo "Preferred interval: [ ${preferred_interval[@]} ]"
-                echo "Allowed intervals and Preferred interval does not match."
-                echo "The Preferred interval must also be an Allowed interval."
+                debug_echo 100 "allowed_intervals[$i] is false"
+                debug_echo 100 "Allowed intervals = [ ${allowed_intervals[@]} ]"
+                debug_echo 100 "Preferred interval: [ ${preferred_interval[@]} ]"
+                debug_echo 100 "Allowed intervals and Preferred interval does not match."
+                debug_echo 100 "The Preferred interval must also be an Allowed interval."
                 return -1
             else
-                echo "allowed_intervals[$i] is true"
+                debug_echo 100 "allowed_intervals[$i] is true"
             fi
         else
-            echo "preferred_interval[$i] is false"
+            debug_echo 100 "preferred_interval[$i] is false"
         fi
     done
 
     # Check validity of input: 'preferred_interval'
     case "$num_preferred" in
     0)
-        echo "Preferred interval: [ ${preferred_interval[@]} ]"
-        echo "Preferred interval does not contain valid values."
-        echo "Contains 0 true values, should contain exactly 1 true value."
+        debug_echo 100 "Preferred interval: [ ${preferred_interval[@]} ]"
+        debug_echo 100 "Preferred interval does not contain valid values."
+        debug_echo 100 "Contains 0 true values, should contain exactly 1 true value."
         return -1
         ;;
     1)
         ;;
     *)
-        echo "Preferred interval: [ ${preferred_interval[@]} ]"
-        echo "Preferred interval does not contain valid values."
-        echo "Contains $num_preferred true values, should contain exactly 1 true value."
+        debug_echo 100 "Preferred interval: [ ${preferred_interval[@]} ]"
+        debug_echo 100 "Preferred interval does not contain valid values."
+        debug_echo 100 "Contains $num_preferred true values, should contain exactly 1 true value."
         return -1
         ;;
     esac
 
-    echo "Found preferred interval in index $i."
+    debug_echo 100 "Found preferred interval in index $i."
 
     EVAL_VAR_NAME=$VAR_NAME # ${!EVAL_VAR_NAME}
     EVAL_VAR_NAME_EXISTS=${VAR_NAME}_EXISTS # ${!EVAL_VAR_NAME_EXISTS}
@@ -739,14 +747,17 @@ add_single_line_content()
     # Iterate over every line of VAR_NAME as they are independent
     while IFS= read -r line
     do
-        echo "##################################################################"
-        echo "Checking new line of variable. ###################################"
-        echo -e "##################################################################\n"
+        debug_echo 100 "##################################################################"
+        debug_echo 100 "Checking new line of variable. ###################################"
+        debug_echo 100 "##################################################################"
+        debug_echo 100 ""
         exists_in_file "$FILE_PATH/$FILE_NAME" "$line" LINE
 
         if [[ $REF_TYPE == "INBETWEEN" ]]
         then
-            echo -e "\nReference type: INBETWEEN\n"
+            debug_echo 100 ""
+            debug_echo 100 "Reference type: INBETWEEN"
+            debug_echo 100 ""
             if ! $LINE_EXISTS
             then
                 ADD_TO_PREFERRED_INTERVAL=true
@@ -762,34 +773,34 @@ add_single_line_content()
                     0)
                         if (( LINE_START < _intervals[i] ))
                         then
-                            echo "Line number $LINE_START IS in the interval < ${_intervals[$i]}. #####"
+                            debug_echo 100 "Line number $LINE_START IS in the interval < ${_intervals[$i]}. #####"
                             found_in_interval=true
                         else
-                            echo "Line number $LINE_START is NOT in the interval < ${_intervals[$i]}. *****"
+                            debug_echo 100 "Line number $LINE_START is NOT in the interval < ${_intervals[$i]}. *****"
                             found_in_interval=false
                         fi;;
 
                     $num_items)
                         if (( _intervals[i-1] < LINE_START ))
                         then
-                            echo "Line number $LINE_START IS in the interval > ${_intervals[$((i-1))]}. #####"
+                            debug_echo 100 "Line number $LINE_START IS in the interval > ${_intervals[$((i-1))]}. #####"
                             found_in_interval=true
                         else
-                            echo "Line number $LINE_START is NOT in the interval > ${_intervals[$((i-1))]}. *****"
+                            debug_echo 100 "Line number $LINE_START is NOT in the interval > ${_intervals[$((i-1))]}. *****"
                             found_in_interval=false
                         fi;;
 
                     *)
                         if (( _intervals[i-1] <= LINE_START )) && (( LINE_START <= _intervals[i] ))
                         then
-                            echo "Line number $LINE_START IS in interval ${_intervals[$((i-1))]} - ${_intervals[$i]}. #####"
+                            debug_echo 100 "Line number $LINE_START IS in interval ${_intervals[$((i-1))]} - ${_intervals[$i]}. #####"
                             found_in_interval=true
                         else
-                            echo "Line number $LINE_START is NOT in interval ${_intervals[$((i-1))]} - ${_intervals[$i]}. *****"
+                            debug_echo 100 "Line number $LINE_START is NOT in interval ${_intervals[$((i-1))]} - ${_intervals[$i]}. *****"
                             found_in_interval=false
                         fi;;
                     esac
-                    echo ""
+                    debug_echo 100 ""
 
                     exists_in_intervals+=( $found_in_interval )
                 done
@@ -797,29 +808,31 @@ add_single_line_content()
 
                 # Compare where it exists with where it is allowed and preferred to exist
                 ADD_TO_PREFERRED_INTERVAL=false
-                echo "exists_in_intervals: [${exists_in_intervals[@]}]"
-                echo "allowed_intervals:   [${allowed_intervals[@]}]"
-                echo "preferred_interval:  [${preferred_interval[@]}]"
-                echo ""
+                debug_echo 100 "exists_in_intervals: [${exists_in_intervals[@]}]"
+                debug_echo 100 "allowed_intervals:   [${allowed_intervals[@]}]"
+                debug_echo 100 "preferred_interval:  [${preferred_interval[@]}]"
+                debug_echo 100 ""
                 for ((j=0;j<${#exists_in_intervals[@]};j++))
                 do
                     # Add start and end of intervals. _intervals could have been updated
                     # since last calculation
                     tmp_intervals=(0 ${_intervals[@]} $(wc -l "$FILE_PATH/$FILE_NAME" | cut -f1 -d' '))
-                    echo "-------------------------"
-                    echo "Checking interval $j"
-                    echo -e "-------------------------\n"
+                    debug_echo 100 "-------------------------"
+                    debug_echo 100 "Checking interval $j"
+                    debug_echo 100 "-------------------------"
+                    debug_echo 100 ""
                     if ${exists_in_intervals[$j]}
                     then
                         if ${allowed_intervals[$j]}
                         then
-                            echo "Exists in allowed interval."
+                            debug_echo 100 "Exists in allowed interval."
                             if ${preferred_interval[$j]}
                             then
-                                echo "Exists in the preferred interval."
+                                debug_echo 100 "Exists in the preferred interval."
                             else
-                                echo "Is not in the preferred interval."
-                                echo -e "Remove content of line $LINE_START\n"
+                                debug_echo 100 "Is not in the preferred interval."
+                                debug_echo 100 "Remove content of line $LINE_START"
+                                debug_echo 100 ""
                                 # Remove the line
                                 sed -i "${LINE_START}d" "$FILE_PATH/$FILE_NAME"
                                 # Insert empty line in its place
@@ -827,8 +840,9 @@ add_single_line_content()
                             fi
                         else # Exists in DISALLOWED interval
 
-                            echo "Exists in DISALLOWED interval."
-                            echo -e "Remove content of line $LINE_START\n"
+                            debug_echo 100 "Exists in DISALLOWED interval."
+                            debug_echo 100 "Remove content of line $LINE_START"
+                            debug_echo 100 ""
                             # Remove the line
                             sed -i "${LINE_START}d" "$FILE_PATH/$FILE_NAME"
                             # Insert empty line in its place
@@ -837,28 +851,29 @@ add_single_line_content()
                     else # Does NOT exist in interval
                         if ${preferred_interval[$j]}
                         then
-                            echo "Does NOT exist in preferred interval"
-                            echo "To be added in preferred interval"
+                            debug_echo 100 "Does NOT exist in preferred interval"
+                            debug_echo 100 "To be added in preferred interval"
                             
                             ADD_TO_PREFERRED_INTERVAL=true
                             ADD_TO_PREFERRED_INTERVAL_INDEX=$j
                             
                         fi
                     fi
-                    echo "-^-^-^-^-^-^-^-^-^-"
-                    echo "DONE with interval"
-                    echo -e "-^-^-^-^-^-^-^-^-^-\n"
+                    debug_echo 100 "-^-^-^-^-^-^-^-^-^-"
+                    debug_echo 100 "DONE with interval"
+                    debug_echo 100 "-^-^-^-^-^-^-^-^-^-"
+                    debug_echo 100 ""
                 done
-                echo -e "-*-*-*-*-*-*-*-*-*-*-*-*-"
-                echo "Checked all intervals."
-                echo "-*-*-*-*-*-*-*-*-*-*-*-*-"
+                debug_echo 100 "-*-*-*-*-*-*-*-*-*-*-*-*-"
+                debug_echo 100 "Checked all intervals."
+                debug_echo 100 "-*-*-*-*-*-*-*-*-*-*-*-*-"
             fi
 
             # Done afterwards as it messes with the line numbering when inserting.
             # Only remove content of lines before this line, but don't remove the actual lines.
             if $ADD_TO_PREFERRED_INTERVAL
             then
-                echo "Place in preferred interval."
+                debug_echo 100 "Place in preferred interval."
                 # If ending with backslash, add another one to behave as wanted with sed
                 line=$(echo "$line" | sed -E 's/[\\]$/\\\\/gm')
                 
@@ -871,11 +886,11 @@ add_single_line_content()
                         sed -i "$((tmp_intervals[preferred_index + 1]))i $line" "$FILE_PATH/$FILE_NAME"
                         ;;
                 esac
-                echo "Placed in preferred interval."
+                debug_echo 100 "Placed in preferred interval."
                 # Update interval numbers
                 adjust_interval_linenumbers "$line" $ADD_TO_PREFERRED_INTERVAL_INDEX
             fi
-            echo ""
+            debug_echo 100 ""
         fi
 
 
@@ -893,7 +908,7 @@ add_multiline_content()
 {
     if (( $# < 5 ))
     then
-        echo "Function 'add_multiline_content' need at least 5 inputs, you gave $#."
+        debug_echo 100 "Function 'add_multiline_content' need at least 5 inputs, you gave $#."
         return -1
     fi
 
@@ -903,12 +918,12 @@ add_multiline_content()
     REF_TYPE="$1"; shift        # 4
     REF_PLACEMENT="$1"; shift   # 5
 
-    echo ""
-    echo "FILE_PATH: $FILE_PATH"
-    echo "FILE_NAME: $FILE_NAME"
-    echo "VAR_NAME: $VAR_NAME"
-    echo "REF_TYPE: $REF_TYPE"
-    echo "REF_PLACEMENT: $REF_PLACEMENT"
+    debug_echo 100 ""
+    debug_echo 100 "FILE_PATH: $FILE_PATH"
+    debug_echo 100 "FILE_NAME: $FILE_NAME"
+    debug_echo 100 "VAR_NAME: $VAR_NAME"
+    debug_echo 100 "REF_TYPE: $REF_TYPE"
+    debug_echo 100 "REF_PLACEMENT: $REF_PLACEMENT"
 
      # Check validity of input: 'REF_TYPE' & 'REF_PLACEMENT'
     case "$REF_TYPE" in
@@ -919,11 +934,11 @@ add_multiline_content()
         "END")
             ;;
         *)
-            echo "Reference placement: $REF_PLACEMENT"
-            echo "Reference placement does not have a valid value."
-            echo "Options to choose from:"
-            echo "- 'START'"
-            echo "- 'END'"
+            debug_echo 100 "Reference placement: $REF_PLACEMENT"
+            debug_echo 100 "Reference placement does not have a valid value."
+            debug_echo 100 "Options to choose from:"
+            debug_echo 100 "- 'START'"
+            debug_echo 100 "- 'END'"
             return -1
             ;;
         esac
@@ -935,21 +950,21 @@ add_multiline_content()
         "AFTER")
             ;;
         *)
-            echo "Reference placement: $REF_PLACEMENT"
-            echo "Reference placement does not have a valid value."
-            echo "Options to choose from:"
-            echo "- 'BEFORE'"
-            echo "- 'AFTER'"
+            debug_echo 100 "Reference placement: $REF_PLACEMENT"
+            debug_echo 100 "Reference placement does not have a valid value."
+            debug_echo 100 "Options to choose from:"
+            debug_echo 100 "- 'BEFORE'"
+            debug_echo 100 "- 'AFTER'"
             return -1
             ;;
         esac
         ;;
     *)
-        echo "Reference type: $REF_TYPE"
-        echo "Reference type does not have a valid value."
-        echo "Options to choose from:"
-        echo "- 'INBETWEEN'"
-        echo "- 'LINE'"
+        debug_echo 100 "Reference type: $REF_TYPE"
+        debug_echo 100 "Reference type does not have a valid value."
+        debug_echo 100 "Options to choose from:"
+        debug_echo 100 "- 'INBETWEEN'"
+        debug_echo 100 "- 'LINE'"
         return -1
         ;;
     esac
@@ -987,32 +1002,32 @@ add_multiline_content()
         ((array_num++))
     done
 
-    echo ""
-    echo "_intervals =         [ ${_intervals[@]} ]"
-    echo "allowed_intervals =  [ ${allowed_intervals[@]} ]"
-    echo "preferred_interval = [ ${preferred_interval[@]} ]"
-    echo ""
+    debug_echo 100 ""
+    debug_echo 100 "_intervals =         [ ${_intervals[@]} ]"
+    debug_echo 100 "allowed_intervals =  [ ${allowed_intervals[@]} ]"
+    debug_echo 100 "preferred_interval = [ ${preferred_interval[@]} ]"
+    debug_echo 100 ""
 
     # Check validity of input lengths: 'intervals', 'preferred_intervals' & 'allowed_intervals'
     if (( ${#_intervals[@]} < 2 ))
     then
-        echo "Length of Intervals: ${#_intervals[@]}"
-        echo "Intervals length is too short."
-        echo "Intervals should have a length of at least 2."
+        debug_echo 100 "Length of Intervals: ${#_intervals[@]}"
+        debug_echo 100 "Intervals length is too short."
+        debug_echo 100 "Intervals should have a length of at least 2."
         return -1
     elif (( ${#_intervals[@]} + 1 != ${#preferred_interval[@]} ))
     then
-        echo "Length of Intervals: ${#_intervals[@]}"
-        echo "Length of Preferred intervals: ${#preferred_interval[@]}"
-        echo "Preferred intervals is not the right length to match Intervals."
-        echo "Preferred intervals should be of length $((${#_intervals[@]} + 1))"
+        debug_echo 100 "Length of Intervals: ${#_intervals[@]}"
+        debug_echo 100 "Length of Preferred intervals: ${#preferred_interval[@]}"
+        debug_echo 100 "Preferred intervals is not the right length to match Intervals."
+        debug_echo 100 "Preferred intervals should be of length $((${#_intervals[@]} + 1))"
         return -1
     elif (( ${#_intervals[@]} + 1 != ${#allowed_intervals[@]} ))
     then
-        echo "Length of Intervals: ${#_intervals[@]}"
-        echo "Length of Allowed intervals: ${#allowed_intervals[@]}"
-        echo "Allowed intervals is not the right length to match Intervals."
-        echo "Allowed intervals should be of length $((${#_intervals[@]} + 1))"
+        debug_echo 100 "Length of Intervals: ${#_intervals[@]}"
+        debug_echo 100 "Length of Allowed intervals: ${#allowed_intervals[@]}"
+        debug_echo 100 "Allowed intervals is not the right length to match Intervals."
+        debug_echo 100 "Allowed intervals should be of length $((${#_intervals[@]} + 1))"
         return -1
     fi
 
@@ -1022,49 +1037,49 @@ add_multiline_content()
     declare -i num_preferred=0
     for i in "${!preferred_interval[@]}"
     do
-        echo "allowed_intervals[$i]: ${allowed_intervals[$i]}"
-        echo "preferred_interval[$i]: ${preferred_interval[$i]}"
+        debug_echo 100 "allowed_intervals[$i]: ${allowed_intervals[$i]}"
+        debug_echo 100 "preferred_interval[$i]: ${preferred_interval[$i]}"
         if [[ "${preferred_interval[$i]}" == true ]]
         then
-            echo "preferred_interval[$i] is true"
+            debug_echo 100 "preferred_interval[$i] is true"
             preferred_index=$i
             ((num_preferred++))
 
             if [[ "${allowed_intervals[$i]}" == false ]]
             then
-                echo "allowed_intervals[$i] is false"
-                echo "Allowed intervals = [ ${allowed_intervals[@]} ]"
-                echo "Preferred interval: [ ${preferred_interval[@]} ]"
-                echo "Allowed intervals and Preferred interval does not match."
-                echo "The Preferred interval must also be an Allowed interval."
+                debug_echo 100 "allowed_intervals[$i] is false"
+                debug_echo 100 "Allowed intervals = [ ${allowed_intervals[@]} ]"
+                debug_echo 100 "Preferred interval: [ ${preferred_interval[@]} ]"
+                debug_echo 100 "Allowed intervals and Preferred interval does not match."
+                debug_echo 100 "The Preferred interval must also be an Allowed interval."
                 return -1
             else
-                echo "allowed_intervals[$i] is true"
+                debug_echo 100 "allowed_intervals[$i] is true"
             fi
         else
-            echo "preferred_interval[$i] is false"
+            debug_echo 100 "preferred_interval[$i] is false"
         fi
     done
 
     # Check validity of input: 'preferred_interval'
     case "$num_preferred" in
     0)
-        echo "Preferred interval: [ ${preferred_interval[@]} ]"
-        echo "Preferred interval does not contain valid values."
-        echo "Contains 0 true values, should contain exactly 1 true value."
+        debug_echo 100 "Preferred interval: [ ${preferred_interval[@]} ]"
+        debug_echo 100 "Preferred interval does not contain valid values."
+        debug_echo 100 "Contains 0 true values, should contain exactly 1 true value."
         return -1
         ;;
     1)
         ;;
     *)
-        echo "Preferred interval: [ ${preferred_interval[@]} ]"
-        echo "Preferred interval does not contain valid values."
-        echo "Contains $num_preferred true values, should contain exactly 1 true value."
+        debug_echo 100 "Preferred interval: [ ${preferred_interval[@]} ]"
+        debug_echo 100 "Preferred interval does not contain valid values."
+        debug_echo 100 "Contains $num_preferred true values, should contain exactly 1 true value."
         return -1
         ;;
     esac
 
-    echo "Found preferred interval in index $i."
+    debug_echo 100 "Found preferred interval in index $i."
 
 
 
@@ -1088,7 +1103,7 @@ add_multiline_content()
         if [[ $REF_TYPE == "INBETWEEN" ]]
         then
             tmp_intervals=(0 ${_intervals[@]} $(wc -l "$FILE_PATH/$FILE_NAME" | cut -f1 -d' '))
-            echo "Place in preferred interval."
+            debug_echo 100 "Place in preferred interval."
 
             # Replace backslashes with double backslashes to have 'sed' insert line at
             # line number later work as expected
@@ -1113,7 +1128,7 @@ add_multiline_content()
                     adjust_else_elif_fi_linenumbers "${!EVAL_VAR_NAME}" $((tmp_intervals[preferred_index + 1] - 1))
                     ;;
             esac
-            echo "Placed in preferred interval."
+            debug_echo 100 "Placed in preferred interval."
             
             # Update interval numbers
             adjust_interval_linenumbers "${!EVAL_VAR_NAME}" $ADD_TO_PREFERRED_INTERVAL_INDEX
@@ -1123,7 +1138,9 @@ add_multiline_content()
     else
         if [[ $REF_TYPE == "INBETWEEN" ]]
         then
-            echo -e "\nReference type: INBETWEEN\n"
+            debug_echo 100 ""
+            debug_echo 100 "Reference type: INBETWEEN"
+            debug_echo 100 ""
 
             # Mark in which intervals the content exists
             declare -i num_items=${#_intervals[@]}
@@ -1136,10 +1153,10 @@ add_multiline_content()
                     if (( EVALUATED_VAR_NAME_START < _intervals[i] )) && \
                        (( EVALUATED_VAR_NAME_END   < _intervals[i] ))
                     then
-                        echo "Line number $EVALUATED_VAR_NAME_START-$EVALUATED_VAR_NAME_END ARE in the interval < ${_intervals[$i]}. #####"
+                        debug_echo 100 "Line number $EVALUATED_VAR_NAME_START-$EVALUATED_VAR_NAME_END ARE in the interval < ${_intervals[$i]}. #####"
                         found_in_interval=true
                     else
-                        echo "Line number $EVALUATED_VAR_NAME_START-$EVALUATED_VAR_NAME_END are NOT in the interval < ${_intervals[$i]}. *****"
+                        debug_echo 100 "Line number $EVALUATED_VAR_NAME_START-$EVALUATED_VAR_NAME_END are NOT in the interval < ${_intervals[$i]}. *****"
                         found_in_interval=false
                     fi;;
 
@@ -1147,10 +1164,10 @@ add_multiline_content()
                     if (( _intervals[i-1] < EVALUATED_VAR_NAME_START )) && \
                        (( _intervals[i-1] < EVALUATED_VAR_NAME_END   ))
                     then
-                        echo "Line numbers $EVALUATED_VAR_NAME_START-$EVALUATED_VAR_NAME_END ARE in the interval > ${_intervals[$((i-1))]}. #####"
+                        debug_echo 100 "Line numbers $EVALUATED_VAR_NAME_START-$EVALUATED_VAR_NAME_END ARE in the interval > ${_intervals[$((i-1))]}. #####"
                         found_in_interval=true
                     else
-                        echo "Line number $EVALUATED_VAR_NAME_START-$EVALUATED_VAR_NAME_END are NOT in the interval > ${_intervals[$((i-1))]}. *****"
+                        debug_echo 100 "Line number $EVALUATED_VAR_NAME_START-$EVALUATED_VAR_NAME_END are NOT in the interval > ${_intervals[$((i-1))]}. *****"
                         found_in_interval=false
                     fi;;
 
@@ -1158,43 +1175,45 @@ add_multiline_content()
                     if (( _intervals[i-1] <= EVALUATED_VAR_NAME_START )) && (( EVALUATED_VAR_NAME_START <= _intervals[i] )) && \
                        (( _intervals[i-1] <= EVALUATED_VAR_NAME_END   )) && (( EVALUATED_VAR_NAME_END   <= _intervals[i] ))
                     then
-                        echo "Line number $EVALUATED_VAR_NAME_START-$EVALUATED_VAR_NAME_END ARE in interval ${_intervals[$((i-1))]} - ${_intervals[$i]}. #####"
+                        debug_echo 100 "Line number $EVALUATED_VAR_NAME_START-$EVALUATED_VAR_NAME_END ARE in interval ${_intervals[$((i-1))]} - ${_intervals[$i]}. #####"
                         found_in_interval=true
                     else
-                        echo "Line number $EVALUATED_VAR_NAME_START-$EVALUATED_VAR_NAME_END are NOT in interval ${_intervals[$((i-1))]} - ${_intervals[$i]}. *****"
+                        debug_echo 100 "Line number $EVALUATED_VAR_NAME_START-$EVALUATED_VAR_NAME_END are NOT in interval ${_intervals[$((i-1))]} - ${_intervals[$i]}. *****"
                         found_in_interval=false
                     fi;;
                 esac
-                echo ""
+                debug_echo 100 ""
 
             exists_in_intervals+=( $found_in_interval )
             done
 
             # Compare where it exists with where it is allowed and preferred to exist
             ADD_TO_PREFERRED_INTERVAL=false
-            echo "exists_in_intervals: [${exists_in_intervals[@]}]"
-            echo "allowed_intervals:   [${allowed_intervals[@]}]"
-            echo "preferred_interval:  [${preferred_interval[@]}]"
-            echo ""
+            debug_echo 100 "exists_in_intervals: [${exists_in_intervals[@]}]"
+            debug_echo 100 "allowed_intervals:   [${allowed_intervals[@]}]"
+            debug_echo 100 "preferred_interval:  [${preferred_interval[@]}]"
+            debug_echo 100 ""
             for ((j=0;j<${#exists_in_intervals[@]};j++))
             do
                 # Add start and end of intervals. _intervals could have been updated
                 # since last calculation
                 tmp_intervals=(0 ${_intervals[@]} $(wc -l "$FILE_PATH/$FILE_NAME" | cut -f1 -d' '))
-                echo "-------------------------"
-                echo "Checking interval $j"
-                echo -e "-------------------------\n"
+                debug_echo 100 "-------------------------"
+                debug_echo 100 "Checking interval $j"
+                debug_echo 100 "-------------------------"
+                debug_echo 100 ""
                 if ${exists_in_intervals[$j]}
                 then
                     if ${allowed_intervals[$j]}
                     then
-                        echo "Exists in allowed interval."
+                        debug_echo 100 "Exists in allowed interval."
                         if ${preferred_interval[$j]}
                         then
-                            echo "Exists in the preferred interval."
+                            debug_echo 100 "Exists in the preferred interval."
                         else
-                            echo "Is not in the preferred interval."
-                            echo -e "Remove content of lines ${EVALUATED_VAR_NAME_START}-${EVALUATED_VAR_NAME_END}\n"
+                            debug_echo 100 "Is not in the preferred interval."
+                            debug_echo 100 "Remove content of lines ${EVALUATED_VAR_NAME_START}-${EVALUATED_VAR_NAME_END}"
+                            debug_echo 100 ""
                             # Remove the lines
                             sed -i "${EVALUATED_VAR_NAME_START},${EVALUATED_VAR_NAME_END}d" "$FILE_PATH/$FILE_NAME"
                             # Insert empty lines in its place
@@ -1205,8 +1224,9 @@ add_multiline_content()
                         fi
                     else # Exists in DISALLOWED interval
 
-                        echo "Exists in DISALLOWED interval."
-                        echo -e "Remove content of lines ${EVALUATED_VAR_NAME_START}-${EVALUATED_VAR_NAME_END}\n"
+                        debug_echo 100 "Exists in DISALLOWED interval."
+                        debug_echo 100 "Remove content of lines ${EVALUATED_VAR_NAME_START}-${EVALUATED_VAR_NAME_END}"
+                        debug_echo 100 ""
                         # Remove the lines
                         sed -i "${EVALUATED_VAR_NAME_START},${EVALUATED_VAR_NAME_END}d" "$FILE_PATH/$FILE_NAME"
                         # Insert empty lines in its place
@@ -1218,28 +1238,29 @@ add_multiline_content()
                 else # Does NOT exist in interval
                     if ${preferred_interval[$j]}
                     then
-                        echo "Does NOT exist in preferred interval"
-                        echo "To be added in preferred interval"
+                        debug_echo 100 "Does NOT exist in preferred interval"
+                        debug_echo 100 "To be added in preferred interval"
                         
                         ADD_TO_PREFERRED_INTERVAL=true
                         ADD_TO_PREFERRED_INTERVAL_INDEX=$j
                         
                     fi
                 fi
-                echo "-^-^-^-^-^-^-^-^-^-"
-                echo "DONE with interval"
-                echo -e "-^-^-^-^-^-^-^-^-^-\n"
+                debug_echo 100 "-^-^-^-^-^-^-^-^-^-"
+                debug_echo 100 "DONE with interval"
+                debug_echo 100 "-^-^-^-^-^-^-^-^-^-"
+                debug_echo 100 ""
             done
-            echo -e "-*-*-*-*-*-*-*-*-*-*-*-*-"
-            echo "Checked all intervals."
-            echo "-*-*-*-*-*-*-*-*-*-*-*-*-"
+            debug_echo 100 "-*-*-*-*-*-*-*-*-*-*-*-*-"
+            debug_echo 100 "Checked all intervals."
+            debug_echo 100 "-*-*-*-*-*-*-*-*-*-*-*-*-"
 
 
             # Done afterwards as it messes with the line numbering when inserting.
             # Only remove content of lines before this line, but don't remove the actual lines.
             if $ADD_TO_PREFERRED_INTERVAL
             then
-                echo "Place in preferred interval."
+                debug_echo 100 "Place in preferred interval."
 
                 # Replace backslashes with double backslashes to have 'sed' insert line at
                 # line number later work as expected
@@ -1264,7 +1285,7 @@ add_multiline_content()
                         adjust_else_elif_fi_linenumbers "${!EVAL_VAR_NAME}" $((tmp_intervals[preferred_index + 1] - 1))
                         ;;
                 esac
-                echo "Placed in preferred interval."
+                debug_echo 100 "Placed in preferred interval."
                 
                 # Update interval numbers
                 adjust_interval_linenumbers "${!EVAL_VAR_NAME}" $ADD_TO_PREFERRED_INTERVAL_INDEX
@@ -1336,7 +1357,6 @@ yesno_question()
 {
 
     read -p "Setup $2? [y/n]: " -n 1 -r
-    echo
 
     case ${REPLY,,} in
         y|yes)
@@ -1535,7 +1555,7 @@ setup_trashcli()
         
         if [[ $? != 0 ]]
             then
-                echo -e "Failed installing 'trash-cli' package.\n"
+                debug_echo 100 -e "Failed installing 'trash-cli' package.\n"
                 return -1
             fi
     fi
@@ -1575,27 +1595,27 @@ setup_gitcompletionbash()
 
 
     # Find if statement to know where to place content (above,in-between,below)
-    echo "*****************************************************************************"
-    echo "***** Time for finding if statement *****************************************"
-    echo "*****************************************************************************"
+    debug_echo 100 "*****************************************************************************"
+    debug_echo 100 "***** Time for finding if statement *****************************************"
+    debug_echo 100 "*****************************************************************************"
     IF_STATEMENT='if [ "$color_prompt" = yes ]; then'
     exists_in_file "$PATH_BASHRC/$NAME_BASHRC" "$IF_STATEMENT" IF_STATEMENT
-    echo "IF_STATEMENT_EXISTS: $IF_STATEMENT_EXISTS"
-    echo "IF_STATEMENT_START: $IF_STATEMENT_START IF_STATEMENT_END: $IF_STATEMENT_END"
+    debug_echo 100 "IF_STATEMENT_EXISTS: $IF_STATEMENT_EXISTS"
+    debug_echo 100 "IF_STATEMENT_START: $IF_STATEMENT_START IF_STATEMENT_END: $IF_STATEMENT_END"
     if $IF_STATEMENT_EXISTS
     then
         find_else_elif_fi_statement "$PATH_BASHRC/$NAME_BASHRC" "$IF_STATEMENT_START" if_statement 1
         if [[ "$?" != 0 ]]
         then
-            echo "Problem in finding else/elif/fi statement."
+            debug_echo 100 "Problem in finding else/elif/fi statement."
             return -1
         fi
 
-        echo ""
-        echo "Found if statement at..."
-        echo "if_statement_LNs: ${if_statement_LNs[@]}"
-        echo "if_statement_type: ${if_statement_type[@]}"
-        echo ""
+        debug_echo 100 ""
+        debug_echo 100 "Found if statement at..."
+        debug_echo 100 "if_statement_LNs: ${if_statement_LNs[@]}"
+        debug_echo 100 "if_statement_type: ${if_statement_type[@]}"
+        debug_echo 100 ""
 
         #################################################################
         ############################ INPUT 1 ############################
@@ -1657,7 +1677,7 @@ EOF
         find_else_elif_fi_statement "$PATH_BASHRC/$NAME_BASHRC" "$IF_STATEMENT_START" if_statement 1
         declare -a intervals=("${if_statement_LNs[@]}")
         declare -a allowed_intervals=(true false false false)
-        declare -a preferred_interval=(true flase false false)
+        declare -a preferred_interval=(true false false false)
         
         add_multiline_content "$PATH_BASHRC" "$NAME_BASHRC" BASHRC_INPUT3 "INBETWEEN" "END" "${#intervals[@]}" "${intervals[@]}" "${#allowed_intervals[@]}" "${allowed_intervals[@]}" "${#preferred_interval[@]}" "${preferred_interval[@]}"
 
@@ -1692,7 +1712,7 @@ EOF
 
     if $BASHRC_INPUT1_EXISTS && $BASHRC_INPUT2_EXISTS && $BASHRC_INPUT3_EXISTS
     then
-        echo "All the content already exists."
+        debug_echo 100 "All the content already exists."
         return 255
     fi
     
