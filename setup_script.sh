@@ -30,6 +30,8 @@ URL_GITCOMPLETIONBASH="https://raw.githubusercontent.com/git/git/master/contrib/
 PATH_GITCOMPLETIONBASH=~
 NAME_GITCOMPLETIONBASH=.git-completion.bash
 
+DEBUG_LEVEL=1
+
 #######################
 ### END OF SETTINGS ###
 #######################
@@ -98,6 +100,24 @@ main()
 declare -g NL='
 '
 
+
+debug_echo()
+{
+    level="$1"
+    output="$2"
+
+    if ! [[ "$level" =~ ^[0-9]+$ ]]
+    then
+        echo "debug_echo: Input 1 needs to be an integer defining the debug level"
+        return
+    fi
+
+    if (( level <= DEBUG_LEVEL ))
+    then
+        echo "$2"
+    fi
+}
+
 # Reads multiline text and inputs to variable
 #
 # Example usage:
@@ -118,15 +138,16 @@ define(){ IFS=$'\n' read -r -d '' ${1} || true; }
 #     $3_END - End line number of where $2 where found in $1
 exists_in_file()
 {
-    DEBUG=true
     FILECONTENT=$(<$1)
     CONTENT_TO_CHECK="$2"
 
     declare -g $3_EXISTS=false
-
-    echo -e "\n*****************************"
-    echo "Start checking for content"
-    echo -e "*****************************\n"
+    
+    debug_echo 1 ""
+    debug_echo 1 "*****************************"
+    debug_echo 1 "Start checking for content"
+    debug_echo 1 "*****************************"
+    debug_echo 1 ""
 
     # Remove trailing whitespace
     FILECONTENT="$(echo "${FILECONTENT}" | sed -e 's/[[:space:]]*$//')"
@@ -139,25 +160,30 @@ exists_in_file()
         *"$NL"*) # CONTENT_TO_CHECK is multiple lines
             if $DEBUG
             then
-                echo "Content to check is MULTIPLE lines"
-                echo "CONTENT_TO_CHECK:"
-                echo "$CONTENT_TO_CHECK"
-                echo ""
+                debug_echo 1 "Content to check is MULTIPLE lines"
+                debug_echo 1 ""
+                debug_echo 1 "CONTENT_TO_CHECK:"
+                debug_echo 1 "$CONTENT_TO_CHECK"
+                debug_echo 1 ""
             fi
             ;;
         *) # CONTENT_TO_CHECK is one line
             if $DEBUG
             then
-                echo "Content to check is ONE line"
-                echo "CONTENT_TO_CHECK:"
-                echo "$CONTENT_TO_CHECK"
                 # Remove leading & trailing whitespace
                 CONTENT_TO_CHECK_WO_WHITESPACE=$(sed 's/^[ \t]*//;s/[ \t]*$//' <<< "$CONTENT_TO_CHECK")
-                echo -e "\nGREP output:"
                 # Remove leading (& trailing again without meaning)
                 # Grep using content without leading or trailing whitespace
-                sed 's/^[ \t]*//;s/[ \t]*$//' <<< "$FILECONTENT" | grep -Fxn "$CONTENT_TO_CHECK_WO_WHITESPACE" --color
-                echo ""
+                GREP_OUTPUT=$(sed 's/^[ \t]*//;s/[ \t]*$//' <<< "$FILECONTENT" | grep -Fxn "$CONTENT_TO_CHECK_WO_WHITESPACE" --color=always)
+
+                debug_echo 1 "Content to check is ONE line"
+                debug_echo 1 ""
+                debug_echo 1 "CONTENT_TO_CHECK:"
+                debug_echo 1 "$CONTENT_TO_CHECK"
+                debug_echo 1 ""
+                debug_echo 1 "GREP output:"
+                debug_echo 1 "$GREP_OUTPUT"
+                debug_echo 1 ""
             fi
 
             # Remove leading (& trailing again without meaning)
@@ -167,7 +193,6 @@ exists_in_file()
             if [[ -n "$LINE_NUMBER" ]] ;
             then
 
-                if $DEBUG; then echo "TRUE. Did find the content at line $LINE_NUMBER"; fi
                 declare -g $3_START=${LINE_NUMBER}
                 declare -g $3_END=${LINE_NUMBER}
                 # For eval and print within this function
@@ -175,40 +200,27 @@ exists_in_file()
                 END=$3_END
                 declare -g $3_EXISTS=true
 
-                if $DEBUG; then echo "START: ${!START}, END: ${!END}"; fi
-
-                echo -e "\n*****************************"
-                echo "DONE checking for content"
-                echo -e "*****************************\n"
+                debug_echo 1 "TRUE. Did find the content at line $LINE_NUMBER"
+                debug_echo 1 "START: ${!START}, END: ${!END}"debug_echo 1
+                debug_echo 1 ""
+                debug_echo 1 "*****************************"
+                debug_echo 1 "DONE checking for content"
+                debug_echo 1 "*****************************"
+                debug_echo 1 ""
                 return 0
             else
-                if $DEBUG; then echo "FALSE. Did not find the content."; fi
-
-                echo -e "\n*****************************"
-                echo "DONE checking for content"
-                echo -e "*****************************\n"
+                debug_echo 1 "FALSE. Did not find the content."
+                debug_echo 1 ""
+                debug_echo 1 "*****************************"
+                debug_echo 1 "DONE checking for content"
+                debug_echo 1 "*****************************"
+                debug_echo 1 ""
                 return -1
             fi ;;
     esac
 
     # If multiple lines
     REPLACED_CONTENT=${FILECONTENT/"$CONTENT_TO_CHECK"/}
-
-    if $DEBUG
-    then
-        # echo "Grep Start"
-        # echo "$2" | grep 'if \[ "\$color_prompt" = yes \];'
-        # RETURN=$?
-        # echo "Grep End"
-        # echo "RETURN $RETURN"
-        if [[ "$RETURN" == 0 ]]
-        then
-            vimdiff <(echo "$FILECONTENT") <(echo "$REPLACED_CONTENT")
-            echo -e "\n\nSTART DIFF:"
-            diff <(echo "$FILECONTENT") <(echo "$REPLACED_CONTENT")
-            echo -e "END DIFF\n\n"
-        fi
-    fi
     
     if [[ "$FILECONTENT" != "$REPLACED_CONTENT" ]]
     then # Content to find where found and replaced
@@ -225,19 +237,24 @@ exists_in_file()
         # For eval and print within this function
         START=$3_START
         END=$3_END
-        echo "START: ${!START}, END: ${!END}"
         declare -g $3_EXISTS=true
-        echo -e "\n*****************************"
-        echo "DONE checking for content"
-        echo -e "*****************************\n"
+
+        debug_echo 1 "START: ${!START}, END: ${!END}"
+        debug_echo 1 ""
+        debug_echo 1 "*****************************"
+        debug_echo 1 "DONE checking for content"
+        debug_echo 1 "*****************************"
+        debug_echo 1 ""
         return 0
     else
-        echo "Did not find multiline content"
+        debug_echo 1 "FALSE. Did not find multiline content."
     fi
 
-    echo -e "\n*****************************"
-    echo "DONE checking for content"
-    echo -e "*****************************\n"
+    debug_echo 1 ""
+    debug_echo 1 "*****************************"
+    debug_echo 1 "DONE checking for content"
+    debug_echo 1 "*****************************"
+    debug_echo 1 ""
     return -1
 }
 
@@ -711,9 +728,11 @@ add_single_line_content()
 
     EVAL_VAR_NAME=$VAR_NAME # ${!EVAL_VAR_NAME}
     EVAL_VAR_NAME_EXISTS=${VAR_NAME}_EXISTS # ${!EVAL_VAR_NAME_EXISTS}
-    echo -e "\n********************************************************************************************"
-    echo "***** Time for input of $VAR_NAME ******************************************************"
-    echo "********************************************************************************************"
+
+    debug_echo 1 ""
+    debug_echo 1 "********************************************************************************************"
+    debug_echo 1 "***** Time for input of $VAR_NAME ******************************************************"
+    debug_echo 1 "********************************************************************************************"
 
     declare -g ${VAR_NAME}_EXISTS=true
 
@@ -862,162 +881,11 @@ add_single_line_content()
 
     done <<< "${!EVAL_VAR_NAME}"
 
-    echo -e "\n*****************************************************************************************"
-    echo "***** END of INPUT $VAR_NAME ********************************************************"
-    echo "*****************************************************************************************"
+    debug_echo 1 ""
+    debug_echo 1 "*****************************************************************************************"
+    debug_echo 1 "***** END of INPUT $VAR_NAME ********************************************************"
+    debug_echo 1 "*****************************************************************************************"
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# add_single_line_content()
-# {
-#     if (( $# < 5 ))
-#     then
-#         echo "Function 'add_single_line_content' need at least 5 inputs, you gave $#."
-#         return -1
-#     fi
-
-#     FILE_PATH="$1"
-#     FILE_NAME="$2"
-#     VAR_NAME="$3"
-#     REF_TYPE="$4"
-#     REF_PLACEMENT="$5"
-
-#     # https://stackoverflow.com/questions/10953833/passing-multiple-distinct-arrays-to-a-shell-function
-    
-
-
-#     if ! ( [[ $REF_TYPE == $REF_LINE ]] || [[ $REF_TYPE == $REF_INBETWEEN ]] )
-#     then
-#         echo "Input 4, reference type, have an invalid input."
-#         return -1
-#     fi
-
-#     if ! ( [[ "$REF_PLACEMENT" == "$REF_START" ]] || [[ $REF_PLACEMENT == "$REF_END" ]] )
-#     then
-#         echo "Input 5, reference placement, have an invalid input."
-#         return -1
-#     fi
-
-    
-#     declare num_args;
-#     declare array_num=1
-#     declare -a allowed_intervals
-#     declare -a preferred_interval
-
-#     # Shift previous arguments
-#     for i in {1..5}
-#     do
-#         shift
-#     done
-
-#     while (( $# )) ; do
-#         curr_args=( )
-#         num_args=$1; shift
-#         while (( num_args-- > 0 )) ; do
-#             if (( $array_num == 1 ))
-#             then
-#                 allowed_intervals+=( "$1" ); shift
-#             elif (( $array_num == 2 ))
-#             then
-#                 preferred_interval+=( "$1" ); shift
-#             fi
-#         done
-#         ((array_num++))
-#     done
-
-#     echo ""
-#     echo "allowed_intervals=[ ${allowed_intervals[0]} ${allowed_intervals[1]} ${allowed_intervals[2]} ]"
-#     echo "preferred_interval=[ ${preferred_interval[0]} ${preferred_interval[1]} ${preferred_interval[2]} ]"
-
-
-#     EVAL_VAR_NAME=$VAR_NAME # ${!EVAL_VAR_NAME}
-#     EVAL_VAR_NAME_EXISTS=${VAR_NAME}_EXISTS # ${!EVAL_VAR_NAME_EXISTS}
-#     echo -e "\n********************************************************************************************"
-#     echo "***** Time for input of $VAR_NAME ******************************************************"
-#     echo "********************************************************************************************"
-#     exists_in_file "$FILE_PATH/$FILE_NAME" "${!EVAL_VAR_NAME}" $VAR_NAME
-
-#     if ! ${!EVAL_VAR_NAME_EXISTS}
-#     then
-#         declare -g ${VAR_NAME}_EXISTS=true
-
-#         # Iterate over every line of VAR_NAME as they are independent
-#         # These are assument to be above if statement
-#         while IFS= read -r line
-#         do
-#             exists_in_file "$FILE_PATH/$FILE_NAME" "$line" LINE
-#             if $LINE_EXISTS
-#             then
-#                 if (( $LINE_START < $IF_STATEMENT_START ))
-#                 then # Line is before if statement
-#                     echo -e "Line exists and is before if statement.\n"
-#                 elif (( $FI_LINE_NUMBER < $LINE_START ))
-#                 then # Line is after whole if statement (fi)
-#                     # Remove content of that line
-#                     echo "Line exists, but is after if statement."
-#                     echo -e "Remove content of line $LINE_START\n"
-#                     sed -i "${LINE_START},${LINE_END}d" "$FILE_PATH/$FILE_NAME" # Remove the line
-                    
-#                     # If ending with backslash, add another one to behave as wanted with sed
-#                     line=$(echo "$line" | sed -E 's/[\\]$/\\\\/gm')
-#                     # Place content before if statement
-#                     sed -i "${IF_STATEMENT_START}i $line" "$FILE_PATH/$FILE_NAME"
-
-#                     # Increment if statement variables as they got shifted down
-#                     adjust_else_elif_fi_linenumbers "$line"
-
-#                     declare -g ${VAR_NAME}_EXISTS=false
-#                 else
-#                     echo "Content found in if statement even though it shouldn't be there."
-#                     echo -e "LINE FOUND:\n$line\n AT LINE: $LINE_START"
-#                     return -1
-#                 fi
-#             else # Content doesn't exist
-#                 # If ending with backslash, add another one to behave as wanted with sed
-#                 line=$(echo "$line" | sed -E 's/[\\]$/\\\\/gm')
-#                 # line=$(echo "$line" | sed 's/[][\\*.%$]/\\&/g') # Alternative way of above
-#                 # Place content before if statement
-#                 echo "Insert the following line into line number $IF_STATEMENT_START"
-#                 sed -i "${IF_STATEMENT_START}i ${line}" "$FILE_PATH/$FILE_NAME"
-
-#                 # Increment if statement variables as they got shifted
-#                 adjust_else_elif_fi_linenumbers "$line"
-
-#                 declare -g ${VAR_NAME}_EXISTS=false
-#             fi
-#         done <<< "${!EVAL_VAR_NAME}"
-#     fi
-# }
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1204,9 +1072,12 @@ add_multiline_content()
     EVAL_VAR_NAME_EXISTS=${VAR_NAME}_EXISTS # ${!EVAL_VAR_NAME_EXISTS}
     EVAL_VAR_NAME_START=${VAR_NAME}_START # ${!EVAL_VAR_NAME_START}
     EVAL_VAR_NAME_END=${VAR_NAME}_END # ${!EVAL_VAR_NAME_END}
-    echo -e "\n*****************************************************************************************"
-    echo "***** Time for INPUT $VAR_NAME ******************************************************"
-    echo "*****************************************************************************************"
+
+    debug_echo 1 ""
+    debug_echo 1 "*****************************************************************************************"
+    debug_echo 1 "***** Time for INPUT $VAR_NAME ******************************************************"
+    debug_echo 1 "*****************************************************************************************"
+
     exists_in_file "$FILE_PATH/$FILE_NAME" "${!EVAL_VAR_NAME}" $VAR_NAME
 
     EVALUATED_VAR_NAME_START=${!EVAL_VAR_NAME_START}
@@ -1400,10 +1271,11 @@ add_multiline_content()
 
                 declare -g "${VAR_NAME}_EXISTS=false" # EXISTS since before = not true
             fi
-            echo ""
-            echo -e "\n*****************************************************************************************"
-            echo "***** END of INPUT $VAR_NAME ********************************************************"
-            echo "*****************************************************************************************"
+            debug_echo 1 ""
+            debug_echo 1 ""
+            debug_echo 1 "*****************************************************************************************"
+            debug_echo 1  "***** END of INPUT $VAR_NAME ********************************************************"
+            debug_echo 1  "*****************************************************************************************"
             
         fi
 
@@ -1807,9 +1679,6 @@ EOF
         #################################################################
         ############################ INPUT 5 ############################
         #################################################################
-        echo "*****************************************************************************"
-        echo "***** Time for INPUT 5 ******************************************************"
-        echo "*****************************************************************************"
         
         define BASHRC_INPUT5 <<'EOF'
 PROMPT_COMMAND=$(sed -r 's|^(.+)(\\\$\s*)$|__git_ps1 "\1" "\2"|' <<< $PS1)
