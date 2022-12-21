@@ -44,7 +44,7 @@ URL_GITCOMPLETIONBASH="https://raw.githubusercontent.com/git/git/master/contrib/
 PATH_GITCOMPLETIONBASH=~
 NAME_GITCOMPLETIONBASH=.git-completion.bash
 
-DEBUG_LEVEL=0
+DEBUG_LEVEL=1
 #######################
 ### END OF SETTINGS ###
 #######################
@@ -67,9 +67,11 @@ main()
             SETUP_INDIVIDUAL=SETUP_${arr_setups[$ind_arr_setups]^^}
             if $SETUP_EVERYTHING || ${!SETUP_INDIVIDUAL}
             then
-                debug_echo 0 "****************************************"
-                debug_echo 0 "Start setup of \"${arr_setups[(($ind_arr_setups + 1))]}\""
-                debug_echo 0 -e "****************************************\n"
+
+                debug_echo 1 -e "\n\n\n\n"
+                debug_echo 1 -e "${ORANGE_COLOR}\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\${END_COLOR}"
+                debug_echo 1 -e "${ORANGE_COLOR}\\\\\\ Start setup of \"${arr_setups[(($ind_arr_setups + 1))]}\"${END_COLOR}"
+                debug_echo 1 -e "${ORANGE_COLOR}\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\${END_COLOR}"
                 # Function call
                 setup_${arr_setups[$ind_arr_setups]}
 
@@ -82,9 +84,9 @@ main()
                         END_RESULTS+="[❌] ";
                         TOTAL_RESULTS=false;;
                 esac
-                debug_echo 0 "****************************************"
-                debug_echo 0 "End setup of \"${arr_setups[(($ind_arr_setups + 1))]}\""
-                debug_echo 0 -e "****************************************\n"
+                debug_echo 1 -e "${ORANGE_COLOR}//////////////////////////////////////////////////////////////////////////////////////////////////${END_COLOR}"
+                debug_echo 1 -e "${ORANGE_COLOR}/// End setup of \"${arr_setups[(($ind_arr_setups + 1))]}\"${END_COLOR}"
+                debug_echo 1 -e "${ORANGE_COLOR}//////////////////////////////////////////////////////////////////////////////////////////////////${END_COLOR}"
             else
                 # Setup not to be done
                 END_RESULTS+="[🟠] "
@@ -95,7 +97,7 @@ main()
     done
 
     # Print end results
-    echo -e "Results:\n"
+    echo -e "\n\n${DEFAULT_UNDERLINE_COLOR}Results:${END_COLOR}"
     echo -e " 🟠 = Not to be done"
     echo -e " ✔️ = Success"
     echo -e " ❌ = Failure"
@@ -116,8 +118,12 @@ main()
 
 NL='
 '
+DEFAULT_BOLD_COLOR='\033[1;39m'
+DEFAULT_UNDERLINE_COLOR='\033[4;39m'
 RED_COLOR='\033[0;31m'
 GREEN_COLOR='\033[0;32m'
+ORANGE_COLOR='\033[0;33m'
+MAGENTA_COLOR='\033[0;35m'
 END_COLOR='\033[0m'
 
 _handleArgs(){
@@ -236,9 +242,10 @@ exists_in_file()
 
     declare -g $3_EXISTS=false
     
-    debug_echo 1 -e "\n*****************************"
-    debug_echo 1 "Start checking for content"
-    debug_echo 1 -e "*****************************\n"
+    
+    debug_echo 1 -e "\n----------------------------------"
+    debug_echo 1 "||| Start checking for content |||"
+    debug_echo 1 -e "----------------------------------\n"
 
     # Remove trailing whitespace
     FILECONTENT="$(echo "${FILECONTENT}" | sed -e 's/[[:space:]]*$//')"
@@ -252,8 +259,9 @@ exists_in_file()
             if $DEBUG
             then
                 debug_echo 1 -e "Content to check is MULTIPLE lines\n"
-                debug_echo 1 "CONTENT_TO_CHECK:"
-                debug_echo 1 -e "$CONTENT_TO_CHECK\n"
+                debug_echo 1 -e "${DEFAULT_UNDERLINE_COLOR}Content to check:${END_COLOR}"
+                debug_echo 1 "$CONTENT_TO_CHECK"
+                debug_echo 1 " "
             fi
             ;;
         *) # CONTENT_TO_CHECK is one line
@@ -263,12 +271,13 @@ exists_in_file()
                 CONTENT_TO_CHECK_WO_WHITESPACE=$(sed 's/^[ \t]*//;s/[ \t]*$//' <<< "$CONTENT_TO_CHECK")
                 # Remove leading (& trailing again without meaning)
                 # Grep using content without leading or trailing whitespace
-                GREP_OUTPUT=$(sed 's/^[ \t]*//;s/[ \t]*$//' <<< "$FILECONTENT" | grep -Fxn "$CONTENT_TO_CHECK_WO_WHITESPACE" --color=always)
+                SED_OUTPUT=$(sed 's/^[ \t]*//;s/[ \t]*$//' <<< "$FILECONTENT")
+                GREP_OUTPUT=$(grep -Fxn "$CONTENT_TO_CHECK_WO_WHITESPACE" --color=never <<< "$SED_OUTPUT")
 
-                debug_echo 1 -e "Content to check is ONE line\n"
-                debug_echo 1 "CONTENT_TO_CHECK:"
-                debug_echo 1 -e "$CONTENT_TO_CHECK\n"
-                debug_echo 1 "GREP output:"
+                debug_echo 1 -e "Content to check is ONE line.\n"
+                debug_echo 1 -e "${DEFAULT_UNDERLINE_COLOR}Content to check:${END_COLOR}"
+                debug_echo 1 "$CONTENT_TO_CHECK"
+                debug_echo 1 -e "\n${DEFAULT_UNDERLINE_COLOR}GREP output:${END_COLOR}"
                 debug_echo 1 -e "$GREP_OUTPUT\n"
             fi
 
@@ -289,19 +298,19 @@ exists_in_file()
                 debug_echo 1 -e "${GREEN_COLOR}######################${END_COLOR}"
                 debug_echo 1 -e "${GREEN_COLOR}### Found content! ###${END_COLOR}"
                 debug_echo 1 -e "${GREEN_COLOR}######################${END_COLOR}\n"
-                debug_echo 1 "Content STARTING at: ${!START}"
-                debug_echo 1 -e "Content ENDING at:   ${!END}\n"
-                debug_echo 1 "*****************************"
-                debug_echo 1 "End checking for content"
-                debug_echo 1 -e "*****************************\n"
+                debug_echo 1 "Content STARTING at line: ${!START}"
+                debug_echo 1 -e "Content ENDING at line:   ${!END}\n"
+                debug_echo 1 -e "--------------------------------"
+                debug_echo 1 "||| END checking for content |||"
+                debug_echo 1 -e "--------------------------------\n"
                 return 0
             else
                 debug_echo 1 -e "${RED_COLOR}#############################${END_COLOR}"
                 debug_echo 1 -e "${RED_COLOR}### Did NOT find content! ###${END_COLOR}"
                 debug_echo 1 -e "${RED_COLOR}#############################${END_COLOR}\n"
-                debug_echo 1 "*****************************"
-                debug_echo 1 "End checking for content"
-                debug_echo 1 -e "*****************************\n"
+                debug_echo 1 -e "--------------------------------"
+                debug_echo 1 "||| END checking for content |||"
+                debug_echo 1 -e "--------------------------------\n"
                 return -1
             fi ;;
     esac
@@ -325,20 +334,25 @@ exists_in_file()
         START=$3_START
         END=$3_END
         declare -g $3_EXISTS=true
-
-        debug_echo 1 -e "START: ${!START}, END: ${!END}\n"
-        debug_echo 1 "*****************************"
-        debug_echo 1 "DONE checking for content"
-        debug_echo 1 -e "*****************************\n"
+        debug_echo 1 -e "${GREEN_COLOR}######################${END_COLOR}"
+        debug_echo 1 -e "${GREEN_COLOR}### Found content! ###${END_COLOR}"
+        debug_echo 1 -e "${GREEN_COLOR}######################${END_COLOR}\n"
+        debug_echo 1 "Content STARTING at line: ${!START}"
+        debug_echo 1 -e "Content ENDING at line:   ${!END}\n"
+        debug_echo 1 -e "--------------------------------"
+        debug_echo 1 "||| END checking for content |||"
+        debug_echo 1 -e "--------------------------------\n"
         return 0
     else
-        debug_echo 1 "FALSE. Did not find multiline content."
+        debug_echo 1 -e "${RED_COLOR}#############################${END_COLOR}"
+        debug_echo 1 -e "${RED_COLOR}### Did NOT find content! ###${END_COLOR}"
+        debug_echo 1 -e "${RED_COLOR}#############################${END_COLOR}\n"
+        debug_echo 1 -e "--------------------------------"
+        debug_echo 1 "||| END checking for content |||"
+        debug_echo 1 -e "--------------------------------\n"
+        return -1
     fi
-
-    debug_echo 1 -e "\n*****************************"
-    debug_echo 1 "DONE checking for content"
-    debug_echo 1 -e "*****************************\n"
-    return -1
+    
 }
 
 # Makes sure file exists with the exact content given. If not, it creates or
@@ -851,9 +865,9 @@ add_single_line_content()
     EVAL_VAR_NAME=$VAR_NAME # ${!EVAL_VAR_NAME}
     EVAL_VAR_NAME_EXISTS=${VAR_NAME}_EXISTS # ${!EVAL_VAR_NAME_EXISTS}
 
-    debug_echo 1 -e "\n********************************************************************************************"
-    debug_echo 1 "***** Time for input of $VAR_NAME ******************************************************"
-    debug_echo 1 "********************************************************************************************"
+    debug_echo 1 -e "\n*********************************************************************"
+    debug_echo 1 "***** Start input of $VAR_NAME **********************************"
+    debug_echo 1 "*********************************************************************"
 
     declare -g ${VAR_NAME}_EXISTS=true
 
@@ -1010,9 +1024,9 @@ add_single_line_content()
 
     done <<< "${!EVAL_VAR_NAME}"
 
-    debug_echo 1 -e "\n*****************************************************************************************"
-    debug_echo 1 "***** END of INPUT $VAR_NAME ********************************************************"
-    debug_echo 1 "*****************************************************************************************"
+    debug_echo 1 -e "\n*********************************************************************"
+    debug_echo 1 "***** End input of $VAR_NAME ************************************"
+    debug_echo 1 "*********************************************************************"
 
     if $already_done; then
         return_value='already done'
@@ -1223,9 +1237,9 @@ add_multiline_content()
     EVAL_VAR_NAME_START=${VAR_NAME}_START # ${!EVAL_VAR_NAME_START}
     EVAL_VAR_NAME_END=${VAR_NAME}_END # ${!EVAL_VAR_NAME_END}
 
-    debug_echo 1 -e "\n*****************************************************************************************"
-    debug_echo 1 "***** Time for INPUT $VAR_NAME ******************************************************"
-    debug_echo 1 "*****************************************************************************************"
+    debug_echo 1 -e "\n*********************************************************************"
+    debug_echo 1 "***** Start input of $VAR_NAME **********************************"
+    debug_echo 1 "*********************************************************************"
 
     exists_in_file "$FILE_PATH/$FILE_NAME" "${!EVAL_VAR_NAME}" $VAR_NAME
 
@@ -1431,9 +1445,9 @@ add_multiline_content()
                 already_done=false
             fi
 
-            debug_echo 1 -e "\n\n*****************************************************************************************"
-            debug_echo 1  "***** END of INPUT $VAR_NAME ********************************************************"
-            debug_echo 1  "*****************************************************************************************"
+            debug_echo 1 -e "\n*********************************************************************"
+            debug_echo 1  "***** End input of $VAR_NAME ************************************"
+            debug_echo 1  "*********************************************************************"
             
         fi
 
