@@ -1799,7 +1799,7 @@ setup_gitcompletionbash()
         #################################################################
 
         # Variable expansion line
-        BASHRC_INPUT1_1="$PATH_GITCOMPLETIONBASH/$NAME_GITCOMPLETIONBASH"
+        BASHRC_INPUT1_1="source $PATH_GITCOMPLETIONBASH/$NAME_GITCOMPLETIONBASH"
         # Doesn't include any variable expansion
         define BASHRC_INPUT1_2 <<'EOF'
 export PROMPT_DIRTRIM=3
