@@ -2,19 +2,19 @@
 
 # Error handling to get line number of error
 # https://unix.stackexchange.com/questions/462156/how-do-i-find-the-line-number-in-bash-when-an-error-occured
-set -eE -o functrace
-failure() {
-  local lineno=$2
-  local fn=$3
-  local exitstatus=$4
-  local msg=$5
-  local lineno_fns=${1% 0}
-  if [[ "$lineno_fns" != "0" ]] ; then
-    lineno="${lineno} ${lineno_fns}"
-  fi
-  echo "${BASH_SOURCE[1]}:${fn}[${lineno}] Failed with status ${exitstatus}: $msg"
-}
-trap 'failure "${BASH_LINENO[*]}" "$LINENO" "${FUNCNAME[*]:-script}" "$?" "$BASH_COMMAND"' ERR
+# set -eE -o functrace
+# failure() {
+#   local lineno=$2
+#   local fn=$3
+#   local exitstatus=$4
+#   local msg=$5
+#   local lineno_fns=${1% 0}
+#   if [[ "$lineno_fns" != "0" ]] ; then
+#     lineno="${lineno} ${lineno_fns}"
+#   fi
+#   echo "${BASH_SOURCE[1]}:${fn}[${lineno}] Failed with status ${exitstatus}: $msg"
+# }
+# trap 'failure "${BASH_LINENO[*]}" "$LINENO" "${FUNCNAME[*]:-script}" "$?" "$BASH_COMMAND"' ERR
 
 PATH_SCRIPT="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
