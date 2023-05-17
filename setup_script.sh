@@ -1013,10 +1013,22 @@ add_single_line_content()
                 # Place content in allowed interval
                 case "$REF_PLACEMENT" in
                     "START")
-                        sed -i "$((tmp_intervals[preferred_index] + 1))i $line" "$FILE_PATH/$FILE_NAME"
+                        insert_line_number="$(( tmp_intervals[preferred_index] + 1))"
+                        line_to_get_whitespace=$(sed -n  "$((insert_line_number - 1))"p "$FILE_PATH/$FILE_NAME")
+                        whitespace_indentation="$(grep -Eo "^\s*" <<< "$line_to_get_whitespace")"
+                        debug_echo 100 "line num line_to_get_whitespace: '$((insert_line_number - 1))'"
+                        debug_echo 100 "line_to_get_whitespace: '$line_to_get_whitespace'"
+                        debug_echo 100 "whitespace_indentation: '$whitespace_indentation'"
+                        sed -i "${insert_line_number}i $whitespace_indentation\\\t$line" "$FILE_PATH/$FILE_NAME"
                         ;;
                     *)
-                        sed -i "$((tmp_intervals[preferred_index + 1]))i $line" "$FILE_PATH/$FILE_NAME"
+                        insert_line_number="$((tmp_intervals[preferred_index + 1]))"
+                        line_to_get_whitespace=$(sed -n  "$insert_line_number"p "$FILE_PATH/$FILE_NAME")
+                        whitespace_indentation="$(grep -Eo "^\s*" <<< "$line_to_get_whitespace")"
+                        debug_echo 100 "insert_line_number: '$insert_line_number'"
+                        debug_echo 100 "line_to_get_whitespace: '$line_to_get_whitespace'"
+                        debug_echo 100 "whitespace_indentation: '$whitespace_indentation'"
+                        sed -i "${insert_line_number}i $whitespace_indentation\\\t$line" "$FILE_PATH/$FILE_NAME"
                         ;;
                 esac
                 debug_echo 100 "Placed in preferred interval."
