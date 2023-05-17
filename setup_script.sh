@@ -738,12 +738,14 @@ add_single_line_content()
         ;;
     esac
 
-
+    #
+    ## Following are still function inputs in form of arrays
+    #
     if [[ $REF_TYPE == "INBETWEEN" ]]
     then
         declare -i array_num=1 # Extra array for '_intervals'
     else
-        declare -i array_num=2
+        declare -i array_num=2 # Start number 2 to skip first array
     fi
 
     declare -i num_args
