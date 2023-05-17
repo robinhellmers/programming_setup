@@ -889,6 +889,9 @@ add_single_line_content()
             then
                 ADD_TO_PREFERRED_INTERVAL=true
                 already_done=false
+
+                file_num_lines=$(wc -l "$FILE_PATH/$FILE_NAME" | cut -f1 -d' ')
+                tmp_intervals=(0 ${_intervals[@]} "$file_num_lines")
             else
 
                 # Mark in which intervals the content exists
@@ -946,7 +949,8 @@ add_single_line_content()
                 do
                     # Add start and end of intervals. _intervals could have been updated
                     # since last calculation
-                    tmp_intervals=(0 ${_intervals[@]} $(wc -l "$FILE_PATH/$FILE_NAME" | cut -f1 -d' '))
+                    file_num_lines=$(wc -l "$FILE_PATH/$FILE_NAME" | cut -f1 -d' ')
+                    tmp_intervals=(0 ${_intervals[@]} "$file_num_lines")
                     debug_echo 100 "-------------------------"
                     debug_echo 100 "Checking interval $j"
                     debug_echo 100 -e "-------------------------\n"
