@@ -1815,8 +1815,8 @@ ${BASHRC_INPUT1_2}"
 
         IF_STATEMENT='if [ "$color_prompt" = yes ]; then'
         declare -a intervals=("${if_statement_LNs[@]}")
-        declare -a allowed_intervals=(true false false true)
-        declare -a preferred_interval=(true false false false)
+        declare -a allowed_intervals=(true true false true)
+        declare -a preferred_interval=(false true false false)
 
         add_single_line_content "$PATH_BASHRC" "$NAME_BASHRC" BASHRC_INPUT1 "INBETWEEN" "END" "${#intervals[@]}" "${intervals[@]}" "${#allowed_intervals[@]}" "${allowed_intervals[@]}" "${#preferred_interval[@]}" "${preferred_interval[@]}"
 
