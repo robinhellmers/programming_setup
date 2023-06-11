@@ -17,6 +17,7 @@
 # trap 'failure "${BASH_LINENO[*]}" "$LINENO" "${FUNCNAME[*]:-script}" "$?" "$BASH_COMMAND"' ERR
 
 PATH_SCRIPT="$(dirname "$(readlink -f "$0")")"
+LIB_PATH="$PATH_SCRIPT/lib"
 ################
 ### SETTINGS ###
 ################
@@ -125,11 +126,11 @@ ORANGE_COLOR='\033[0;33m'
 MAGENTA_COLOR='\033[0;35m'
 END_COLOR='\033[0m'
 
-source "$PATH_SCRIPT/base.bash"
-source "$PATH_SCRIPT/array.bash"
-source "$PATH_SCRIPT/file.bash"
-source "$PATH_SCRIPT/if_statement.bash"
-source "$PATH_SCRIPT/insert.bash"
+source "$LIB_PATH/base.bash"
+source "$LIB_PATH/array.bash"
+source "$LIB_PATH/file.bash"
+source "$LIB_PATH/if_statement.bash"
+source "$LIB_PATH/insert.bash"
 
 
 #############################
