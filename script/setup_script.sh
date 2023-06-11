@@ -16,8 +16,7 @@
 # }
 # trap 'failure "${BASH_LINENO[*]}" "$LINENO" "${FUNCNAME[*]:-script}" "$?" "$BASH_COMMAND"' ERR
 
-PATH_SCRIPT="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
-
+PATH_SCRIPT="$(dirname "$(readlink -f "$0")")"
 ################
 ### SETTINGS ###
 ################
