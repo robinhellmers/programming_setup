@@ -128,14 +128,17 @@ ORANGE_COLOR='\033[0;33m'
 MAGENTA_COLOR='\033[0;35m'
 END_COLOR='\033[0m'
 
-source "$LIB_PATH/base.bash"
-source "$LIB_PATH/array.bash"
-source "$LIB_PATH/file.bash"
-source "$LIB_PATH/if_statement.bash"
-source "$LIB_PATH/insert.bash"
+# Source all files under $LIB_PATH
+for lib_file in $LIB_PATH/*.bash
+do
+    source "$lib_file"
+done
 
-source "$SETUP_SCRIPTS_PATH/setup_vimdiff.bash"
-source "$SETUP_SCRIPTS_PATH/setup_gitdifftool.bash"
+# Source all files under $SETUP_SCRIPTS_PATH
+for setup_file in $SETUP_SCRIPTS_PATH/*.bash
+do
+    source "$setup_file"
+done
 
 #############################
 ### YESNO QUESTION HELPER ###
