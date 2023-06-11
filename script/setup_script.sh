@@ -16,8 +16,10 @@
 # }
 # trap 'failure "${BASH_LINENO[*]}" "$LINENO" "${FUNCNAME[*]:-script}" "$?" "$BASH_COMMAND"' ERR
 
-PATH_SCRIPT="$(dirname "$(readlink -f "$0")")"
-LIB_PATH="$PATH_SCRIPT/lib"
+SCRIPT_PATH="$(dirname "$(readlink -f "$0")")"
+LIB_PATH="$SCRIPT_PATH/lib"
+SETUP_SCRIPTS_PATH="$SCRIPT_PATH/setup_scripts"
+
 ################
 ### SETTINGS ###
 ################
@@ -52,7 +54,7 @@ DEBUG_LEVEL=1
 main()
 {
     debug_echo 0 -e "\nLocation of script:"
-    debug_echo 0 -e "$PATH_SCRIPT\n"
+    debug_echo 0 -e "$SCRIPT_PATH\n"
 
     initial_questions
 
@@ -132,6 +134,7 @@ source "$LIB_PATH/file.bash"
 source "$LIB_PATH/if_statement.bash"
 source "$LIB_PATH/insert.bash"
 
+source "$SETUP_SCRIPTS_PATH/setup_vimdiff.bash"
 
 #############################
 ### YESNO QUESTION HELPER ###
@@ -223,72 +226,6 @@ initial_questions()
 ### END OF INITIAL QUESTIONS ###
 ################################
 
-####################
-### VIM COLORING ###
-####################
-setup_vimdiff() {
-    
-    create_colorscheme
-    local return_value_create_colorscheme="$return_value"
-
-    create_vimrc
-    local return_value_create_vim_rc="$return_value"
-
-    if [[ "$return_value_create_colorscheme" == 'already done' ]] && \
-       [[ "$return_value_create_vim_rc" == 'already done' ]]
-    then
-        return_value='already done'
-        return 0
-    else
-        return_value='success'
-        return 0
-    fi
-    
-}
-###########################
-### END OF VIM COLORING ###
-###########################
-
-##########################
-### CREATING COLORSCHEME ###
-##########################
-create_colorscheme()
-{
-    define VIMCOLORSCHEME << 'EOF'
-highlight DiffAdd    cterm=bold ctermfg=15 ctermbg=22 gui=none guifg=bg guibg=Red
-highlight DiffDelete cterm=bold ctermfg=15 ctermbg=88 gui=none guifg=bg guibg=Red
-highlight DiffChange cterm=bold ctermfg=15 ctermbg=17 gui=none guifg=bg guibg=Red
-highlight DiffText   cterm=bold ctermfg=15 ctermbg=130 gui=none guifg=bg guibg=Red
-EOF
-
-    add_content_to_file "$PATH_VIMCOLORSCHEME" "$NAME_VIMCOLORSCHEME" "$VIMCOLORSCHEME"
-    
-}
-###################################
-### END OF CREATING COLORSCHEME ###
-###################################
-
-#####################
-### CREATNG VIMRC ###
-#####################
-create_vimrc()
-{
-    # Create vimrc with colorscheme, word wrapping and line numbering
-    define VIMRC_CONTENT << 'EOF'
-set number
-if &diff
-        colorscheme mycolorscheme
-        au VimEnter * | execute 'windo set wrap' |
-endif
-EOF
-
-    add_content_to_file "$PATH_VIMRC" ".vimrc" "$VIMRC_CONTENT"
-    
-}
-############################
-### END OF CREATNG VIMRC ###
-############################
-
 ############################
 ### GIT DIFFTOOL VIMDIFF ###
 ############################
@@ -333,7 +270,7 @@ setup_gitdifftool()
         return 0
     fi
     
-    cd $PATH_SCRIPT
+    cd $SCRIPT_PATH
 }
 ###############################
 ### END OF DIFFTOOL VIMDIFF ###
