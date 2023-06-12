@@ -31,7 +31,7 @@ SETUP_SCRIPTS_PATH="$SCRIPT_PATH/setup_scripts"
 declare -a arr_setups=(vimdiff "vimdiff"
                        gitdifftool "vimdiff as git difftool"
                        trashcli "trash-cli and alias rm"
-                       gitcompletionbash "git completion bash"
+                       bash_prompt "Bash prompt PS1 including git indication"
                        )
 
 PATH_VIMCOLORSCHEME=~/.vim/colors

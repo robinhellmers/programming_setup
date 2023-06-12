@@ -1,0 +1,11 @@
+git-prompt.sh:
+    source: https://github.com/git/git
+    commit: 667fcf4e15379790f0b609d6a83d578e69f20301
+    path: "contrib/completion"
+git-completion.bash:
+    source: https://github.com/git/git
+    commit: 667fcf4e15379790f0b609d6a83d578e69f20301
+    path: "contrib/completion"
+bash-prompt.sh:
+    source: git-prompt.sh
+    edited: true
