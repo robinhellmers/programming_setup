@@ -32,3 +32,4 @@
 	# Some shorts
 	co = checkout
 	st = status
+	highlight-commit = "!bash ${HOME}/.local/bin/highlight-commit.sh"
