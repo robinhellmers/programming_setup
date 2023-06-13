@@ -1,0 +1,55 @@
+[user]
+    name = <name>
+    email = <email>
+# Use specific .gitconfig if in repos within specific dir. E.g. other username/email in that repo
+# See https://stackoverflow.com/a/43884702/12374737
+#
+# [includeIf "gitdir:~/other/private_git-repos/"]
+# 	path = ~/other/private_git-repos/.gitconfig
+[alias]
+    # Some shorts
+    co = checkout
+    st = status
+    # Base command for log formatting
+    lg-base = "log --graph --decorate=short --decorate-refs-exclude='refs/tags/*'"
+    # Version 1 log format
+    lg1 = !"git lg-base --format=format:'%C(#f0890c)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(#d10000)%d%C(reset)'"
+    # Version 2 log format
+    lg2 = !"git lg-base --format=format:'%C(#f0890c)%h%C(reset) - %C(bold cyan)%aD%C(reset) %C(bold green)(%ar)%C(reset)%C(#d10000)%d%C(reset)%n            %C(white)%s%C(reset) %C(dim white)- %an%C(reset)'"
+    # Short
+    lg = !"git lg1"
+    # Short
+    lg = !"git lg1"
+    # All
+    lga = !"git lg1 --all"
+    # Log format showing commits done last 24 hours
+    tlog = !"git lg1 --date=relative --since='24 hours ago' --stat"
+    # Log format showing commits done last 48 hours
+    ttlog = !"git lg1 --date=relative --since='48 hours ago' --stat"
+    # Update submodules to current main repo commit
+    subupd = submodule update --init --recursive 
+    # <commit> Show SHA-1 of branch/HEAD/...
+    showid = rev-list -n 1 
+    # <commit> Show commit
+    shw = "show --decorate-refs-exclude='refs/tags/*'" 
+    # <branch1> <branch2> See commit tree between two branches
+    common-branch = "!git lg \"$1\" \"$2\" `git merge-base \"$1\" \"$2\"`^! #"
+    # <string grep> Highlight commit in 'git lg'
+    highlight-commit = "!bash ${HOME}/.local/bin/highlight-commit.sh"
+    # <commit> Show commit changes using git difftool
+    showtool = "!showci () { rev=$(git rev-parse \"${*:-HEAD}\"); git difftool $rev~1 $rev; }; showci"
+    # <commit> Squash to commit
+    squash= "!cd -- \"${GIT_PREFIX:-.}\" && [ x$# != x1 ] && echo \"You must give a commit to squash to.\" || git reset --soft \"$1\" && git stash && git merge --squash HEAD@{2}"
+[init]
+    defaultBranch = main
+[diff]
+    tool = vimdiff
+[core]
+    # Parallellization for git status/diff
+    preloadindex = true
+[merge]
+    tool = p4merge
+# https://stackoverflow.com/a/56536372/12374737
+# [mergetool "p4merge"]
+# 	cmd = /mnt/c/Program\\ Files/Perforce/p4merge.exe -le unix \"$(wslpath -aw $BASE)\" \"$(wslpath -aw $LOCAL)\" \"$(wslpath -aw $REMOTE)\" \"$(wslpath -aw $MERGED)\"
+# 	trustexitcode = false
