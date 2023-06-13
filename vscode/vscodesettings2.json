@@ -1,0 +1,87 @@
+{
+    "workbench.colorTheme": "Default Dark+",
+    "editor.rulers": [72,80],
+    "terminal.integrated.defaultProfile.windows": "Ubuntu-18.04 (WSL)",
+    "security.workspace.trust.untrustedFiles": "open",
+    "editor.minimap.enabled": false,
+    "editor.wordWrap": "on",
+    "workbench.tree.indent": 16,
+    "workbench.tree.renderIndentGuides": "always",
+    "workbench.colorCustomizations": { "tree.indentGuidesStroke": "#6db384" },
+    "diffEditor.ignoreTrimWhitespace": false,
+    "editor.renderWhitespace": "all",
+    "explorer.confirmDragAndDrop": false,
+    "latex-workshop.view.pdf.viewer": "tab",
+    "latex-workshop.latex.autoBuild.run": "onSave",
+    "latex-workshop.latex.autoClean.run": "onBuilt",
+    "latex-workshop.latex.recipe.default": "first",
+    "latex-workshop.latex.recipes": [
+        {
+            "name": "latexmk",
+            "tools": [
+            "latexmk"
+            ]
+        },
+        {
+            "name": "pdflatex - biber - pdflatex x2",
+            "tools": [
+            "pdflatex",
+            "biber",
+            "pdflatex",
+            "pdflatex"
+            ]
+        }
+    ],
+    "latex-workshop.latex.tools": 
+    [
+        {
+            "name": "latexmk",
+            "command": "latexmk",
+            "args": [
+                "-synctex=1",
+                "-interaction=nonstopmode",
+                "-file-line-error",
+                "-pdf",
+                "-shell-escape",
+                "-outdir=%OUTDIR%",
+                "%DOC%"
+                ],
+                "env": {}
+        },
+        {
+            "name": "pdflatex",
+            "command": "pdflatex",
+            "args": [
+            "-synctex=1",
+            "-interaction=nonstopmode",
+            "-shell-escape",
+            "-file-line-error",
+            "%DOC%"
+            ],
+            "env": {}
+        },
+        {
+            "name": "bibtex",
+            "command": "bibtex",
+            "args": [
+            "%DOCFILE%"
+            ],
+            "env": {}
+        },
+        {
+            "name": "biber",
+            "command": "biber",
+            "args": [
+                "%DOCFILE%"
+            ]
+        }
+    ],
+    "workbench.editor.wrapTabs": true,
+    "latex-workshop.linting.run": "onType",
+    "latex-workshop.linting.delay": 2000,
+    "git.mergeEditor": true,
+    "[python]": {
+    
+        "editor.formatOnType": true
+    }
+}
