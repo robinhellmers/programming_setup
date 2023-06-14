@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+source lib/common.bash
+
 readonly FILES_DEST_PATH="$HOME/.local/bin/bash_prompt"
 
 readonly REPO_FILES_SOURCE_REL_PATH="$SETUP_SCRIPTS_PATH/setup_bash_prompt"
@@ -45,42 +47,6 @@ init()
 
     mkdir -p "$FILES_DEST_PATH"
     eval_cmd "Could not create directory:\n    $FILES_DEST_PATH"
-}
-
-eval_cmd()
-{
-    local returned_status=$?
-    local error_output="$1"
-
-    if (( returned_status != 0 ))
-    then
-        echo -e "$error_output"
-        echo -e "Exiting with code $returned_status.\n"
-        exit $returned_status
-    fi
-}
-
-backup()
-{
-    local file="$1"
-
-    [[ -f "$file" ]] || return
-
-    echo -e "\nCreating backup of:"
-    echo "    $file"
-    for (( i=1; i<=MAX_BACKUPS; i++ ))
-    do
-        local suffix=".backup-$i"
-        local backup="$file$suffix"
-        [[ -f "$backup" ]] && continue
-
-        cp "$file" "$backup"
-        eval_cmd "Could not backup file:\n    $file\nto:\n    $backup"
-
-        echo "Created backup file:"
-        echo "    $backup"
-        break
-    done
 }
 
 replace_bashrc()
