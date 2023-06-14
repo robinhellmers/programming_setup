@@ -12,33 +12,39 @@ setup_git_config()
         backup "$CONFIG_LOCATION/$REPO_GITCONFIG_NAME"
     fi
 
-    local extra_gitconfig_path=$(git config --global --get include.path)
+    set_gitconfig_key_value include.path "$GITCONFIG_DEST"
 
-    if [[ -z "$extra_gitconfig_path" ]]
-    then # Not set; set it
-        git config --global include.path "$GITCONFIG_DEST"
 
-        extra_gitconfig_path=$(git config --global --get include.path)
+}
 
-        if [[ "$extra_gitconfig_path" != "$GITCONFIG_DEST" ]]
-        then
-            return_value='could not set the git setting'
-            return 255
-        fi
+set_gitconfig_key_value()
+{
+    local key value current_value
 
-        return_value='success'
+    key="$1"
+    value="$2"
+
+    current_value="$(git config --global --get $key)"
+
+    if [[ "$current_value" == "$value" ]]
+    then
+        return_value='already done'
         return 0
-    else
-        # Already set
-        if [[ "$extra_gitconfig_path" != "$CONFIG_LOCATION/$REPO_GITCONFIG_NAME" ]]
-        then # Already set to the wished setting
-            
-        else
-
-        fi
     fi
 
+    # Set key value pair
+    git config --global "$key" "$value"
 
+    current_value="$(git config --global --get $key)"
+
+    if [[ "$current_value" != "$value" ]]
+    then # Could not set the setting
+        return_value='could not set the git setting'
+        return 255
+    fi
+
+    return_value='success'
+    return 0
 }
 
 backup()
