@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
 source lib/config.bash
-source lib/common.bash
+source lib/base.bash
+source lib/file.bash
 
 ####################
 ### VIM COLORING ###
