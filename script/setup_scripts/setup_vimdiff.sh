@@ -1,10 +1,15 @@
 #!/usr/bin/env bash
 
+source lib/config.bash
+source lib/common.bash
+
 ####################
 ### VIM COLORING ###
 ####################
-setup_vimdiff() {
-    
+main() {
+
+    init
+
     create_colorscheme
     local return_value_create_colorscheme="$return_value"
 
@@ -15,17 +20,24 @@ setup_vimdiff() {
        [[ "$return_value_create_vim_rc" == 'already done' ]]
     then
         return_value='already done'
-        return 0
-    else
-        return_value='success'
-        return 0
+        echo "$return_value"
+        exit 0
     fi
-    
-}
 
+    return_value='success'
+    echo "$return_value"
+    exit 0
+}
 ###########################
 ### ENF OF VIM COLORING ###
 ###########################
+
+init()
+{
+    PATH_VIMCOLORSCHEME=~/.vim/colors
+    NAME_VIMCOLORSCHEME=mycolorscheme.vim
+    PATH_VIMRC=~
+}
 
 ############################
 ### CREATING COLORSCHEME ###
@@ -66,3 +78,11 @@ EOF
 ############################
 ### END OF CREATNG VIMRC ###
 ############################
+
+#
+### Call Main
+#
+main "$@"
+#
+###
+#

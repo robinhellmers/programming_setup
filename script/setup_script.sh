@@ -34,10 +34,7 @@ declare -a arr_setups=(vimdiff "vimdiff"
                        bash_prompt "Bash prompt PS1 including git indication"
                        )
 
-PATH_VIMCOLORSCHEME=~/.vim/colors
-NAME_VIMCOLORSCHEME=mycolorscheme.vim
 
-PATH_VIMRC=~
 PATH_GITCONFIG=~
 PATH_BASHRC=~
 NAME_BASHRC=.bashrc
