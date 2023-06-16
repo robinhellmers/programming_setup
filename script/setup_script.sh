@@ -21,6 +21,18 @@ export MAIN_SCRIPT_PATH="$(dirname "$(readlink -f "$0")")"
 SETUP_SCRIPTS_PATH="$MAIN_SCRIPT_PATH/setup_scripts"
 LIB_PATH="$SETUP_SCRIPTS_PATH/lib"
 
+source "$LIB_PATH/base.bash"
+
+NL='
+'
+DEFAULT_BOLD_COLOR='\033[1;39m'
+DEFAULT_UNDERLINE_COLOR='\033[4;39m'
+RED_COLOR='\033[0;31m'
+GREEN_COLOR='\033[0;32m'
+ORANGE_COLOR='\033[0;33m'
+MAGENTA_COLOR='\033[0;35m'
+END_COLOR='\033[0m'
+
 ################
 ### SETTINGS ###
 ################
@@ -114,31 +126,6 @@ main()
     echo -e "****************************************\n"
 
 }
-
-NL='
-'
-DEFAULT_BOLD_COLOR='\033[1;39m'
-DEFAULT_UNDERLINE_COLOR='\033[4;39m'
-RED_COLOR='\033[0;31m'
-GREEN_COLOR='\033[0;32m'
-ORANGE_COLOR='\033[0;33m'
-MAGENTA_COLOR='\033[0;35m'
-END_COLOR='\033[0m'
-
-# # Source all files under $LIB_PATH
-# for lib_file in $LIB_PATH/*.bash
-# do
-#     echo "lib_file: $lib_file"
-#     exit
-#     source "$lib_file"
-# done
-source "$LIB_PATH/base.bash"
-
-# # Source all files under $SETUP_SCRIPTS_PATH
-# for setup_file in $SETUP_SCRIPTS_PATH/*.bash
-# do
-#     source "$setup_file"
-# done
 
 #############################
 ### YESNO QUESTION HELPER ###
