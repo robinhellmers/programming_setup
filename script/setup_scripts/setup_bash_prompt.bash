@@ -10,6 +10,11 @@ readonly REPO_GIT_COMPLETION_NAME="git-completion.bash"
 readonly REPO_BASH_PROMPT_NAME="bash-prompt.sh"
 readonly REPO_BASHRC_FILE_NAME="bashrc.bash"
 
+array_export_files=()
+array_export_files+=("$REPO_GIT_COMPLETION_NAME")
+array_export_files+=("$REPO_GIT_PROMPT_NAME")
+array_export_files+=("$REPO_BASH_PROMPT_NAME")
+
 readonly MAX_BACKUPS=1000
 
 setup_bash_prompt()
@@ -20,7 +25,9 @@ setup_bash_prompt()
 
     replace_bashrc
 
-    export_files
+    export_files "$REPO_FILES_SOURCE_REL_PATH" \
+                 "$FILES_DEST_PATH" \
+                 "${array_export_files[@]}"
 
     replace_files_sourcing_paths
 
@@ -40,11 +47,6 @@ init()
         exit 1
     fi
 
-    array_files=()
-    array_files+=("$REPO_GIT_COMPLETION_NAME")
-    array_files+=("$REPO_GIT_PROMPT_NAME")
-    array_files+=("$REPO_BASH_PROMPT_NAME")
-
     mkdir -p "$FILES_DEST_PATH"
     eval_cmd "Could not create directory:\n    $FILES_DEST_PATH"
 }
@@ -58,14 +60,19 @@ replace_bashrc()
 
 export_files()
 {
-    echo "Copying files to '$FILES_DEST_PATH/'..."
+    local source_path="$1"
+    local dest_path="$2"
+    shift 2
+    local array_files=("$@")
+
+    echo "Copying files from '$source_path/' to '$dest_path/'..."
     for file in "${array_files[@]}"
     do
-        [[ -f "$REPO_FILES_SOURCE_REL_PATH/$file" ]]
-        eval_cmd "Necessary file does not exist:\n    $REPO_FILES_SOURCE_REL_PATH/$file"
+        [[ -f "$source_path/$file" ]]
+        eval_cmd "Necessary file does not exist:\n    $source_path/$file"
 
-        cp "$REPO_FILES_SOURCE_REL_PATH/$file" "$FILES_DEST_PATH/$file"
-        eval_cmd "Could not copy file:\n    $file\nto $FILES_DEST_PATH/$file"
+        cp "$source_path/$file" "$dest_path/$file"
+        eval_cmd "Could not copy file:\n    $source_path/$file\nto\n    $dest_path/$file"
 
         echo "Copied '$file'"
     done
