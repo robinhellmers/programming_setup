@@ -37,7 +37,7 @@ main()
 init()
 {
 
-    readonly FILES_DEST_PATH="$HOME/.local/bin/bash_prompt"
+    readonly FILES_DEST_PATH="$LOCAL_BIN_PATH/bash_prompt"
 
     readonly REPO_FILES_SOURCE_REL_PATH="$SETUP_SCRIPTS_PATH/setup_bash_prompt"
     readonly REPO_GIT_PROMPT_NAME="git-prompt.sh"

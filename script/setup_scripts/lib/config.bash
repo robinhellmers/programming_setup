@@ -7,3 +7,4 @@ MAIN_SCRIPT_PATH="${MAIN_SCRIPT_PATH:-"$( readlink -f "$(dirname "$(readlink -f 
 PATH_BASHRC=~
 NAME_BASHRC=.bashrc
 
+LOCAL_BIN_PATH="$HOME/.local/bin"
