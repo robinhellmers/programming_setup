@@ -1,4 +1,9 @@
 
+SETUP_SCRIPTS_PATH="$(dirname "$(readlink -f "$0")")" # This script's path
+LIB_PATH="$SETUP_SCRIPTS_PATH/lib"
+
+source "$LIB_PATH/config.bash"
+
 ############################
 ### GIT DIFFTOOL VIMDIFF ###
 ############################
@@ -52,7 +57,7 @@ main()
         exit 0
     fi
     
-    cd $SCRIPT_PATH
+    cd $MAIN_SCRIPT_PATH
 }
 ###############################
 ### END OF DIFFTOOL VIMDIFF ###

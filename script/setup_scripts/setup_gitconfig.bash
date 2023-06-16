@@ -1,5 +1,8 @@
 
-source lib/common.bash
+SETUP_SCRIPTS_PATH="$(dirname "$(readlink -f "$0")")" # This script's path
+LIB_PATH="$SETUP_SCRIPTS_PATH/lib"
+
+source "$LIB_PATH/common.bash"
 
 CONFIG_DEST_PATH="$HOME/.config"
 REPO_GITCONFIG_NAME="gitconfig"

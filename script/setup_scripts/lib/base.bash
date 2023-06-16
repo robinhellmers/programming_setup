@@ -75,3 +75,16 @@ debug_echo()
 # foo"bar"'''
 # EOF
 define(){ IFS=$'\n' read -r -d '' ${1} || true; }
+
+eval_cmd()
+{
+    local returned_status=$?
+    local error_output="$1"
+
+    if (( returned_status != 0 ))
+    then
+        echo -e "$error_output"
+        echo -e "Exiting with code $returned_status.\n"
+        exit $returned_status
+    fi
+}

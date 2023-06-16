@@ -1,4 +1,9 @@
 
+
+SETUP_SCRIPTS_PATH="$(dirname "$(readlink -f "$0")")" # This script's path
+LIB_PATH="$SETUP_SCRIPTS_PATH/lib"
+
+
 ############################
 ### GIT COMPLETION SETUP ###
 ############################

@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
 
-source lib/config.bash
-source lib/base.bash
-source lib/file.bash
+SETUP_SCRIPTS_PATH="$(dirname "$(readlink -f "$0")")" # This script's path
+LIB_PATH="$SETUP_SCRIPTS_PATH/lib"
+
+source "$LIB_PATH/config.bash"
+source "$LIB_PATH/base.bash"
+source "$LIB_PATH/file.bash"
 
 #################
 ### TRASH-CLI ###

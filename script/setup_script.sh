@@ -16,9 +16,10 @@
 # }
 # trap 'failure "${BASH_LINENO[*]}" "$LINENO" "${FUNCNAME[*]:-script}" "$?" "$BASH_COMMAND"' ERR
 
-SCRIPT_PATH="$(dirname "$(readlink -f "$0")")"
-LIB_PATH="$SCRIPT_PATH/lib"
-SETUP_SCRIPTS_PATH="$SCRIPT_PATH/setup_scripts"
+# 'export' to pass variables to script shell executed from this script
+export MAIN_SCRIPT_PATH="$(dirname "$(readlink -f "$0")")"
+LIB_PATH="$MAIN_SCRIPT_PATH/lib"
+SETUP_SCRIPTS_PATH="$MAIN_SCRIPT_PATH/setup_scripts"
 
 ################
 ### SETTINGS ###
@@ -48,7 +49,7 @@ DEBUG_LEVEL=1
 main()
 {
     debug_echo 0 -e "\nLocation of script:"
-    debug_echo 0 -e "$SCRIPT_PATH\n"
+    debug_echo 0 -e "$MAIN_SCRIPT_PATH\n"
 
     initial_questions
 
