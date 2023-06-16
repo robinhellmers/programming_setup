@@ -87,6 +87,11 @@ main()
                 unset return_value
                 source "$script_output"
 
+                debug_echo 0 "Sourced script output file:"
+                debug_echo 0 "----------------------------"
+                debug_echo 0 "$(cat $script_output)"
+                debug_echo 0 "----------------------------"
+
                 case $return_value in 
                     'success')   # Success
                         END_RESULTS+="[✔️] ";;
