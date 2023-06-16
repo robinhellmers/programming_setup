@@ -42,7 +42,7 @@ END_COLOR='\033[0m'
 #             naming "setup_<suffix>"
 # 2nd entry - Description of function.
 declare -a arr_setups=(setup_vimdiff.sh "vimdiff"
-                    #    gitdifftool "vimdiff as git difftool"
+                       setup_gitdifftool.sh "vimdiff as git difftool"
                        setup_trashcli.sh "trash-cli and alias rm"
                     #    bash_prompt "Bash prompt PS1 including git indication"
                        )
@@ -82,14 +82,15 @@ main()
                 debug_echo 1 -e "${ORANGE_COLOR}\\\\\\ Start setup of \"${arr_setups[(($ind_arr_setups + 1))]}\"${END_COLOR}"
                 debug_echo 1 -e "${ORANGE_COLOR}\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\${END_COLOR}"
                 # Script call
-                script_output="$(mktemp)"
-                "$SETUP_SCRIPTS_PATH/${arr_setups[$ind_arr_setups]}" -o "$script_output"
+                script_output_file="$(mktemp)"
+                "$SETUP_SCRIPTS_PATH/${arr_setups[$ind_arr_setups]}" -o "$script_output_file"
                 unset return_value
-                source "$script_output"
+                source "$script_output_file"
+                rm "$script_output_file"
 
                 debug_echo 0 "Sourced script output file:"
                 debug_echo 0 "----------------------------"
-                debug_echo 0 "$(cat $script_output)"
+                debug_echo 0 "$(cat $script_output_file)"
                 debug_echo 0 "----------------------------"
 
                 case $return_value in 
