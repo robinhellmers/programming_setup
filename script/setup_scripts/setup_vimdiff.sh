@@ -12,6 +12,8 @@ source "$LIB_PATH/file.bash"
 ####################
 main() {
 
+    handle_args "$@"
+
     init
 
     create_colorscheme
@@ -23,18 +25,27 @@ main() {
     if [[ "$return_value_create_colorscheme" == 'already done' ]] && \
        [[ "$return_value_create_vim_rc" == 'already done' ]]
     then
-        return_value='already done'
-        echo "$return_value"
-        exit 0
+        _exit 0 'already done'
     fi
 
-    return_value='success'
-    echo "$return_value"
-    exit 0
+    _exit 0 'success'
 }
 ###########################
 ### ENF OF VIM COLORING ###
 ###########################
+
+###################
+### HANDLE ARGS ###
+###################
+handle_args()
+{
+    _handle_args "$@"
+
+
+}
+##########################
+### END OF HANDLE ARGS ###
+##########################
 
 ############
 ### INIT ###

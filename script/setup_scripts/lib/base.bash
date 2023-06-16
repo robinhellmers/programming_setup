@@ -1,6 +1,10 @@
 
-_handleArgs(){
+_handle_args()
+{
     declare -ag debug_echo_optional_args=()
+    declare -ag output_text_append_optional_args=()
+    declare -ag exit_optional_args=()
+    script_return_file_arg=
     declare -ag non_optional_args=()
     count=0
     while [ "${1:-}" != "" ]; do
@@ -12,9 +16,14 @@ _handleArgs(){
             case "$1" in
             '-e')
                 debug_echo_optional_args+=('-e')
+                output_text_append_optional_args+=('-e')
                 ;;
             '-n')
                 debug_echo_optional_args+=('-n')
+                ;;
+            '-o')
+                shift
+                script_return_file_arg="$1"
                 ;;
             # "-j" | "--jump-target")
             #     # If number
@@ -35,9 +44,28 @@ _handleArgs(){
     # NON_OPTIONAL_ARGS=$(echo $NON_OPTIONAL_ARGS | sed 's/ *$//')
 }
 
+_output_text_append()
+{
+    _handle_args "$@"
+    local input="${non_optional_args[0]}"
+
+    [[ -z "$script_return_file_arg" ]] && script_return_file_arg=/dev/null
+    echo ${output_text_append_optional_args[@]} "$input" >> "$script_return_file_arg"
+}
+
+_exit()
+{
+    _handle_args "$@"
+    local exit_code="${non_optional_args[0]}"
+    local exit_output="${non_optional_args[1]}"
+
+    _output_text_append "return_value=$exit_output"
+    exit "$exit_code"
+}
+
 debug_echo()
 {
-    _handleArgs "$@"
+    _handle_args "$@"
 
     if (( ${#non_optional_args[@]} != 2 ))
     then

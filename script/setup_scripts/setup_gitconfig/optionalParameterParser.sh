@@ -1,6 +1,6 @@
 #!/bin/bash
 
-_handleArgs(){
+_handle_args(){
     OPTIONAL_GIT_LOG_ARGS=""
     NON_OPTIONAL_ARGS=""
     FIRST_NON_OPTIONAL_ARG=""
@@ -35,4 +35,4 @@ _handleArgs(){
     export FIRST_NON_OPTIONAL_ARG
     export JUMP_TARGET
 }
-export -f _handleArgs
+export -f _handle_args

@@ -3,7 +3,7 @@
 SCRIPTS_PATH="${HOME}/.local/bin"
 
 source $SCRIPTS_PATH/optionalParameterParser.sh
-_handleArgs $*
+_handle_args $*
 
 BRANCHES=""
 

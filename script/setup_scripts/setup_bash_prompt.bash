@@ -12,6 +12,8 @@ source "$LIB_PATH/base.bash"
 ############
 main()
 {
+    handle_args "$@"
+
     init
 
     backup "$HOME/$BASHRC_FILE_NAME"
@@ -30,6 +32,17 @@ main()
 ###################
 ### END OF MAIN ###
 ###################
+
+###################
+### HANDLE ARGS ###
+###################
+handle_args()
+{
+    _handle_args "$@"
+}
+##########################
+### END OF HANDLE ARGS ###
+##########################
 
 ############
 ### INIT ###
