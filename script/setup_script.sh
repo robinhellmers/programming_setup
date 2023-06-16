@@ -43,7 +43,7 @@ END_COLOR='\033[0m'
 # 2nd entry - Description of function.
 declare -a arr_setups=(setup_vimdiff.sh "vimdiff"
                     #    gitdifftool "vimdiff as git difftool"
-                    #    trashcli "trash-cli and alias rm"
+                       setup_trashcli.sh "trash-cli and alias rm"
                     #    bash_prompt "Bash prompt PS1 including git indication"
                        )
 
@@ -84,6 +84,7 @@ main()
                 # Script call
                 script_output="$(mktemp)"
                 "$SETUP_SCRIPTS_PATH/${arr_setups[$ind_arr_setups]}" -o "$script_output"
+                unset return_value
                 source "$script_output"
 
                 case $return_value in 
