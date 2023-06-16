@@ -64,3 +64,24 @@ backup()
         break
     done
 }
+
+export_files()
+{
+    local source_path="$1"
+    local dest_path="$2"
+    shift 2
+    local array_files=("$@")
+
+    echo "Copying files from '$source_path/' to '$dest_path/'..."
+    for file in "${array_files[@]}"
+    do
+        [[ -f "$source_path/$file" ]]
+        eval_cmd "Necessary file does not exist:\n    $source_path/$file"
+
+        cp "$source_path/$file" "$dest_path/$file"
+        eval_cmd "Could not copy file:\n    $source_path/$file\nto\n    $dest_path/$file"
+
+        echo "Copied '$file'"
+    done
+    echo ""
+}
