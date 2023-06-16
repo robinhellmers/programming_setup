@@ -33,12 +33,18 @@ main() {
 ### ENF OF VIM COLORING ###
 ###########################
 
+############
+### INIT ###
+############
 init()
 {
     PATH_VIMCOLORSCHEME=~/.vim/colors
     NAME_VIMCOLORSCHEME=mycolorscheme.vim
     PATH_VIMRC=~
 }
+###################
+### END OF INIT ###
+###################
 
 ############################
 ### CREATING COLORSCHEME ###
