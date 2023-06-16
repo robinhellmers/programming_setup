@@ -1,18 +1,30 @@
 
 source lib/common.bash
 
-CONFIG_LOCATION="$HOME/.config"
+CONFIG_DEST_PATH="$HOME/.config"
 REPO_GITCONFIG_NAME="gitconfig"
+REPO_GITCONFIG_SOURCE_REL_PATH="setup_gitconfig"
 
+REPO_GITCONFIG_NAME="gitconfig"
+REPO_HIGHLIGHT_AWK_NAME="highlight-commit.awk"
+REPO_HIGHLIGHT_SH_NAME="highlight-commit.sh"
+REPO_OPTIONAL_PARSER_NAME="optionalParameterParser.sh"
 
-GITCONFIG_DEST="$(realpath $CONFIG_LOCATION/$REPO_GITCONFIG_NAME)"
+array_export_gitconfig_files=()
+array_export_gitconfig_files+=("$REPO_HIGHLIGHT_AWK_NAME")
+array_export_gitconfig_files+=("$REPO_HIGHLIGHT_SH_NAME")
+array_export_gitconfig_files+=("$REPO_OPTIONAL_PARSER_NAME")
+
+GITCONFIG_DEST="$(realpath $CONFIG_DEST_PATH/$REPO_GITCONFIG_NAME)"
 
 setup_git_config()
 {
-    if [[ -f "$CONFIG_LOCATION/$REPO_GITCONFIG_NAME" ]]
-    then
-        backup "$CONFIG_LOCATION/$REPO_GITCONFIG_NAME"
-    fi
+    [[ -f "$CONFIG_DEST_PATH/$REPO_GITCONFIG_NAME" ]] && \
+        backup "$CONFIG_DEST_PATH/$REPO_GITCONFIG_NAME"
+
+    export_files "$REPO_GITCONFIG_SOURCE_REL_PATH" \
+                 "$CONFIG_DEST_PATH" \
+                 "${array_export_gitconfig_files[@]}"
 
     set_gitconfig_key_value include.path "$GITCONFIG_DEST"
 
