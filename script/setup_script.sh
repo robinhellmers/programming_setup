@@ -18,8 +18,8 @@
 
 # 'export' to pass variables to script shell executed from this script
 export MAIN_SCRIPT_PATH="$(dirname "$(readlink -f "$0")")"
-LIB_PATH="$MAIN_SCRIPT_PATH/lib"
 SETUP_SCRIPTS_PATH="$MAIN_SCRIPT_PATH/setup_scripts"
+LIB_PATH="$SETUP_SCRIPTS_PATH/lib"
 
 ################
 ### SETTINGS ###
@@ -29,10 +29,10 @@ SETUP_SCRIPTS_PATH="$MAIN_SCRIPT_PATH/setup_scripts"
 # 1st entry - Suffix of function. Function name should then follow the
 #             naming "setup_<suffix>"
 # 2nd entry - Description of function.
-declare -a arr_setups=(vimdiff "vimdiff"
-                       gitdifftool "vimdiff as git difftool"
-                       trashcli "trash-cli and alias rm"
-                       bash_prompt "Bash prompt PS1 including git indication"
+declare -a arr_setups=(setup_vimdiff.sh "vimdiff"
+                    #    gitdifftool "vimdiff as git difftool"
+                    #    trashcli "trash-cli and alias rm"
+                    #    bash_prompt "Bash prompt PS1 including git indication"
                        )
 
 
@@ -69,8 +69,10 @@ main()
                 debug_echo 1 -e "${ORANGE_COLOR}\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\${END_COLOR}"
                 debug_echo 1 -e "${ORANGE_COLOR}\\\\\\ Start setup of \"${arr_setups[(($ind_arr_setups + 1))]}\"${END_COLOR}"
                 debug_echo 1 -e "${ORANGE_COLOR}\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\${END_COLOR}"
-                # Function call
-                setup_${arr_setups[$ind_arr_setups]}
+                # Script call
+                script_output="$(mktemp)"
+                "$SETUP_SCRIPTS_PATH/${arr_setups[$ind_arr_setups]}" -o "$script_output"
+                source "$script_output"
 
                 case $return_value in 
                     'success')   # Success
@@ -123,17 +125,20 @@ ORANGE_COLOR='\033[0;33m'
 MAGENTA_COLOR='\033[0;35m'
 END_COLOR='\033[0m'
 
-# Source all files under $LIB_PATH
-for lib_file in $LIB_PATH/*.bash
-do
-    source "$lib_file"
-done
+# # Source all files under $LIB_PATH
+# for lib_file in $LIB_PATH/*.bash
+# do
+#     echo "lib_file: $lib_file"
+#     exit
+#     source "$lib_file"
+# done
+source "$LIB_PATH/base.bash"
 
-# Source all files under $SETUP_SCRIPTS_PATH
-for setup_file in $SETUP_SCRIPTS_PATH/*.bash
-do
-    source "$setup_file"
-done
+# # Source all files under $SETUP_SCRIPTS_PATH
+# for setup_file in $SETUP_SCRIPTS_PATH/*.bash
+# do
+#     source "$setup_file"
+# done
 
 #############################
 ### YESNO QUESTION HELPER ###

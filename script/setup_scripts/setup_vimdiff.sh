@@ -40,8 +40,7 @@ main() {
 handle_args()
 {
     _handle_args "$@"
-
-
+    script_return_file="$script_return_file_arg"
 }
 ##########################
 ### END OF HANDLE ARGS ###

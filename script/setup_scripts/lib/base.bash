@@ -48,9 +48,8 @@ _output_text_append()
 {
     _handle_args "$@"
     local input="${non_optional_args[0]}"
-
-    [[ -z "$script_return_file_arg" ]] && script_return_file_arg=/dev/null
-    echo ${output_text_append_optional_args[@]} "$input" >> "$script_return_file_arg"
+    [[ -z "$script_return_file" ]] && script_return_file=/dev/null
+    echo ${output_text_append_optional_args[@]} "$input" >> "$script_return_file"
 }
 
 _exit()
@@ -58,8 +57,7 @@ _exit()
     _handle_args "$@"
     local exit_code="${non_optional_args[0]}"
     local exit_output="${non_optional_args[1]}"
-
-    _output_text_append "return_value=$exit_output"
+    _output_text_append "return_value='$exit_output'"
     exit "$exit_code"
 }
 
