@@ -1,8 +1,13 @@
+#!/usr/bin/env bash
+
+source lib/config.bash
+source lib/base.bash
+source lib/file.bash
 
 #################
 ### TRASH-CLI ###
 #################
-setup_trashcli()
+main()
 {
 
     # See if package isn't installed
@@ -14,14 +19,24 @@ setup_trashcli()
             then
                 debug_echo 100 -e "Failed installing 'trash-cli' package.\n"
                 return_value='failed installing trash-cli package'
-                return 255
+                exit 255
             fi
     fi
 
     TRASHCLI_CONTENT="alias rm=trash"
 
-    add_content_to_file "$PATH_BASHRC" "$NAME_BASHRC" "$TRASHCLI_CONTENT" 
+    add_content_to_file "$PATH_BASHRC" "$NAME_BASHRC" "$TRASHCLI_CONTENT"; return_code=$?
+    echo "$return_value"
+    exit $return_code
 }
 ########################
 ### END OF TRASH-CLI ###
 ########################
+
+#
+### Call Main
+#
+main "$@"
+#
+###
+#

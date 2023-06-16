@@ -36,8 +36,6 @@ declare -a arr_setups=(vimdiff "vimdiff"
 
 
 PATH_GITCONFIG=~
-PATH_BASHRC=~
-NAME_BASHRC=.bashrc
 
 URL_GITCOMPLETIONBASH="https://raw.githubusercontent.com/git/git/master/contrib/completion/git-completion.bash"
 PATH_GITCOMPLETIONBASH=~
