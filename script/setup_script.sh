@@ -86,12 +86,13 @@ main()
                 "$SETUP_SCRIPTS_PATH/${arr_setups[$ind_arr_setups]}" -o "$script_output_file"
                 unset return_value
                 source "$script_output_file"
-                rm "$script_output_file"
 
                 debug_echo 0 "Sourced script output file:"
                 debug_echo 0 "----------------------------"
                 debug_echo 0 "$(cat $script_output_file)"
                 debug_echo 0 "----------------------------"
+
+                rm "$script_output_file"
 
                 case $return_value in 
                     'success')   # Success
