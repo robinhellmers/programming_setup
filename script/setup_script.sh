@@ -41,9 +41,9 @@ END_COLOR='\033[0m'
 # 1st entry - Suffix of function. Function name should then follow the
 #             naming "setup_<suffix>"
 # 2nd entry - Description of function.
-declare -a arr_setups=(setup_vimdiff.sh "vimdiff"
-                       setup_gitdifftool.sh "vimdiff as git difftool"
-                       setup_trashcli.sh "trash-cli and alias rm"
+declare -a arr_setups=(setup_vimdiff "vimdiff"
+                       setup_gitdifftool "vimdiff as git difftool"
+                       setup_trashcli "trash-cli and alias rm"
                     #    bash_prompt "Bash prompt PS1 including git indication"
                        )
 
@@ -83,7 +83,7 @@ main()
                 debug_echo 1 -e "${ORANGE_COLOR}$(for i in {1..100}; do printf '\\'; done; printf '\n';)${END_COLOR}"
                 # Script call
                 script_output_file="$(mktemp)"
-                "$SETUP_SCRIPTS_PATH/${arr_setups[$ind_arr_setups]}" -o "$script_output_file"
+                "$SETUP_SCRIPTS_PATH/${arr_setups[$ind_arr_setups]}.sh" -o "$script_output_file"
                 unset return_value
                 source "$script_output_file"
 
