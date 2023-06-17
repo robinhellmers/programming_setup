@@ -26,7 +26,7 @@ main()
 
     replace_files_sourcing_paths
 
-    return_value='success'
+    _exit 0 'success'
 }
 
 ###################
@@ -72,8 +72,7 @@ init()
         readonly BASHRC_FILE_NAME=".bashrc"
     else
         echo "Found unsupported system OS."
-        echo "Exiting."
-        exit 1
+        _exit 1 'Found unsupported system OS.'
     fi
 
     mkdir -p "$FILES_DEST_PATH"

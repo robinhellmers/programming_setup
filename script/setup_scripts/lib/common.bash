@@ -10,8 +10,7 @@ set_gitconfig_key_value()
 
     if [[ "$current_value" == "$value" ]]
     then
-        return_value='already done'
-        return 0
+        _exit 0 'already done'
     fi
 
     # Set key value pair
@@ -21,11 +20,9 @@ set_gitconfig_key_value()
 
     if [[ "$current_value" != "$value" ]]
     then # Could not set the setting
-        return_value='could not set the git setting'
-        return 255
+        _exit 255 'could not set the git setting'
     fi
 
-    return_value='success'
-    return 0
+    _exit 0 'success'
 }
 
