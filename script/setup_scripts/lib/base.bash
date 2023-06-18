@@ -67,10 +67,10 @@ debug_echo()
 
     if (( ${#non_optional_args[@]} != 2 ))
     then
-        echo "debug_echo: Incorrect number of input variables. Need to be 2, but ${#non_optional_args[@]} were given."
+        echo "debug_echo: Incorrect number of input variables. Need to be 2, but ${#non_optional_args[@]} were given as seen below:"
         for i in "${!non_optional_args[@]}"
         do
-            echo "non_optional_args[$i]: [${non_optional_args[$i]}]"
+            echo "debug_echo: non_optional_args[$i]: [${non_optional_args[$i]}]"
         done
         echo ""
         return 1

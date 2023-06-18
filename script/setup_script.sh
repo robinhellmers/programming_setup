@@ -44,6 +44,7 @@ END_COLOR='\033[0m'
 declare -a arr_setups=(setup_vimdiff "vimdiff"
                        setup_gitdifftool "vimdiff as git difftool"
                        setup_trashcli "trash-cli and alias rm"
+                       setup_gitconfig "git configuration"
                     #    bash_prompt "Bash prompt PS1 including git indication"
                        )
 

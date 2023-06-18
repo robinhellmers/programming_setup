@@ -10,7 +10,8 @@ set_gitconfig_key_value()
 
     if [[ "$current_value" == "$value" ]]
     then
-        _exit 0 'already done'
+        return_value_set_gitconfig_key_value='already done'
+        return 0
     fi
 
     # Set key value pair
