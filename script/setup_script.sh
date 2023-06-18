@@ -87,12 +87,14 @@ main()
                 unset return_value
                 source "$script_output_file"
 
+                script_output_file_content="$(cat $script_output_file)"
                 debug_echo 0 "Sourced script output file:"
                 debug_echo 0 "----------------------------"
-                debug_echo 0 "$(cat $script_output_file)"
+                [[ -n "$script_output_file_content" ]] && debug_echo 0 "$script_output_file_content"
                 debug_echo 0 "----------------------------"
 
                 rm "$script_output_file"
+                unset script_output_file_content
 
                 case $return_value in 
                     'success')   # Success
