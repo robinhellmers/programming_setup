@@ -1,3 +1,4 @@
+[[ -n $GUARD_IF_STATEMENT ]] && return || readonly GUARD_IF_STATEMENT=1
 
 # Look for else/elif/fi statement
 # 1 - File

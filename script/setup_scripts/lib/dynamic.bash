@@ -1,3 +1,4 @@
+[[ -n $GUARD_DYNAMIC ]] && return || readonly GUARD_DYNAMIC=1
 
 #Used for dynamic arrays to make it more readable
 append_array()

@@ -1,3 +1,4 @@
+[[ -n $GUARD_COMMON ]] && return || readonly GUARD_COMMON=1
 
 set_gitconfig_key_value()
 {

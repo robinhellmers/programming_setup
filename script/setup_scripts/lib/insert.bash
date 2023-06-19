@@ -1,3 +1,4 @@
+[[ -n $GUARD_INSERT ]] && return || readonly GUARD_INSERT=1
 
 adjust_interval_linenumbers()
 {

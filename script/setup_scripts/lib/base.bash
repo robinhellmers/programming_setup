@@ -1,3 +1,4 @@
+[[ -n $GUARD_BASE ]] && return || readonly GUARD_BASE=1
 
 _handle_args()
 {

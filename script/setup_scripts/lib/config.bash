@@ -1,3 +1,4 @@
+[[ -n $GUARD_CONFIG ]] && return || readonly GUARD_CONFIG=1
 # Variables etc.
 
 # Default value assumes main script is 1 dir level down relative the called

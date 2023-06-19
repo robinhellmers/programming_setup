@@ -1,3 +1,4 @@
+[[ -n $GUARD_FILE ]] && return || readonly GUARD_FILE=1
 
 backup()
 {
