@@ -38,6 +38,7 @@ handle_input_arrays_dynamically()
     local array_suffix=1
     while (( $# )) ; do
         local num_args=$1; shift
+        eval "$dynamic_array_prefix$array_suffix=()";
         while (( num_args-- > 0 )) 
         do
             eval "$dynamic_array_prefix$array_suffix+=(\"\$1\")"; shift
