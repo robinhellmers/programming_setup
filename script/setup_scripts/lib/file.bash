@@ -66,6 +66,36 @@ export_files()
     echo ""
 }
 
+equal_files()
+{
+    local source_path="$1"
+    local dest_path="$2"
+    shift 2
+    local array_files=("$@")
+
+    # Check if source files exists
+    for file in "${array_files[@]}"
+    do
+        [[ -f "$source_path/$file" ]]
+        eval_cmd "Necessary file does not exist:\n    $source_path/$file"
+    done
+
+    # Check if all existing dest files equal source files
+    local files_already_exists=true
+    for file in "${array_files[@]}"
+    do
+        if ! [[ -f "$dest_path/$file" ]] || \
+           ! cmp "$source_path/$file" "$dest_path/$file"
+        then
+            files_already_exists=false
+            break
+        fi
+    done
+
+    [[ "$files_already_exists" == "true" ]]
+    return
+}
+
 # Checks if variable content exists in file
 # Input: 2 arguments
 # 1 - Filename
