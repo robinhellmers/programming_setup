@@ -1,5 +1,7 @@
 [[ -n $GUARD_FILE ]] && return || readonly GUARD_FILE=1
 
+source "$LIB_PATH/dynamic.bash"
+
 backup()
 {
     local file="$1"
@@ -68,23 +70,50 @@ export_files()
 
 export_files_new()
 {
-    local source_path="$1"
-    shift 1
-    local array_files=("$@")
+    local source_file dest_dir dest_file
 
-    # Check if source files exists
-    for file in "${array_files[@]}"
-    do
-        [[ -f "$source_path/$file" ]]
-        eval_cmd "Necessary file does not exist:\n    $source_path/$file"
+    local dynamic_array_prefix="input_array"
+    handle_input_arrays_dynamically "$dynamic_array_prefix" "$@"
+
+    get_dynamic_array "${dynamic_array_prefix}1"
+    local arr_source_path=("${dynamic_array[@]}")
+
+    get_dynamic_array "${dynamic_array_prefix}2"
+    local arr_source_file_name=("${dynamic_array[@]}")
+
+    get_dynamic_array "${dynamic_array_prefix}3"
+    local arr_destination_path=("${dynamic_array[@]}")
+
+    get_dynamic_array "${dynamic_array_prefix}4"
+    local arr_destination_file_name=("${dynamic_array[@]}")
+
+    get_dynamic_array_len "${dynamic_array_prefix}1" > /dev/null
+    local len="$dynamic_array_len"
+
+    for (( i=0; i<len; i++ ))
+    do  
+        source_file="${arr_source_path[i]}/${arr_source_file_name[i]}"
+        [[ -f "$source_file" ]]
+        eval_cmd "Necessary file does not exist:\n    $source_file"
+
+        dest_dir="${arr_destination_path[i]}"
+        [[ -d "$dest_dir" ]]
+        eval_cmd "Destination directory does not exist:\n    $dest_dir"
+
+        dest_file_name="${arr_destination_file_name[i]}"
+        [[ -n "$dest_file_name" ]]
+        eval_cmd "Destination file name is empty for source file:\n    $source_file"
     done
 
     # Check if all existing dest files equal source files
     local files_already_exists=true
-    for file in "${array_files[@]}"
+    for (( i=0; i<len; i++ ))
     do
-        if ! [[ -f "$dest_path/$file" ]] || \
-           ! cmp "$source_path/$file" "$dest_path/$file"
+        source_file="${arr_source_path[i]}/${arr_source_file_name[i]}"
+        dest_file="${arr_destination_path[i]}/${arr_destination_file_name[i]}"
+
+        if ! [[ -f "$dest_file" ]] || \
+           ! cmp --silent "$source_file" "$dest_file"
         then
             files_already_exists=false
             break
@@ -93,22 +122,28 @@ export_files_new()
 
     if [[ "$files_already_exists" == "true" ]]
     then
-        return_value_export_files='already done'
+        echo "All files already copied."
+        return_value_export_files_new='already done'
         return 0
     fi
 
-    echo "Copying files from '$source_path/' to '$dest_path/'..."
-    for file in "${array_files[@]}"
+    echo "Copying files..."
+    for (( i=0; i<len; i++ ))
     do
-        cp "$source_path/$file" "$dest_path/$file"
-        eval_cmd "Could not copy file:\n    $source_path/$file\nto\n    $dest_path/$file"
+        source_file="${arr_source_path[i]}/${arr_source_file_name[i]}"
+        dest_file="${arr_destination_path[i]}/${arr_destination_file_name[i]}"
 
-        echo "Copied '$file'"
+        cp "$source_file" "$dest_file"
+        eval_cmd "Could not copy file:\n    $source_file\nto\n    $dest_file"
+
+        echo -e "\nCopied:\n    $source_file\nto\n    $dest_file"
     done
     echo ""
+
+    return 0
 }
 
-equal_files()
+files_equal()
 {
     local file_one="$1"
     local file_two="$2"
@@ -122,15 +157,49 @@ equal_files()
     if cmp --silent "$file_one" "$file_two"
     then
         echo -e "\nFiles are equal:"
-        return_value_equal_files='true'
+        return_value_files_equal='true'
     else
         echo -e "\nFiles are NOT equal:"
-        return_value_equal_files='false'
+        return_value_files_equal='false'
     fi
     echo "* $file_one"
     echo "* $file_two"
 
-    [[ "$return_value_equal_files" == 'true' ]]
+    [[ "$return_value_files_equal" == 'true' ]]
+    return
+}
+
+files_equal_multiple()
+{
+    local dynamic_array_prefix="input_array"
+    handle_input_arrays_dynamically "$dynamic_array_prefix" "$@"
+
+    get_dynamic_array "${dynamic_array_prefix}0"
+    local arr_source_path=("${dynamic_array[@]}")
+
+    get_dynamic_array "${dynamic_array_prefix}1"
+    local arr_source_file_name=("${dynamic_array[@]}")
+
+    get_dynamic_array "${dynamic_array_prefix}2"
+    local arr_destination_path=("${dynamic_array[@]}")
+
+    get_dynamic_array "${dynamic_array_prefix}3"
+    local arr_destination_file_name=("${dynamic_array[@]}")
+
+    get_dynamic_array_len "${dynamic_array_prefix}0" > /dev/null
+    local len="$dynamic_array_len"
+
+    all_comparisons_equal='true'
+    for (( i=0; i < len; i++ ))
+    do
+        if ! cmp --silent "${arr_source_path[i]}/${arr_source_file_name[i]}" \
+                          "${arr_destination_path[i]}/${arr_destination_file_name[i]}"]]
+        then
+            all_comparisons_equal='false'
+        fi
+    done
+
+    [[ "$all_comparisons_equal" == 'true' ]]
     return
 }
 

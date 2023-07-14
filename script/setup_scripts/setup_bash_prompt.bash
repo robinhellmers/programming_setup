@@ -24,12 +24,19 @@ main()
     local bashrc_destination_file="$tmp_workspace_dir/$BASHRC_FILE_NAME"
     local file id to_source reference_file destination_file
 
-    cp "$bashrc_source_file" "$bashrc_destination_file"
-    export_files "$REPO_FILES_SOURCE_REL_PATH" \
-                 "$tmp_workspace_dir" \
-                 "${array_export_files[@]}"
-    
-
+    # cp "$bashrc_source_file" "$bashrc_destination_file"
+    # export_files "$REPO_FILES_SOURCE_REL_PATH" \
+    #              "$tmp_workspace_dir" \
+    #              "${array_export_files[@]}"
+    export_files_new "${#array_export_files_source[@]}" \
+                     "${array_export_files_source[@]}" \
+                     "${#array_export_files_source_name[@]}" \
+                     "${array_export_files_source_name[@]}" \
+                     "${#array_equal_files_tmp_source[@]}" \
+                     "${array_equal_files_tmp_source[@]}" \
+                     "${#array_export_files_dest_name[@]}" \
+                     "${array_export_files_dest_name[@]}"
+    # return_value_export_files_new
 
     file="$tmp_workspace_dir/$REPO_BASH_PROMPT_NAME"
     id="git-prompt"
@@ -58,19 +65,34 @@ main()
     # cut away the destination dir from each 'array_export_files' element. Then
     # replace the destination path and use the filename cut out.
 
-    reference_file="$tmp_workspace_dir/$REPO_BASH_PROMPT_NAME"
-    destination_file="$FILES_DEST_PATH/$REPO_BASH_PROMPT_NAME"
-    equal_files "$reference_file" "$destination_file"
+    # reference_file="$tmp_workspace_dir/$REPO_BASH_PROMPT_NAME"
+    # destination_file="$FILES_DEST_PATH/$REPO_BASH_PROMPT_NAME"
+    # files_equal "$reference_file" "$destination_file"
 
-    reference_file="$tmp_workspace_dir/$BASHRC_FILE_NAME"
-    destination_file="$HOME/$BASHRC_FILE_NAME"
-    equal_files "$reference_file" "$destination_file"
+    # reference_file="$tmp_workspace_dir/$BASHRC_FILE_NAME"
+    # destination_file="$HOME/$BASHRC_FILE_NAME"
+    # files_equal "$reference_file" "$destination_file"
+
+
+    if files_equal_multiple "${#array_equal_files_tmp_source[@]}" \
+                            "${array_equal_files_tmp_source[@]}" \
+                            "${#array_export_files_source_name[@]}" \
+                            "${array_export_files_source_name[@]}" \
+                            "${#array_export_files_dest[@]}" \
+                            "${array_export_files_dest[@]}" \
+                            "${#array_export_files_dest_name[@]}" \
+                            "${array_export_files_dest_name[@]}"
+    then
+        echo -e "\nAll files are equal."
+    else
+        echo -e "\nAll files are NOT equal."
+    fi
 
     exit 1
 
     replace_bashrc
     replace_files_sourcing_paths
-    # if equal_files "$tmp_workspace_dir" \
+    # if files_equal "$tmp_workspace_dir" \
     #                "$tmp_workspace_dir" \
     #                "${array_export_files[@]}"
     # then
@@ -118,6 +140,17 @@ handle_args()
 ############
 init()
 {
+    readonly MAX_BACKUPS=1000
+
+    os_info="$(grep PRETTY_NAME /etc/os-release | awk -F= '{ print $2 }')"
+    if grep -qi 'Ubuntu' <<< "$os_info"
+    then
+        echo -e "Found Ubuntu system.\n"
+        readonly BASHRC_FILE_NAME=".bashrc"
+    else
+        echo "Found unsupported system OS."
+        _exit 1 'Found unsupported system OS.'
+    fi
 
     readonly FILES_DEST_PATH="$LOCAL_BIN_PATH/bash_prompt"
 
@@ -127,25 +160,35 @@ init()
     readonly REPO_BASH_PROMPT_NAME="bash-prompt.sh"
     readonly REPO_BASHRC_FILE_NAME="bashrc.bash"
 
+    array_export_files_source=()
     array_export_files_source_name=()
     array_export_files_dest=()
     array_export_files_dest_name=()
 
+    array_export_files_source+=("$REPO_FILES_SOURCE_REL_PATH")
     array_export_files_source_name+=("$REPO_GIT_PROMPT_NAME")
     array_export_files_dest+=("$FILES_DEST_PATH")
     array_export_files_dest_name+=("$REPO_GIT_PROMPT_NAME")
 
+    array_export_files_source+=("$REPO_FILES_SOURCE_REL_PATH")
     array_export_files_source_name+=("$REPO_GIT_COMPLETION_NAME")
     array_export_files_dest+=("$FILES_DEST_PATH")
     array_export_files_dest_name+=("$REPO_GIT_COMPLETION_NAME")
 
+    array_export_files_source+=("$REPO_FILES_SOURCE_REL_PATH")
     array_export_files_source_name+=("$REPO_BASH_PROMPT_NAME")
     array_export_files_dest+=("$FILES_DEST_PATH")
     array_export_files_dest_name+=("$REPO_BASH_PROMPT_NAME")
 
+    array_export_files_source+=("$REPO_FILES_SOURCE_REL_PATH")
     array_export_files_source_name+=("$REPO_BASHRC_FILE_NAME")
     array_export_files_dest+=("$HOME")
     array_export_files_dest_name+=("$BASHRC_FILE_NAME")
+
+    tmp_workspace_dir="$(mktemp -d)"
+    eval_cmd "Could not create directory:\n    $tmp_workspace_dir"
+    array_equal_files_tmp_source=( $(for (( i=0; i<${#array_export_files_source_name[@]}; i++ )); do echo "$tmp_workspace_dir"; done) )
+    echo -e "Temporary workspace directory: $tmp_workspace_dir\n"
 
     array_export_files=()
     for (( i=0; i<"${#array_export_files_source_name[@]}"; i++ ))
@@ -159,25 +202,8 @@ init()
         array_export_files[$i]="${array_export_files_dest_name[i]}"
     done
 
-
-    readonly MAX_BACKUPS=1000
-
-    os_info="$(grep PRETTY_NAME /etc/os-release | awk -F= '{ print $2 }')"
-    if grep -qi 'Ubuntu' <<< "$os_info"
-    then
-        echo -e "Found Ubuntu system.\n"
-        readonly BASHRC_FILE_NAME=".bashrc"
-    else
-        echo "Found unsupported system OS."
-        _exit 1 'Found unsupported system OS.'
-    fi
-
     mkdir -p "$FILES_DEST_PATH"
     eval_cmd "Could not create directory:\n    $FILES_DEST_PATH"
-
-    tmp_workspace_dir="$(mktemp -d)"
-    eval_cmd "Could not create directory:\n    $tmp_workspace_dir"
-    echo "tmp_workspace_dir: $tmp_workspace_dir"
 }
 ###################
 ### END OF INIT ###
