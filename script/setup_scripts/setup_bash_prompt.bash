@@ -17,28 +17,76 @@ main()
 
     init
 
+    #
+    ### Check if files already exist
+    #
     local bashrc_source_file="$REPO_FILES_SOURCE_REL_PATH/$REPO_BASHRC_FILE_NAME"
     local bashrc_destination_file="$tmp_workspace_dir/$BASHRC_FILE_NAME"
-
+    local file id to_source reference_file destination_file
 
     # TODO: Create replace_sourcing_path()
     cp "$bashrc_source_file" "$bashrc_destination_file"
     export_files "$REPO_FILES_SOURCE_REL_PATH" \
                  "$tmp_workspace_dir" \
                  "${array_export_files[@]}"
+    
 
-    replace_files_sourcing_paths "$tmp_workspace_dir"
 
-    if equal_files "$tmp_workspace_dir" \
-                   "$tmp_workspace_dir" \
-                   "${array_export_files[@]}"
+    file="$tmp_workspace_dir/$REPO_BASH_PROMPT_NAME"
+    id="git-prompt"
+    to_source="$FILES_DEST_PATH/$REPO_GIT_PROMPT_NAME"
+    replace_sourcing_path "$file" "$id" "$to_source"
+
+    file="$tmp_workspace_dir/$BASHRC_FILE_NAME"
+    id="git-completion"
+    to_source="$FILES_DEST_PATH/$REPO_GIT_COMPLETION_NAME"
+    replace_sourcing_path "$file" "$id" "$to_source"
+
+    file="$tmp_workspace_dir/$BASHRC_FILE_NAME"
+    id="bash-prompt"
+    to_source="$FILES_DEST_PATH/$REPO_BASH_PROMPT_NAME"
+    replace_sourcing_path "$file" "$id" "$to_source"
+
+
+
+    echo ""
+    reference_file="$tmp_workspace_dir/$REPO_BASH_PROMPT_NAME"
+    destination_file="$FILES_DEST_PATH/$REPO_BASH_PROMPT_NAME"
+    if cmp --silent "$reference_file" "$destination_file"
     then
-
+        echo "Files are equal:"
+    else
+        echo "Files are NOT equal:"
     fi
+    echo "* $reference_file"
+    echo "* $destination_file"
+    echo ""
 
-    backup "$HOME/$BASHRC_FILE_NAME"
+    reference_file="$tmp_workspace_dir/$BASHRC_FILE_NAME"
+    destination_file="$HOME/$BASHRC_FILE_NAME"
+    if cmp --silent "$reference_file" "$destination_file"
+    then
+        echo "Files are equal:"
+    else
+        echo "Files are NOT equal:"
+    fi
+    echo "* $reference_file"
+    echo "* $destination_file"
+    echo ""
+    exit 1
 
     replace_bashrc
+    replace_files_sourcing_paths
+    # if equal_files "$tmp_workspace_dir" \
+    #                "$tmp_workspace_dir" \
+    #                "${array_export_files[@]}"
+    # then
+
+    # fi
+
+    # backup "$HOME/$BASHRC_FILE_NAME"
+
+    # replace_bashrc
     # return_value_replace_bashrc
 
     # export_files "$REPO_FILES_SOURCE_REL_PATH" \
@@ -46,7 +94,7 @@ main()
     #              "${array_export_files[@]}"
     # return_value_export_files
 
-    replace_files_sourcing_paths
+    # replace_files_sourcing_paths
     # return_value_replace_files_sourcing_paths
 
     if [[ "$return_value_replace_bashrc" == 'already done' ]] && \
@@ -134,6 +182,33 @@ replace_bashrc()
 #############################
 ### END OF REPLACE BASHRC ###
 #############################
+
+replace_sourcing_path()
+{
+    local file id to_source
+
+    file="$1"
+    id="$2"
+    to_source="$3"
+
+    local general_source_line="source .*# ID $id"
+    local specific_source_line="source \"$to_source\" # ID $id"
+
+    if grep -qE "$general_source_line" "$file"
+    then
+        if grep -qE "$specific_source_line" "$file"
+        then
+            local result_value_replace_sourcing_path='already done'
+        else
+            echo "Replacing sourcing path in:"
+            echo "    $file"
+
+            sed -i "s|\
+$general_source_line|\
+$specific_source_line|g" "$file"
+        fi
+    fi
+}
 
 ####################################
 ### REPLACE FILES SOURCING PATHS ###
