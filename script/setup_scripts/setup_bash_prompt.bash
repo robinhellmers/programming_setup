@@ -49,30 +49,14 @@ main()
 
 
 
-    echo ""
     reference_file="$tmp_workspace_dir/$REPO_BASH_PROMPT_NAME"
     destination_file="$FILES_DEST_PATH/$REPO_BASH_PROMPT_NAME"
-    if cmp --silent "$reference_file" "$destination_file"
-    then
-        echo "Files are equal:"
-    else
-        echo "Files are NOT equal:"
-    fi
-    echo "* $reference_file"
-    echo "* $destination_file"
-    echo ""
+    equal_files "$reference_file" "$destination_file"
 
     reference_file="$tmp_workspace_dir/$BASHRC_FILE_NAME"
     destination_file="$HOME/$BASHRC_FILE_NAME"
-    if cmp --silent "$reference_file" "$destination_file"
-    then
-        echo "Files are equal:"
-    else
-        echo "Files are NOT equal:"
-    fi
-    echo "* $reference_file"
-    echo "* $destination_file"
-    echo ""
+    equal_files "$reference_file" "$destination_file"
+
     exit 1
 
     replace_bashrc

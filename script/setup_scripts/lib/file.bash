@@ -68,31 +68,27 @@ export_files()
 
 equal_files()
 {
-    local source_path="$1"
-    local dest_path="$2"
-    shift 2
-    local array_files=("$@")
+    local file_one="$1"
+    local file_two="$2"
 
-    # Check if source files exists
-    for file in "${array_files[@]}"
-    do
-        [[ -f "$source_path/$file" ]]
-        eval_cmd "Necessary file does not exist:\n    $source_path/$file"
-    done
+    [[ -f "$file_one" ]]
+    eval_cmd "Necessary file does not exist:\n    $file_one"
 
-    # Check if all existing dest files equal source files
-    local files_already_exists=true
-    for file in "${array_files[@]}"
-    do
-        if ! [[ -f "$dest_path/$file" ]] || \
-           ! cmp "$source_path/$file" "$dest_path/$file"
-        then
-            files_already_exists=false
-            break
-        fi
-    done
+    [[ -f "$file_two" ]]
+    eval_cmd "Necessary file does not exist:\n    $file_two"
 
-    [[ "$files_already_exists" == "true" ]]
+    if cmp --silent "$file_one" "$file_two"
+    then
+        echo -e "\nFiles are equal:"
+        return_value_equal_files='true'
+    else
+        echo -e "\nFiles are NOT equal:"
+        return_value_equal_files='false'
+    fi
+    echo "* $file_one"
+    echo "* $file_two"
+
+    [[ "$return_value_equal_files" == 'true' ]]
     return
 }
 
