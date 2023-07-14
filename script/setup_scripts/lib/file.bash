@@ -66,6 +66,48 @@ export_files()
     echo ""
 }
 
+export_files_new()
+{
+    local source_path="$1"
+    shift 1
+    local array_files=("$@")
+
+    # Check if source files exists
+    for file in "${array_files[@]}"
+    do
+        [[ -f "$source_path/$file" ]]
+        eval_cmd "Necessary file does not exist:\n    $source_path/$file"
+    done
+
+    # Check if all existing dest files equal source files
+    local files_already_exists=true
+    for file in "${array_files[@]}"
+    do
+        if ! [[ -f "$dest_path/$file" ]] || \
+           ! cmp "$source_path/$file" "$dest_path/$file"
+        then
+            files_already_exists=false
+            break
+        fi
+    done
+
+    if [[ "$files_already_exists" == "true" ]]
+    then
+        return_value_export_files='already done'
+        return 0
+    fi
+
+    echo "Copying files from '$source_path/' to '$dest_path/'..."
+    for file in "${array_files[@]}"
+    do
+        cp "$source_path/$file" "$dest_path/$file"
+        eval_cmd "Could not copy file:\n    $source_path/$file\nto\n    $dest_path/$file"
+
+        echo "Copied '$file'"
+    done
+    echo ""
+}
+
 equal_files()
 {
     local file_one="$1"

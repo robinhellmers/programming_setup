@@ -127,10 +127,38 @@ init()
     readonly REPO_BASH_PROMPT_NAME="bash-prompt.sh"
     readonly REPO_BASHRC_FILE_NAME="bashrc.bash"
 
+    array_export_files_source_name=()
+    array_export_files_dest=()
+    array_export_files_dest_name=()
+
+    array_export_files_source_name+=("$REPO_GIT_PROMPT_NAME")
+    array_export_files_dest+=("$FILES_DEST_PATH")
+    array_export_files_dest_name+=("$REPO_GIT_PROMPT_NAME")
+
+    array_export_files_source_name+=("$REPO_GIT_COMPLETION_NAME")
+    array_export_files_dest+=("$FILES_DEST_PATH")
+    array_export_files_dest_name+=("$REPO_GIT_COMPLETION_NAME")
+
+    array_export_files_source_name+=("$REPO_BASH_PROMPT_NAME")
+    array_export_files_dest+=("$FILES_DEST_PATH")
+    array_export_files_dest_name+=("$REPO_BASH_PROMPT_NAME")
+
+    array_export_files_source_name+=("$REPO_BASHRC_FILE_NAME")
+    array_export_files_dest+=("$HOME")
+    array_export_files_dest_name+=("$BASHRC_FILE_NAME")
+
     array_export_files=()
-    array_export_files+=("$REPO_GIT_COMPLETION_NAME")
-    array_export_files+=("$REPO_GIT_PROMPT_NAME")
-    array_export_files+=("$REPO_BASH_PROMPT_NAME")
+    for (( i=0; i<"${#array_export_files_source_name[@]}"; i++ ))
+    do
+        multi_dim_divider="|"
+        array_export_files+=("")
+        array_export_files[$i]+="${array_export_files_source_name[i]}"
+        array_export_files[$i]="${multi_dim_divider}"
+        array_export_files[$i]="${array_export_files_dest[i]}"
+        array_export_files[$i]="${multi_dim_divider}"
+        array_export_files[$i]="${array_export_files_dest_name[i]}"
+    done
+
 
     readonly MAX_BACKUPS=1000
 
