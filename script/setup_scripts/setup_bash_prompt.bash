@@ -24,7 +24,6 @@ main()
     local bashrc_destination_file="$tmp_workspace_dir/$BASHRC_FILE_NAME"
     local file id to_source reference_file destination_file
 
-    # TODO: Create replace_sourcing_path()
     cp "$bashrc_source_file" "$bashrc_destination_file"
     export_files "$REPO_FILES_SOURCE_REL_PATH" \
                  "$tmp_workspace_dir" \
@@ -47,7 +46,17 @@ main()
     to_source="$FILES_DEST_PATH/$REPO_BASH_PROMPT_NAME"
     replace_sourcing_path "$file" "$id" "$to_source"
 
+    # Issue is now that we are going to check if files are equal between
+    # the temp directory and respective destination file. Each file under
+    # 'array_export_files' can have different destination directories
 
+    # This means that it manually have to be set here as well as when copying the files
+    # as done above with cp and export_files as 2 separate commands.
+
+    # Put e.g. each file destination directory as a part of of 'array_export_files'
+    # and if the e.g. export_files get extra command with destination dir, it can
+    # cut away the destination dir from each 'array_export_files' element. Then
+    # replace the destination path and use the filename cut out.
 
     reference_file="$tmp_workspace_dir/$REPO_BASH_PROMPT_NAME"
     destination_file="$FILES_DEST_PATH/$REPO_BASH_PROMPT_NAME"
