@@ -76,8 +76,8 @@ main()
 
     if files_equal_multiple "${#array_equal_files_tmp_source[@]}" \
                             "${array_equal_files_tmp_source[@]}" \
-                            "${#array_export_files_source_name[@]}" \
-                            "${array_export_files_source_name[@]}" \
+                            "${#array_export_files_dest_name[@]}" \
+                            "${array_export_files_dest_name[@]}" \
                             "${#array_export_files_dest[@]}" \
                             "${array_export_files_dest[@]}" \
                             "${#array_export_files_dest_name[@]}" \

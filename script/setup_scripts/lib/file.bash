@@ -174,28 +174,33 @@ files_equal_multiple()
     local dynamic_array_prefix="input_array"
     handle_input_arrays_dynamically "$dynamic_array_prefix" "$@"
 
-    get_dynamic_array "${dynamic_array_prefix}0"
+    get_dynamic_array "${dynamic_array_prefix}1"
     local arr_source_path=("${dynamic_array[@]}")
 
-    get_dynamic_array "${dynamic_array_prefix}1"
+    get_dynamic_array "${dynamic_array_prefix}2"
     local arr_source_file_name=("${dynamic_array[@]}")
 
-    get_dynamic_array "${dynamic_array_prefix}2"
+    get_dynamic_array "${dynamic_array_prefix}3"
     local arr_destination_path=("${dynamic_array[@]}")
 
-    get_dynamic_array "${dynamic_array_prefix}3"
+    get_dynamic_array "${dynamic_array_prefix}4"
     local arr_destination_file_name=("${dynamic_array[@]}")
 
-    get_dynamic_array_len "${dynamic_array_prefix}0" > /dev/null
+    get_dynamic_array_len "${dynamic_array_prefix}2" > /dev/null
     local len="$dynamic_array_len"
 
     all_comparisons_equal='true'
     for (( i=0; i < len; i++ ))
     do
+        echo "[$i]: ${arr_source_path[i]}/${arr_source_file_name[i]}"
+        echo "[$i]: ${arr_destination_path[i]}/${arr_destination_file_name[i]}"
         if ! cmp --silent "${arr_source_path[i]}/${arr_source_file_name[i]}" \
                           "${arr_destination_path[i]}/${arr_destination_file_name[i]}"]]
         then
             all_comparisons_equal='false'
+            echo "Files not equal:"
+            echo "* ${arr_source_path[i]}/${arr_source_file_name[i]}"
+            echo "* ${arr_destination_path[i]}/${arr_destination_file_name[i]}"
         fi
     done
 
