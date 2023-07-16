@@ -171,6 +171,8 @@ files_equal()
 
 files_equal_multiple()
 {
+    local return_code file_one file_two
+
     local dynamic_array_prefix="input_array"
     handle_input_arrays_dynamically "$dynamic_array_prefix" "$@"
 
@@ -192,15 +194,20 @@ files_equal_multiple()
     all_comparisons_equal='true'
     for (( i=0; i < len; i++ ))
     do
-        echo "[$i]: ${arr_source_path[i]}/${arr_source_file_name[i]}"
-        echo "[$i]: ${arr_destination_path[i]}/${arr_destination_file_name[i]}"
-        if ! cmp --silent "${arr_source_path[i]}/${arr_source_file_name[i]}" \
-                          "${arr_destination_path[i]}/${arr_destination_file_name[i]}"]]
+        file_one="${arr_source_path[i]}/${arr_source_file_name[i]}"
+        file_two="${arr_destination_path[i]}/${arr_destination_file_name[i]}"
+        
+        cmp "$file_one" "$file_two"; return_code=$?
+
+        (( return_code != 2 ))
+        eval_cmd "Could not compare files:\n    * $file_one\n    * $file_two"
+
+        if (( return_code != 0 ))
         then
             all_comparisons_equal='false'
             echo "Files not equal:"
-            echo "* ${arr_source_path[i]}/${arr_source_file_name[i]}"
-            echo "* ${arr_destination_path[i]}/${arr_destination_file_name[i]}"
+            echo "* $file_one"
+            echo "* $file_two"
         fi
     done
 
