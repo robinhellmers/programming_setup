@@ -206,7 +206,7 @@ files_equal_multiple()
     all_comparisons_equal='true'
     files_differing_first_arr=()
     files_differing_second_arr=()
-    echo ""
+    echo -e "\nStart comparing files..."
     for (( i=0; i < len; i++ ))
     do
         file_one="${arr_source_path[i]}/${arr_source_file_name[i]}"
@@ -223,8 +223,14 @@ files_equal_multiple()
         fi
     done
 
-    [[ "$all_comparisons_equal" == 'true' ]]
-    return
+    if [[ "$all_comparisons_equal" == 'true' ]]
+    then
+        echo "Comparisons done. All resulted in equal."
+        return 0
+    fi
+
+    echo "Comparisons done. See mismatches above."
+    return 1
 }
 
 # Checks if variable content exists in file

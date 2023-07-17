@@ -25,7 +25,7 @@ main()
     local bashrc_destination_file="$tmp_workspace_dir/$BASHRC_FILE_NAME"
     local file id to_source reference_file destination_file
     prepend_stdout "TMP WORKDIR: "
-    
+
     export_files_new "${#array_export_files_source_path[@]}" \
                      "${array_export_files_source_path[@]}" \
                      "${#array_export_files_source_name[@]}" \
@@ -53,18 +53,15 @@ main()
 
     reset_prepended_stdout
 
-    if files_equal_multiple "${#array_equal_files_tmp_source_path[@]}" \
-                            "${array_equal_files_tmp_source_path[@]}" \
-                            "${#array_export_files_dest_name[@]}" \
-                            "${array_export_files_dest_name[@]}" \
-                            "${#array_export_files_dest_path[@]}" \
-                            "${array_export_files_dest_path[@]}" \
-                            "${#array_export_files_dest_name[@]}" \
-                            "${array_export_files_dest_name[@]}"
+    if ! files_equal_multiple "${#array_equal_files_tmp_source_path[@]}" \
+                              "${array_equal_files_tmp_source_path[@]}" \
+                              "${#array_export_files_dest_name[@]}" \
+                              "${array_export_files_dest_name[@]}" \
+                              "${#array_export_files_dest_path[@]}" \
+                              "${array_export_files_dest_path[@]}" \
+                              "${#array_export_files_dest_name[@]}" \
+                              "${array_export_files_dest_name[@]}"
     then
-        echo -e "\nAll files are equal."
-    else
-        echo -e "\nAll files are NOT equal."
         files_to_replace_source_name="${files_differing_first_arr[@]}"
         files_to_replace_destination_name="${files_differing_second_arr[@]}"
     fi
