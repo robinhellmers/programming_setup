@@ -204,6 +204,8 @@ files_equal_multiple()
     local len="$dynamic_array_len"
 
     all_comparisons_equal='true'
+    files_differing_first_arr=()
+    files_differing_second_arr=()
     echo ""
     for (( i=0; i < len; i++ ))
     do
@@ -213,6 +215,8 @@ files_equal_multiple()
         if ! cmp --silent "$file_one" "$file_two"
         then
             all_comparisons_equal='false'
+            files_differing_first_arr+=("${arr_source_file_name[i]}")
+            files_differing_second_arr+=("${arr_destination_file_name[i]}")
             echo "Files not equal:"
             echo "* $file_one"
             echo "* $file_two"

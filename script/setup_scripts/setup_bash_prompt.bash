@@ -7,6 +7,7 @@ source "$LIB_PATH/config.bash"
 source "$LIB_PATH/common.bash"
 source "$LIB_PATH/base.bash"
 source "$LIB_PATH/file.bash"
+source "$LIB_PATH/array.bash"
 
 ############
 ### MAIN ###
@@ -86,12 +87,17 @@ main()
         echo -e "\nAll files are equal."
     else
         echo -e "\nAll files are NOT equal."
+        files_to_replace_source_name="${files_differing_first_arr[@]}"
+        files_to_replace_destination_name="${files_differing_second_arr[@]}"
     fi
+
+
+    replace_differing_files
 
     exit 1
 
-    replace_bashrc
-    replace_files_sourcing_paths
+    # replace_bashrc
+    # replace_files_sourcing_paths
     # if files_equal "$tmp_workspace_dir" \
     #                "$tmp_workspace_dir" \
     #                "${array_export_files[@]}"
@@ -208,6 +214,41 @@ init()
 ###################
 ### END OF INIT ###
 ###################
+
+
+###############################
+### REPLACE DIFFERING FILES ###
+###############################
+replace_differing_files()
+{
+    local backup_destination_path="$HOME/.backup/setup_bash_prompt/"
+    mkdir -p "$backup_destination_path"
+
+    local file_source_name file_destination_name
+    local file_source file_destination
+    # Backup and replace files differing from expected
+    for i in "${!files_to_replace_destination_name[@]}"
+    do
+        get_index_array_value "${files_to_replace_destination_name[i]}" \
+                              "${array_export_files_dest_name[@]}"
+        file_source_name="${array_export_files_dest_name[i]}"
+        file_destination_name="${array_export_files_dest_name[i]}"
+
+        file_source="${array_equal_files_tmp_source[index_found]}/$file_source_name"
+        file_destination="${array_export_files_dest[index_found]}/$file_destination_name"
+        backup "$file_destination" "$backup_destination_path"
+
+        cp "$file_source" "$file_destination"
+
+        echo -e "\nCopied:"
+        echo "    $file_source"
+        echo "to"
+        echo "    $file_destination"
+    done
+}
+######################################
+### END OF REPLACE DIFFERING FILES ###
+######################################
 
 ######################
 ### REPLACE BASHRC ###
