@@ -116,48 +116,40 @@ init()
     readonly REPO_BASH_PROMPT_NAME="bash-prompt.sh"
     readonly REPO_BASHRC_FILE_NAME="bashrc.bash"
     
+    array_export_source_files=()
+    array_export_destination_files=()
+
+    array_export_source_files+=("${REPO_FILES_SOURCE_REL_PATH}/${REPO_GIT_PROMPT_NAME}")
+    array_export_destination_files+=("${FILES_DEST_PATH}/${REPO_GIT_PROMPT_NAME}")
+
+    array_export_source_files+=("${REPO_FILES_SOURCE_REL_PATH}/${REPO_GIT_COMPLETION_NAME}")
+    array_export_destination_files+=("${FILES_DEST_PATH}/${REPO_GIT_COMPLETION_NAME}")
+
+    array_export_source_files+=("${REPO_FILES_SOURCE_REL_PATH}/${REPO_BASH_PROMPT_NAME}")
+    array_export_destination_files+=("${FILES_DEST_PATH}/${REPO_BASH_PROMPT_NAME}")
+
+    array_export_source_files+=("${REPO_FILES_SOURCE_REL_PATH}/${REPO_BASHRC_FILE_NAME}")
+    array_export_destination_files+=("${HOME}/${BASHRC_FILE_NAME}")
+
     
     array_export_files_source_path=()
     array_export_files_source_name=()
     array_export_files_dest_path=()
     array_export_files_dest_name=()
-
-    array_export_files_source_path+=("$REPO_FILES_SOURCE_REL_PATH")
-    array_export_files_source_name+=("$REPO_GIT_PROMPT_NAME")
-    array_export_files_dest_path+=("$FILES_DEST_PATH")
-    array_export_files_dest_name+=("$REPO_GIT_PROMPT_NAME")
-
-    array_export_files_source_path+=("$REPO_FILES_SOURCE_REL_PATH")
-    array_export_files_source_name+=("$REPO_GIT_COMPLETION_NAME")
-    array_export_files_dest_path+=("$FILES_DEST_PATH")
-    array_export_files_dest_name+=("$REPO_GIT_COMPLETION_NAME")
-
-    array_export_files_source_path+=("$REPO_FILES_SOURCE_REL_PATH")
-    array_export_files_source_name+=("$REPO_BASH_PROMPT_NAME")
-    array_export_files_dest_path+=("$FILES_DEST_PATH")
-    array_export_files_dest_name+=("$REPO_BASH_PROMPT_NAME")
-
-    array_export_files_source_path+=("$REPO_FILES_SOURCE_REL_PATH")
-    array_export_files_source_name+=("$REPO_BASHRC_FILE_NAME")
-    array_export_files_dest_path+=("$HOME")
-    array_export_files_dest_name+=("$BASHRC_FILE_NAME")
+    
+    for i in "${!array_export_source_files[@]}"
+    do
+        array_export_files_source_path+=("$(dirname ${array_export_source_files[i]})")
+        array_export_files_source_name+=("$(basename ${array_export_source_files[i]})")
+        array_export_files_dest_path+=("$(dirname ${array_export_destination_files[i]})")
+        array_export_files_dest_name+=("$(basename ${array_export_destination_files[i]})")
+    done
+    
 
     tmp_workspace_dir="$(mktemp -d)"
     eval_cmd "Could not create directory:\n    $tmp_workspace_dir"
     array_equal_files_tmp_source_path=( $(for (( i=0; i<${#array_export_files_source_name[@]}; i++ )); do echo "$tmp_workspace_dir"; done) )
     echo -e "Temporary workspace directory: $tmp_workspace_dir\n"
-
-    array_export_files=()
-    for (( i=0; i<"${#array_export_files_source_name[@]}"; i++ ))
-    do
-        multi_dim_divider="|"
-        array_export_files+=("")
-        array_export_files[$i]+="${array_export_files_source_name[i]}"
-        array_export_files[$i]="${multi_dim_divider}"
-        array_export_files[$i]="${array_export_files_dest_path[i]}"
-        array_export_files[$i]="${multi_dim_divider}"
-        array_export_files[$i]="${array_export_files_dest_name[i]}"
-    done
 
     mkdir -p "$FILES_DEST_PATH"
     eval_cmd "Could not create directory:\n    $FILES_DEST_PATH"
