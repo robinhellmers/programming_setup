@@ -24,7 +24,8 @@ main()
     local bashrc_source_file="$REPO_FILES_SOURCE_REL_PATH/$REPO_BASHRC_FILE_NAME"
     local bashrc_destination_file="$tmp_workspace_dir/$BASHRC_FILE_NAME"
     local file id to_source reference_file destination_file
-
+    prepend_stdout "TMP WORKDIR: "
+    
     export_files_new "${#array_export_files_source_path[@]}" \
                      "${array_export_files_source_path[@]}" \
                      "${#array_export_files_source_name[@]}" \
@@ -49,6 +50,8 @@ main()
     id="bash-prompt"
     to_source="$FILES_DEST_PATH/$REPO_BASH_PROMPT_NAME"
     replace_sourcing_path "$file" "$id" "$to_source"
+
+    reset_prepended_stdout
 
     if files_equal_multiple "${#array_equal_files_tmp_source_path[@]}" \
                             "${array_equal_files_tmp_source_path[@]}" \

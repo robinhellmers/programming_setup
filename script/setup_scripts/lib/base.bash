@@ -1,5 +1,15 @@
 [[ -n $GUARD_BASE ]] && return || readonly GUARD_BASE=1
 
+NL='
+'
+DEFAULT_BOLD_COLOR='\033[1;39m'
+DEFAULT_UNDERLINE_COLOR='\033[4;39m'
+RED_COLOR='\033[0;31m'
+GREEN_COLOR='\033[0;32m'
+ORANGE_COLOR='\033[0;33m'
+MAGENTA_COLOR='\033[0;35m'
+END_COLOR='\033[0m'
+
 _handle_args()
 {
     declare -ag debug_echo_optional_args=()
@@ -114,4 +124,15 @@ eval_cmd()
         echo -e "Exiting with code $returned_status.\n"
         exit $returned_status
     fi
+}
+
+prepend_stdout()
+{
+    local text="$1"
+    exec 3>&1 1> >(sed "s/^/$text /")
+}
+
+reset_prepended_stdout()
+{
+    exec 1>&3 3>&-
 }
