@@ -192,17 +192,13 @@ files_equal_multiple()
     local len="$dynamic_array_len"
 
     all_comparisons_equal='true'
+    echo ""
     for (( i=0; i < len; i++ ))
     do
         file_one="${arr_source_path[i]}/${arr_source_file_name[i]}"
         file_two="${arr_destination_path[i]}/${arr_destination_file_name[i]}"
-        
-        cmp "$file_one" "$file_two"; return_code=$?
 
-        (( return_code != 2 ))
-        eval_cmd "Could not compare files:\n    * $file_one\n    * $file_two"
-
-        if (( return_code != 0 ))
+        if ! cmp --silent "$file_one" "$file_two"
         then
             all_comparisons_equal='false'
             echo "Files not equal:"
