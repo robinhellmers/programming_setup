@@ -5,15 +5,27 @@ source "$LIB_PATH/dynamic.bash"
 backup()
 {
     local file="$1"
+    local destination_path="$2"
+    local suffix backup file_name
 
     [[ -f "$file" ]] || return
+    source_path="$(dirname $file)"
+    file_name="$(basename $file)"
+
+    if [[ -n "$destination_path" ]]
+    then
+        [[ -d "$destination_path" ]] || return
+    else
+        destination_path="$source_path"
+    fi
 
     echo -e "\nCreating backup of:"
-    echo "    $file"
+    echo "    ${source_path}${file_name}"
     for (( i=1; i<=MAX_BACKUPS; i++ ))
     do
-        local suffix=".backup-$i"
-        local backup="$file$suffix"
+        suffix=".backup-$i"
+
+        backup="${destination_path}${file_name}${suffix}"
         [[ -f "$backup" ]] && continue
 
         cp "$file" "$backup"
