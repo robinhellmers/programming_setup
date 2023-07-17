@@ -129,7 +129,7 @@ eval_cmd()
 prepend_stdout()
 {
     local text="$1"
-    exec 3>&1 1> >(sed "s/^/$text /")
+    exec 3>&1 1> >(sed "s/^/$text/")
 }
 
 reset_prepended_stdout()

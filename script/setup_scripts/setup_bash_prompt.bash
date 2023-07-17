@@ -34,7 +34,6 @@ main()
                      "${array_equal_files_tmp_source_path[@]}" \
                      "${#array_export_files_dest_name[@]}" \
                      "${array_export_files_dest_name[@]}"
-    # return_value_export_files_new
 
     file="$tmp_workspace_dir/$REPO_BASH_PROMPT_NAME"
     id="git-prompt"
