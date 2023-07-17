@@ -64,9 +64,9 @@ main()
     then
         files_to_replace_source_name="${files_differing_first_arr[@]}"
         files_to_replace_destination_name="${files_differing_second_arr[@]}"
-    fi
 
-    replace_differing_files
+        replace_differing_files
+    fi
 
     if [[ "$return_value_replace_bashrc" == 'already done' ]] && \
        [[ "$return_value_replace_files_sourcing_paths" == 'already done' ]]
@@ -169,6 +169,7 @@ replace_differing_files()
 
     local file_source_name file_destination_name
     local file_source file_destination
+    echo -e "\nStart backup and replacement of differing files..."
     # Backup and replace files differing from expected
     for i in "${!files_to_replace_destination_name[@]}"
     do
@@ -188,6 +189,7 @@ replace_differing_files()
         echo "to"
         echo "    $file_destination"
     done
+    echo "Backups and replacements done. See files above."
 }
 ######################################
 ### END OF REPLACE DIFFERING FILES ###
