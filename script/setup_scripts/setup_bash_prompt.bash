@@ -26,14 +26,14 @@ main()
     local file id to_source reference_file destination_file
     prepend_stdout "TMP WORKDIR: "
 
-    export_files_new "${#array_export_files_source_path[@]}" \
-                     "${array_export_files_source_path[@]}" \
-                     "${#array_export_files_source_name[@]}" \
-                     "${array_export_files_source_name[@]}" \
+    export_files_new "${#array_export_source_files_path[@]}" \
+                     "${array_export_source_files_path[@]}" \
+                     "${#array_export_source_files_name[@]}" \
+                     "${array_export_source_files_name[@]}" \
                      "${#array_equal_files_tmp_source_path[@]}" \
                      "${array_equal_files_tmp_source_path[@]}" \
-                     "${#array_export_files_dest_name[@]}" \
-                     "${array_export_files_dest_name[@]}"
+                     "${#array_export_destination_files_name[@]}" \
+                     "${array_export_destination_files_name[@]}"
 
     file="$tmp_workspace_dir/$REPO_BASH_PROMPT_NAME"
     id="git-prompt"
@@ -54,12 +54,12 @@ main()
 
     if ! files_equal_multiple "${#array_equal_files_tmp_source_path[@]}" \
                               "${array_equal_files_tmp_source_path[@]}" \
-                              "${#array_export_files_dest_name[@]}" \
-                              "${array_export_files_dest_name[@]}" \
-                              "${#array_export_files_dest_path[@]}" \
-                              "${array_export_files_dest_path[@]}" \
-                              "${#array_export_files_dest_name[@]}" \
-                              "${array_export_files_dest_name[@]}"
+                              "${#array_export_destination_files_name[@]}" \
+                              "${array_export_destination_files_name[@]}" \
+                              "${#array_export_destination_files_path[@]}" \
+                              "${array_export_destination_files_path[@]}" \
+                              "${#array_export_destination_files_name[@]}" \
+                              "${array_export_destination_files_name[@]}"
     then
         files_to_replace_source_name="${files_differing_first_arr[@]}"
         files_to_replace_destination_name="${files_differing_second_arr[@]}"
@@ -131,24 +131,27 @@ init()
     array_export_destination_files+=("${HOME}/${BASHRC_FILE_NAME}")
 
     
-    array_export_files_source_path=()
-    array_export_files_source_name=()
-    array_export_files_dest_path=()
-    array_export_files_dest_name=()
+    array_export_source_files_path=()
+    array_export_source_files_name=()
+    array_export_destination_files_path=()
+    array_export_destination_files_name=()
     
     for i in "${!array_export_source_files[@]}"
     do
-        array_export_files_source_path+=("$(dirname ${array_export_source_files[i]})")
-        array_export_files_source_name+=("$(basename ${array_export_source_files[i]})")
-        array_export_files_dest_path+=("$(dirname ${array_export_destination_files[i]})")
-        array_export_files_dest_name+=("$(basename ${array_export_destination_files[i]})")
+        array_export_source_files_path+=("$(dirname ${array_export_source_files[i]})")
+        array_export_source_files_name+=("$(basename ${array_export_source_files[i]})")
+        array_export_destination_files_path+=("$(dirname ${array_export_destination_files[i]})")
+        array_export_destination_files_name+=("$(basename ${array_export_destination_files[i]})")
     done
     
 
     tmp_workspace_dir="$(mktemp -d)"
     eval_cmd "Could not create directory:\n    $tmp_workspace_dir"
-    array_equal_files_tmp_source_path=( $(for (( i=0; i<${#array_export_files_source_name[@]}; i++ )); do echo "$tmp_workspace_dir"; done) )
+
     echo -e "Temporary workspace directory: $tmp_workspace_dir\n"
+
+    local len="${#array_export_source_files_name[@]}"
+    array_equal_files_tmp_source_path=( "$(create_initialized_array "$len" "$tmp_workspace_dir")" ) 
 
     mkdir -p "$FILES_DEST_PATH"
     eval_cmd "Could not create directory:\n    $FILES_DEST_PATH"
@@ -173,12 +176,12 @@ replace_differing_files()
     for i in "${!files_to_replace_destination_name[@]}"
     do
         get_index_array_value "${files_to_replace_destination_name[i]}" \
-                              "${array_export_files_dest_name[@]}"
-        file_source_name="${array_export_files_dest_name[i]}"
-        file_destination_name="${array_export_files_dest_name[i]}"
+                              "${array_export_destination_files_name[@]}"
+        file_source_name="${array_export_destination_files_name[i]}"
+        file_destination_name="${array_export_destination_files_name[i]}"
 
         file_source="${array_equal_files_tmp_source_path[index_found]}/$file_source_name"
-        file_destination="${array_export_files_dest_path[index_found]}/$file_destination_name"
+        file_destination="${array_export_destination_files_path[index_found]}/$file_destination_name"
         backup "$file_destination" "$backup_destination_path"
 
         cp "$file_source" "$file_destination"
