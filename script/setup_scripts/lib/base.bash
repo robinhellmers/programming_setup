@@ -136,3 +136,11 @@ reset_prepended_stdout()
 {
     exec 1>&3 3>&-
 }
+
+is_number()
+{
+    local entry="$1"
+
+    local re='^[0-9]+$'
+    [[ "$entry" =~ $re ]]
+}
