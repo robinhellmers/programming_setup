@@ -46,6 +46,38 @@ backup()
     done
 }
 
+backup_multiple()
+{
+    local destination_path="$1"; shift
+
+    echo -e "\nStart backing up files..."
+    local file_path file_name
+
+    local dynamic_array_prefix="input_array"
+    handle_input_arrays_dynamically "$dynamic_array_prefix" "$@"
+
+    get_dynamic_array "${dynamic_array_prefix}1"
+    local arr_file_path=("${dynamic_array[@]}")
+
+    get_dynamic_array "${dynamic_array_prefix}2"
+    local arr_file_name=("${dynamic_array[@]}")
+    for index in "${!arr_file_name[@]}"
+    do
+        file_name="${arr_file_name[index]}"
+        file_path="${arr_file_path[index]}"
+        if ! backup "$file_path/$file_name" "$destination_path"
+        then
+            echo "Could not backup the file:"
+            echo "    $file_path/$file_name"
+            echo "to the directory:"
+            echo "    $destination_path/"
+            exit 1
+        fi
+    done
+
+    echo "Backups done."
+}
+
 export_files()
 {
     local source_path="$1"
