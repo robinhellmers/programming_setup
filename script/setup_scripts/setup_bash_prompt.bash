@@ -61,10 +61,27 @@ main()
                               "${#array_export_destination_files_name[@]}" \
                               "${array_export_destination_files_name[@]}"
     then
-        files_to_replace_source_name="${files_differing_first_arr[@]}"
-        files_to_replace_destination_name="${files_differing_second_arr[@]}"
+        files_to_replace_source_name=("${files_differing_first_arr[@]}")
+        files_to_replace_destination_name=("${files_differing_second_arr[@]}")
 
-        replace_differing_files
+        get_indices_by_array_values "${#files_to_replace_destination_name[@]}" \
+                                    "${files_to_replace_destination_name[@]}" \
+                                    "${#array_export_destination_files_name[@]}" \
+                                    "${array_export_destination_files_name[@]}"
+        # CREATES: indices_found
+
+        get_values_by_array_indices "${#indices_found[@]}" \
+                                    "${indices_found[@]}" \
+                                    "${#array_export_destination_files_path[@]}" \
+                                    "${array_export_destination_files_path[@]}"
+        # CREATES: values_found
+        files_to_replace_destination_path=("${values_found[@]}")
+
+        backup_multiple "$backup_destination_path" \
+                        "${#files_to_replace_destination_path[@]}" \
+                        "${files_to_replace_destination_path[@]}" \
+                        "${#files_to_replace_destination_name[@]}" \
+                        "${files_to_replace_destination_name[@]}"
     fi
 
     if [[ "$return_value_replace_bashrc" == 'already done' ]] && \
@@ -114,6 +131,8 @@ init()
     readonly REPO_GIT_COMPLETION_NAME="git-completion.bash"
     readonly REPO_BASH_PROMPT_NAME="bash-prompt.sh"
     readonly REPO_BASHRC_FILE_NAME="bashrc.bash"
+
+    backup_destination_path="$HOME/.backup/setup_bash_prompt"
     
     array_export_source_files=()
     array_export_destination_files=()
@@ -151,7 +170,11 @@ init()
     echo -e "Temporary workspace directory: $tmp_workspace_dir\n"
 
     local len="${#array_export_source_files_name[@]}"
-    array_equal_files_tmp_source_path=( "$(create_initialized_array "$len" "$tmp_workspace_dir")" ) 
+
+    create_initialized_array "$len" "$tmp_workspace_dir"
+    array_equal_files_tmp_source_path=("${initialized_array[@]}")
+    create_initialized_array "$len" "$backup_destination_path"
+    array_backup_multiple_destination_path=("${initialized_array[@]}")
 
     mkdir -p "$FILES_DEST_PATH"
     eval_cmd "Could not create directory:\n    $FILES_DEST_PATH"
@@ -166,7 +189,6 @@ init()
 ###############################
 replace_differing_files()
 {
-    local backup_destination_path="$HOME/.backup/setup_bash_prompt/"
     mkdir -p "$backup_destination_path"
 
     local file_source_name file_destination_name

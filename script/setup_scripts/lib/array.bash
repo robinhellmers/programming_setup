@@ -77,16 +77,9 @@ create_initialized_array()
     local len="$1"
     local init_value="$2"
 
-    # Ensure 'len' is a number
-    case $len in
-        ''|*[!0-9]*)
-            echo "First parameter is not a number."
-            return 1
-            ;;
-        *) ;;
-    esac
+    is_number "$len"
+    eval_cmd "Given length is not a number."
 
     local array=( $(for (( i=0; i<len; i++ )); do echo "$init_value"; done) )
-
-    echo "${array[@]}"
+    initialized_array=("${array[@]}")
 }
