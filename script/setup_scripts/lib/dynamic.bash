@@ -51,6 +51,13 @@ handle_input_arrays_dynamically()
         eval "$dynamic_array_prefix$array_suffix=()";
         while (( num_array_elements-- > 0 )) 
         do
+
+            if ((num_array_elements == 0)) && ! [[ "${1+nonexistent}" ]]
+            then
+                # Last element is not set
+                echo "Given array contains less elements than the explicit array size given."
+                exit 1
+            fi
             eval "$dynamic_array_prefix$array_suffix+=(\"\$1\")"; shift
         done
         ((array_suffix++))
