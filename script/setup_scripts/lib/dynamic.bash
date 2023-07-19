@@ -36,10 +36,20 @@ handle_input_arrays_dynamically()
 {
     local dynamic_array_prefix="$1"; shift
     local array_suffix=1
+
+    local is_number_regex='^[0-9]+$'
+
     while (( $# )) ; do
-        local num_args=$1; shift
+        local num_array_elements=$1; shift
+
+        if ! [[ "$num_array_elements" =~ $is_number_regex ]]
+        then
+            echo "Given number of array elements is not a number: $num_array_elements"
+            exit 1
+        fi
+        
         eval "$dynamic_array_prefix$array_suffix=()";
-        while (( num_args-- > 0 )) 
+        while (( num_array_elements-- > 0 )) 
         do
             eval "$dynamic_array_prefix$array_suffix+=(\"\$1\")"; shift
         done
