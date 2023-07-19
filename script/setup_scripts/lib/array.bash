@@ -16,6 +16,62 @@ get_index_array_value()
     return 1
 }
 
+index_exists_in_array()
+{
+    local index="$1"; shift
+
+    local dynamic_array_prefix="input_array"
+    handle_input_arrays_dynamically "$dynamic_array_prefix" "$@"
+
+    get_dynamic_array "${dynamic_array_prefix}1"
+    local array=("${dynamic_array[@]}")
+
+    is_number "$index"
+    eval_cmd "Given index is not a number: $index"
+
+    [[ "${array[index]+nonexistent}" ]]
+}
+
+get_indices_by_array_values()
+{
+    local dynamic_array_prefix="input_array"
+    handle_input_arrays_dynamically "$dynamic_array_prefix" "$@"
+
+    get_dynamic_array "${dynamic_array_prefix}1"
+    local array_values_to_find=("${dynamic_array[@]}")
+
+    get_dynamic_array "${dynamic_array_prefix}2"
+    local array_to_search=("${dynamic_array[@]}")
+
+    indices_found=()
+    for value in "${array_values_to_find[@]}"
+    do
+        get_index_array_value "$value" "${array_export_destination_files_name[@]}"
+
+        indices_found+=("$index_found")
+    done
+}
+
+get_values_by_array_indices()
+{
+    local dynamic_array_prefix="input_array"
+    handle_input_arrays_dynamically "$dynamic_array_prefix" "$@"
+
+    get_dynamic_array "${dynamic_array_prefix}1"
+    local array_indices=("${dynamic_array[@]}")
+
+    get_dynamic_array "${dynamic_array_prefix}2"
+    local array_values=("${dynamic_array[@]}")
+
+    values_found=()
+    for index in "${array_indices[@]}"
+    do
+        index_exists_in_array "$index" "${#array_values[@]}" "${array_values[@]}"
+
+        values_found+=("${array_values[index]}")
+    done
+}
+
 create_initialized_array()
 {
     local len="$1"
