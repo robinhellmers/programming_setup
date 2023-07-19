@@ -14,7 +14,16 @@ backup()
 
     if [[ -n "$destination_path" ]]
     then
-        [[ -d "$destination_path" ]] || return
+        if ! [[ -d "$destination_path" ]]
+        then
+            mkdir -p "$destination_path"
+            if ! [[ -d "$destination_path" ]]
+            then
+                echo "Could not create destination path:"
+                echo "    $destination_path"
+                exit 1
+            fi
+        fi
     else
         destination_path="$source_path"
     fi
