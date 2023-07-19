@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 
+if ! [[ "${BASH_SOURCE[0]}" -ef "$0" ]]
+then
+    echo "Do not source this script! Execute it with bash instead."
+    return 1
+fi
+
 SETUP_SCRIPTS_PATH="$(dirname "$(readlink -f "$0")")" # This script's path
 LIB_PATH="$SETUP_SCRIPTS_PATH/lib"
 
