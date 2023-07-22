@@ -45,7 +45,7 @@ declare -a arr_setups=(setup_vimdiff "vimdiff"
                        setup_gitdifftool "vimdiff as git difftool"
                        setup_trashcli "trash-cli and alias rm"
                        setup_gitconfig "git configuration"
-                    #    bash_prompt "Bash prompt PS1 including git indication"
+                       setup_bash_prompt "Bash prompt PS1 including git indication"
                        )
 
 
@@ -89,7 +89,7 @@ main()
                 source "$script_output_file"
 
                 script_output_file_content="$(cat $script_output_file)"
-                debug_echo 0 "Sourced script output file:"
+                debug_echo 0 -e "\nSourced script output file:"
                 debug_echo 0 "----------------------------"
                 [[ -n "$script_output_file_content" ]] && debug_echo 0 "$script_output_file_content"
                 debug_echo 0 "----------------------------"
