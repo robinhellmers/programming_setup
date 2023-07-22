@@ -30,36 +30,10 @@ main()
     local bashrc_source_file="$REPO_FILES_SOURCE_REL_PATH/$REPO_BASHRC_FILE_NAME"
     local bashrc_destination_file="$tmp_workspace_dir/$BASHRC_FILE_NAME"
     local file id to_source reference_file destination_file
-    prepend_stdout "TMP WORKDIR: "
 
-    export_files_new "${#array_export_source_files_path[@]}" \
-                     "${array_export_source_files_path[@]}" \
-                     "${#array_export_source_files_name[@]}" \
-                     "${array_export_source_files_name[@]}" \
-                     "${#array_equal_files_tmp_source_path[@]}" \
-                     "${array_equal_files_tmp_source_path[@]}" \
-                     "${#array_export_destination_files_name[@]}" \
-                     "${array_export_destination_files_name[@]}"
+    prepare_files_tmp_dir
 
-    echo ""
-    file="$tmp_workspace_dir/$REPO_BASH_PROMPT_NAME"
-    id="git-prompt"
-    to_source="$FILES_DEST_PATH/$REPO_GIT_PROMPT_NAME"
-    replace_sourcing_path "$file" "$id" "$to_source"
-
-    file="$tmp_workspace_dir/$BASHRC_FILE_NAME"
-    id="git-completion"
-    to_source="$FILES_DEST_PATH/$REPO_GIT_COMPLETION_NAME"
-    replace_sourcing_path "$file" "$id" "$to_source"
-
-    file="$tmp_workspace_dir/$BASHRC_FILE_NAME"
-    id="bash-prompt"
-    to_source="$FILES_DEST_PATH/$REPO_BASH_PROMPT_NAME"
-    replace_sourcing_path "$file" "$id" "$to_source"
-
-    reset_prepended_stdout
-
-    if ! files_equal_multiple "${#array_equal_files_tmp_source_path[@]}" \
+    if files_equal_multiple "${#array_equal_files_tmp_source_path[@]}" \
                               "${array_equal_files_tmp_source_path[@]}" \
                               "${#array_export_destination_files_name[@]}" \
                               "${array_export_destination_files_name[@]}" \
@@ -68,44 +42,40 @@ main()
                               "${#array_export_destination_files_name[@]}" \
                               "${array_export_destination_files_name[@]}"
     then
-        files_to_replace_source_name=("${files_differing_first_arr[@]}")
-        files_to_replace_destination_name=("${files_differing_second_arr[@]}")
-
-        get_indices_by_array_values "${#files_to_replace_destination_name[@]}" \
-                                    "${files_to_replace_destination_name[@]}" \
-                                    "${#array_export_destination_files_name[@]}" \
-                                    "${array_export_destination_files_name[@]}"
-        # CREATES: indices_found
-
-        get_values_by_array_indices "${#indices_found[@]}" \
-                                    "${indices_found[@]}" \
-                                    "${#array_export_destination_files_path[@]}" \
-                                    "${array_export_destination_files_path[@]}"
-        # CREATES: values_found
-        files_to_replace_destination_path=("${values_found[@]}")
-
-        backup_multiple "$backup_destination_path" \
-                        "${#files_to_replace_destination_path[@]}" \
-                        "${files_to_replace_destination_path[@]}" \
-                        "${#files_to_replace_destination_name[@]}" \
-                        "${files_to_replace_destination_name[@]}"
-        
-        export_files_new "${#array_equal_files_tmp_source_path[@]}" \
-                         "${array_equal_files_tmp_source_path[@]}" \
-                         "${#array_export_destination_files_name[@]}" \
-                         "${array_export_destination_files_name[@]}" \
-                         "${#array_export_destination_files_path[@]}" \
-                         "${array_export_destination_files_path[@]}" \
-                         "${#array_export_destination_files_name[@]}" \
-                         "${array_export_destination_files_name[@]}"
-    fi
-
-    if [[ "$return_value_replace_bashrc" == 'already done' ]] && \
-       [[ "$return_value_replace_files_sourcing_paths" == 'already done' ]]
-    then
         _exit 0 'already done'
     fi
-    _exit 0 'success'
+
+    files_to_replace_source_name=("${files_differing_first_arr[@]}")
+    files_to_replace_destination_name=("${files_differing_second_arr[@]}")
+
+    get_indices_by_array_values "${#files_to_replace_destination_name[@]}" \
+                                "${files_to_replace_destination_name[@]}" \
+                                "${#array_export_destination_files_name[@]}" \
+                                "${array_export_destination_files_name[@]}"
+    # CREATES: indices_found
+
+    get_values_by_array_indices "${#indices_found[@]}" \
+                                "${indices_found[@]}" \
+                                "${#array_export_destination_files_path[@]}" \
+                                "${array_export_destination_files_path[@]}"
+    # CREATES: values_found
+    files_to_replace_destination_path=("${values_found[@]}")
+
+    backup_multiple "$backup_destination_path" \
+                    "${#files_to_replace_destination_path[@]}" \
+                    "${files_to_replace_destination_path[@]}" \
+                    "${#files_to_replace_destination_name[@]}" \
+                    "${files_to_replace_destination_name[@]}"
+    
+    export_files_new "${#array_equal_files_tmp_source_path[@]}" \
+                        "${array_equal_files_tmp_source_path[@]}" \
+                        "${#array_export_destination_files_name[@]}" \
+                        "${array_export_destination_files_name[@]}" \
+                        "${#array_export_destination_files_path[@]}" \
+                        "${array_export_destination_files_path[@]}" \
+                        "${#array_export_destination_files_name[@]}" \
+                        "${array_export_destination_files_name[@]}"
+    _exit $? 'success'
 }
 
 ###################
@@ -198,6 +168,46 @@ init()
 ###################
 ### END OF INIT ###
 ###################
+
+
+#############################
+### PREPARE FILES TMP DIR ###
+#############################
+prepare_files_tmp_dir()
+{
+    prepend_stdout "TMP WORKDIR: "
+
+    export_files_new "${#array_export_source_files_path[@]}" \
+                     "${array_export_source_files_path[@]}" \
+                     "${#array_export_source_files_name[@]}" \
+                     "${array_export_source_files_name[@]}" \
+                     "${#array_equal_files_tmp_source_path[@]}" \
+                     "${array_equal_files_tmp_source_path[@]}" \
+                     "${#array_export_destination_files_name[@]}" \
+                     "${array_export_destination_files_name[@]}"
+
+    echo ""
+    file="$tmp_workspace_dir/$REPO_BASH_PROMPT_NAME"
+    id="git-prompt"
+    to_source="$FILES_DEST_PATH/$REPO_GIT_PROMPT_NAME"
+    replace_sourcing_path "$file" "$id" "$to_source"
+
+    file="$tmp_workspace_dir/$BASHRC_FILE_NAME"
+    id="git-completion"
+    to_source="$FILES_DEST_PATH/$REPO_GIT_COMPLETION_NAME"
+    replace_sourcing_path "$file" "$id" "$to_source"
+
+    file="$tmp_workspace_dir/$BASHRC_FILE_NAME"
+    id="bash-prompt"
+    to_source="$FILES_DEST_PATH/$REPO_BASH_PROMPT_NAME"
+    replace_sourcing_path "$file" "$id" "$to_source"
+
+ 
+    reset_prepended_stdout
+}
+#################################
+### END PREPARE FILES TMP DIR ###
+#################################
 
 
 ###############################
