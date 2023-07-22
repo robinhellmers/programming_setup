@@ -80,9 +80,9 @@ main()
             then
 
                 debug_echo 1 -e "\n\n\n\n"
-                debug_echo 1 -e "${ORANGE_COLOR}$(for i in {1..100}; do printf '\\'; done; printf '\n';)${END_COLOR}"
-                debug_echo 1 -e "${ORANGE_COLOR}\\\\\\ Start setup of \"${arr_setups[(($ind_arr_setups + 1))]}\"${END_COLOR}"
-                debug_echo 1 -e "${ORANGE_COLOR}$(for i in {1..100}; do printf '\\'; done; printf '\n';)${END_COLOR}"
+                debug_echo 1 -e "${ORANGE_COLOR}$(for i in {1..100}; do printf '\\\'; done; printf '\n';)${END_COLOR}"
+                debug_echo 1 -e "${ORANGE_COLOR}\\\\\\\\\ Start setup of \"${arr_setups[(($ind_arr_setups + 1))]}\"${END_COLOR}"
+                debug_echo 1 -e "${ORANGE_COLOR}$(for i in {1..100}; do printf '\\\'; done; printf '\n';)${END_COLOR}"
                 # Script call
                 script_output_file="$(mktemp)"
                 "$SETUP_SCRIPTS_PATH/${arr_setups[$ind_arr_setups]}.sh" -o "$script_output_file"
@@ -112,9 +112,9 @@ main()
                         total_results_already_done='false'
                         ;;
                 esac
-                debug_echo 1 -e "${ORANGE_COLOR}$(for i in {1..100}; do printf '\\'; done; printf '\n';)${END_COLOR}"
+                debug_echo 1 -e "${ORANGE_COLOR}$(for i in {1..100}; do printf '/'; done; printf '\n';)${END_COLOR}"
                 debug_echo 1 -e "${ORANGE_COLOR}/// End setup of \"${arr_setups[(($ind_arr_setups + 1))]}\"${END_COLOR}"
-                debug_echo 1 -e "${ORANGE_COLOR}$(for i in {1..100}; do printf '\\'; done; printf '\n';)${END_COLOR}"
+                debug_echo 1 -e "${ORANGE_COLOR}$(for i in {1..100}; do printf '/'; done; printf '\n';)${END_COLOR}"
             else
                 # Setup not to be done
                 end_results+="[🟠] "
