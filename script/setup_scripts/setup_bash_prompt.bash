@@ -41,6 +41,7 @@ main()
                      "${#array_export_destination_files_name[@]}" \
                      "${array_export_destination_files_name[@]}"
 
+    echo ""
     file="$tmp_workspace_dir/$REPO_BASH_PROMPT_NAME"
     id="git-prompt"
     to_source="$FILES_DEST_PATH/$REPO_GIT_PROMPT_NAME"
@@ -88,6 +89,15 @@ main()
                         "${files_to_replace_destination_path[@]}" \
                         "${#files_to_replace_destination_name[@]}" \
                         "${files_to_replace_destination_name[@]}"
+        
+        export_files_new "${#array_equal_files_tmp_source_path[@]}" \
+                         "${array_equal_files_tmp_source_path[@]}" \
+                         "${#array_export_destination_files_name[@]}" \
+                         "${array_export_destination_files_name[@]}" \
+                         "${#array_export_destination_files_path[@]}" \
+                         "${array_export_destination_files_path[@]}" \
+                         "${#array_export_destination_files_name[@]}" \
+                         "${array_export_destination_files_name[@]}"
     fi
 
     if [[ "$return_value_replace_bashrc" == 'already done' ]] && \

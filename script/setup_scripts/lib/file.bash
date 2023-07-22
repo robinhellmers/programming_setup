@@ -28,7 +28,7 @@ backup()
         destination_path="$source_path"
     fi
 
-    echo -e "\nCreating backup of:"
+    echo -e "Creating backup of:"
     echo "    ${source_path}${file_name}"
     for (( i=1; i<=MAX_BACKUPS; i++ ))
     do
@@ -180,7 +180,7 @@ export_files_new()
         return 0
     fi
 
-    echo "Copying files..."
+    echo -e "\nStart copying files..."
     for (( i=0; i<len; i++ ))
     do
         source_file="${arr_source_path[i]}/${arr_source_file_name[i]}"
@@ -189,10 +189,10 @@ export_files_new()
         cp "$source_file" "$dest_file"
         eval_cmd "Could not copy file:\n    $source_file\nto\n    $dest_file"
 
-        echo -e "\nCopied:\n    $source_file\nto\n    $dest_file"
+        echo -e "Copied from:\n    $source_file\nCopied to:\n    $dest_file"
     done
-    echo ""
-
+    
+    echo -e "Copies done."
     return 0
 }
 
