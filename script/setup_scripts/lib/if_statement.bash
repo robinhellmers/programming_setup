@@ -26,10 +26,10 @@
 #
 find_else_elif_fi_statement()
 {
-    FILE=$1
-    IF_LINE_NUMBER=$2
-    VAR_NAME=$3
-    MAX_LEVEL=$4
+    local -r FILE="$1"
+    local -r IF_STATEMENT_START_LINE_NUM="$2"
+    local -r VAR_NAME_PREFIX="$3"
+    local -r MAX_LEVEL="$4"
 
     # Declare dynamic name for array ${VAR_NAME}_LNs
     # https://stackoverflow.com/questions/4582137/bash-indirect-array-addressing
@@ -80,25 +80,25 @@ find_else_elif_fi_statement()
         
         case $first_word in
         'if')
-            ((if_statement_level++)) || true # Force true
+            ((if_statement_level++))
 
             if (( if_statement_level <= MAX_LEVEL ))
             then
-                append_array $var_name_LNs $((IF_LINE_NUMBER + $line_count))
+                append_array $var_name_LNs $((IF_STATEMENT_START_LINE_NUM + $line_count))
                 append_array $var_name_type 'if'
             fi
             ;;
         'elif')
             if (( if_statement_level <= MAX_LEVEL ))
             then
-                append_array $var_name_LNs $((IF_LINE_NUMBER + $line_count))
+                append_array $var_name_LNs $((IF_STATEMENT_START_LINE_NUM + $line_count))
                 append_array $var_name_type 'elif'
             fi
             ;;
         'else')
             if (( if_statement_level <= MAX_LEVEL ))
             then
-                append_array $var_name_LNs $((IF_LINE_NUMBER + $line_count))
+                append_array $var_name_LNs $((IF_STATEMENT_START_LINE_NUM + $line_count))
                 append_array $var_name_type 'else'
             fi
             ;;
@@ -107,7 +107,7 @@ find_else_elif_fi_statement()
 
             if ((if_statement_level <= MAX_LEVEL - 1))
             then
-                append_array $var_name_LNs $((IF_LINE_NUMBER + $line_count))
+                append_array $var_name_LNs $((IF_STATEMENT_START_LINE_NUM + $line_count))
                 append_array $var_name_type 'fi'
 
                 if ((if_statement_level == 0))
@@ -121,7 +121,7 @@ find_else_elif_fi_statement()
         esac
         
         ((line_count++)) || true # Force true
-    done < <(tail -n "+$IF_LINE_NUMBER" $FILE)
+    done < <(tail -n "+$IF_STATEMENT_START_LINE_NUM" $FILE)
 
     return -1
 }
