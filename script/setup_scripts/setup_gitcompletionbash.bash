@@ -82,10 +82,13 @@ ${BASHRC_INPUT1_2}"
 
         IF_STATEMENT='if [ "$color_prompt" = yes ]; then'
         declare -a intervals=("${if_statement_LNs[@]}")
-        declare -a allowed_intervals=(true true false true)
-        declare -a preferred_interval=(false true false false)
+        declare -a allowed_intervals=('true' 'true' 'false' 'true')
+        declare -a preferred_interval=('false' 'true' 'false' 'false')
 
-        add_single_line_content "$PATH_BASHRC" "$NAME_BASHRC" BASHRC_INPUT1 "INBETWEEN" "END" "${#intervals[@]}" "${intervals[@]}" "${#allowed_intervals[@]}" "${allowed_intervals[@]}" "${#preferred_interval[@]}" "${preferred_interval[@]}"
+        add_single_line_content "$PATH_BASHRC" "$NAME_BASHRC" BASHRC_INPUT1 "INBETWEEN" "END" \
+                                "${#allowed_intervals[@]}" "${allowed_intervals[@]}" \
+                                "${#preferred_interval[@]}" "${preferred_interval[@]}" \
+                                "${#intervals[@]}" "${intervals[@]}"
 
         case "$return_value" in
             'already done')
@@ -172,11 +175,14 @@ EOF
         exists_in_file "$PATH_BASHRC/$NAME_BASHRC" "$IF_STATEMENT" IF_STATEMENT
         find_else_elif_fi_statement "$PATH_BASHRC/$NAME_BASHRC" "$IF_STATEMENT_START" if_statement 1
         declare -a intervals=("${if_statement_LNs[@]}")
-        declare -a allowed_intervals=(false true false false)
-        declare -a preferred_interval=(false true false false)
+        declare -a allowed_intervals=('false' 'true' 'false' 'false')
+        declare -a preferred_interval=('false' 'true' 'false' 'false')
         
         BASHRC_INPUT4='PS1=$PS1_custom'
-        add_single_line_content "$PATH_BASHRC" "$NAME_BASHRC" BASHRC_INPUT4 "INBETWEEN" "START" "${#intervals[@]}" "${intervals[@]}" "${#allowed_intervals[@]}" "${allowed_intervals[@]}" "${#preferred_interval[@]}" "${preferred_interval[@]}"
+        add_single_line_content "$PATH_BASHRC" "$NAME_BASHRC" BASHRC_INPUT4 "INBETWEEN" "START" \
+                                "${#allowed_intervals[@]}" "${allowed_intervals[@]}" \
+                                "${#preferred_interval[@]}" "${preferred_interval[@]}" \
+                                "${#intervals[@]}" "${intervals[@]}"
 
         case "$return_value" in
             'already done')

@@ -1,14 +1,19 @@
 [[ -n $GUARD_INSERT ]] && return || readonly GUARD_INSERT=1
 
+SETUP_SCRIPTS_PATH="$(dirname "$(readlink -f "$0")")" # This script's path
+LIB_PATH="$SETUP_SCRIPTS_PATH/lib"
+
+source "$LIB_PATH/dynamic.bash"
+
 adjust_interval_linenumbers()
 {
-    INPUT="$1"
-    INDEX_LIMIT="$2"
+    local -r INPUT="$1"
+    local -r INDEX_LIMIT="$2"
 
     # Increment if statement variables as they got shifted
     debug_echo 100 "_intervals before:         ${_intervals[*]}"
     debug_echo 100 "index to change:          $INDEX_LIMIT"
-    NUM_LINES=$(echo -n "$INPUT" | grep -c '^')
+    local -r NUM_LINES=$(echo -n "$INPUT" | grep -c '^')
     debug_echo 100 "number of lines in input: $NUM_LINES"
     for i in "${!_intervals[@]}"
     do
@@ -65,27 +70,113 @@ add_single_line_content()
         return -1
     fi
 
-    FILE_PATH="$1"; shift       # 1
-    FILE_NAME="$1"; shift       # 2
-    VAR_NAME="$1"; shift        # 3
-    REF_TYPE="$1"; shift        # 4
-    REF_PLACEMENT="$1"; shift   # 5
+    local -r FILE_PATH="$1"; shift       # 1
+    local -r FILE_NAME="$1"; shift       # 2
+    local -r VAR_NAME_PREFIX="$1"; shift        # 3
+    local -r REF_TYPE="$1"; shift        # 4
+    local -r REF_PLACEMENT="$1"; shift   # 5
+
+    local dynamic_array_prefix="input_array"
+    handle_input_arrays_dynamically "$dynamic_array_prefix" "$@"
+
+    get_dynamic_array "${dynamic_array_prefix}1"
+    allowed_intervals=("${dynamic_array[@]}")
+
+    get_dynamic_array "${dynamic_array_prefix}2"
+    preferred_interval=("${dynamic_array[@]}")
+
+    get_dynamic_array "${dynamic_array_prefix}3"
+    _intervals=("${dynamic_array[@]}")
 
     debug_echo 100 -e "\nFILE_PATH: $FILE_PATH"
     debug_echo 100 "FILE_NAME: $FILE_NAME"
-    debug_echo 100 "VAR_NAME: $VAR_NAME"
-    debug_echo 100 "REF_TYPE: $REF_TYPE"
-    debug_echo 100 "REF_PLACEMENT: $REF_PLACEMENT"
-
-    # https://stackoverflow.com/questions/10953833/passing-multiple-distinct-arrays-to-a-shell-function
+    debug_echo 100 "VAR_NAME_PREFIX: $VAR_NAME_PREFIX"
     
+    _check_valid_ref "$REF_TYPE" "$REF_PLACEMENT" || return $?
+
+    debug_echo 100 -e "\n_intervals =         [ ${_intervals[@]} ]"
+    debug_echo 100 "allowed_intervals =  [ ${allowed_intervals[@]} ]"
+    debug_echo 100 -e "preferred_interval = [ ${preferred_interval[@]} ]\n"
+    
+    _check_valid_intervals || return $?
+
+    debug_echo 1 -e "\n*********************************************************************"
+    debug_echo 1 "***** Start input of $VAR_NAME_PREFIX **********************************"
+    debug_echo 1 "*********************************************************************"
+
+    EVAL_VAR_NAME=$VAR_NAME_PREFIX # ${!EVAL_VAR_NAME}
+    EVAL_VAR_NAME_EXISTS=${VAR_NAME_PREFIX}_EXISTS # ${!EVAL_VAR_NAME_EXISTS}
+    declare -g ${VAR_NAME_PREFIX}_EXISTS='true'
+
+    # Iterate over every line of VAR_NAME_PREFIX as they are independent
+    already_done='true'
+    while IFS= read -r line
+    do
+        debug_echo 100 "##################################################################"
+        debug_echo 100 "Checking new line of variable. ###################################"
+        debug_echo 100 -e "##################################################################\n"
+        exists_in_file "$FILE_PATH/$FILE_NAME" "$line" LINE
+        # Returns: LINE_EXIST / LINE_START / LINE_END
+
+        if [[ $REF_TYPE == "INBETWEEN" ]]
+        then
+            debug_echo 100 -e "\nReference type: INBETWEEN\n"
+            if ! $LINE_EXISTS
+            then
+                add_to_preferred_interval='true'
+                already_done='false'
+
+                file_num_lines=$(wc -l "$FILE_PATH/$FILE_NAME" | cut -f1 -d' ')
+                tmp_intervals=(0 ${_intervals[@]} "$file_num_lines")
+            else
+                _find_line_in_intervals
+                # Returns: exists_in_intervals[]
+
+                debug_echo 100 -e "exists_in_intervals: [${exists_in_intervals[*]}]"
+                debug_echo 100 -e "allowed_intervals:   [${allowed_intervals[*]}]"
+                debug_echo 100 -e "preferred_interval:  [${preferred_interval[*]}]\n"
+
+                _check_line_in_valid_intervals_del_invalid
+                # Returns: already_done / add_to_preferred_interval / add_to_preferred_interval_INDEX
+            fi
+
+            # Done afterwards as it messes with the line numbering when inserting.
+            # Only remove content of lines before this line, but don't remove the actual lines.
+            if [[ "$add_to_preferred_interval" = 'true' ]]
+            then
+                _insert_preferred_interval
+
+                # Update interval numbers
+                adjust_interval_linenumbers "$line" $add_to_preferred_interval_INDEX
+                already_done='false'
+            fi
+            debug_echo 100 " "
+        fi
+    done <<< "${!EVAL_VAR_NAME}"
+
+    debug_echo 1 -e "\n*********************************************************************"
+    debug_echo 1 "***** End input of $VAR_NAME_PREFIX ************************************"
+    debug_echo 1 "*********************************************************************"
+
+    if [[ "$already_done" = 'true' ]]; then
+        return_value='already done'
+    else
+        return_value='success'
+    fi
+    return 0
+}
+
+
+_check_valid_ref()
+{
+    local REF_TYPE="$1"
+    local REF_PLACEMENT="$2"
+
     # Check validity of input: 'REF_TYPE' & 'REF_PLACEMENT'
     case "$REF_TYPE" in
     "INBETWEEN")
         case "$REF_PLACEMENT" in
-        "START")
-            ;;
-        "END")
+        "START"|"END")
             ;;
         *)
             debug_echo 100 "Reference placement: $REF_PLACEMENT"
@@ -95,15 +186,13 @@ add_single_line_content()
             debug_echo 100 "- 'END'"
 
             result_value='Reference placement does not have a valid value.'
-            return -1
+            return 1
             ;;
         esac
         ;;
     "LINE")
         case "$REF_PLACEMENT" in
-        "BEFORE")
-            ;;
-        "AFTER")
+        "BEFORE"|"AFTER")
             ;;
         *)
             debug_echo 100 "Reference placement: $REF_PLACEMENT"
@@ -113,7 +202,7 @@ add_single_line_content()
             debug_echo 100 "- 'AFTER'"
 
             result_value='Reference placement does not have a valid value.'
-            return -1
+            return 1
             ;;
         esac
         ;;
@@ -125,51 +214,13 @@ add_single_line_content()
         debug_echo 100 "- 'LINE'"
 
         result_value='Reference type does not have a valid value.'
-        return -1
+        return 1
         ;;
     esac
+}
 
-    #
-    ## Following are still function inputs in form of arrays
-    #
-    if [[ $REF_TYPE == "INBETWEEN" ]]
-    then
-        declare -i array_num=1 # Extra array for '_intervals'
-    else
-        declare -i array_num=2 # Start number 2 to skip first array
-    fi
-
-    declare -i num_args
-    declare -ag _intervals=() # Values may be updated with external function
-    declare -a allowed_intervals=()
-    declare -a preferred_interval=()
-
-    # Get ending input arrays
-    while (( $# )) ; do
-        num_args=$1; shift
-        while (( num_args-- > 0 )) 
-        do
-            case $array_num in
-            1)
-                _intervals+=( "$1" ); shift;;
-            2)
-                allowed_intervals+=( "$1" ); shift;;
-            3)
-                preferred_interval+=( "$1" ); shift;;
-            *)
-                ;;
-            esac
-
-        done
-        ((array_num++)) || true # Force true
-    done
-    message="\n_intervals =         [ ${_intervals[@]} ]"
-    debug_echo 100 -e "$message"
-    message="allowed_intervals =  [ ${allowed_intervals[@]} ]"
-    debug_echo 100 "$message"
-    message="preferred_interval = [ ${preferred_interval[@]} ]\n"
-    debug_echo 100 -e "$message"
-    
+_check_valid_intervals()
+{
     # Check validity of input lengths: 'intervals', 'preferred_intervals' & 'allowed_intervals'
     if (( ${#_intervals[@]} < 2 ))
     then
@@ -178,7 +229,7 @@ add_single_line_content()
         debug_echo 100 "Intervals should have a length of at least 2."
 
         result_value='Intervals length is too short.'
-        return -1
+        return 1
     elif (( ${#_intervals[@]} + 1 != ${#preferred_interval[@]} ))
     then
         debug_echo 100 "Length of Intervals: ${#_intervals[@]}"
@@ -187,7 +238,7 @@ add_single_line_content()
         debug_echo 100 "Preferred intervals should be of length $((${#_intervals[@]} + 1))"
         
         result_value='Preferred intervals is not the right length to match Intervals.'
-        return -1
+        return 1
     elif (( ${#_intervals[@]} + 1 != ${#allowed_intervals[@]} ))
     then
         debug_echo 100 "Length of Intervals: ${#_intervals[@]}"
@@ -196,7 +247,7 @@ add_single_line_content()
         debug_echo 100 "Allowed intervals should be of length $((${#_intervals[@]} + 1))"
 
         result_value='Allowed intervals is not the right length to match Intervals.'
-        return -1
+        return 1
     fi
 
     # Get index of preferred interval
@@ -207,13 +258,13 @@ add_single_line_content()
     do
         debug_echo 100 "allowed_intervals[$i]: ${allowed_intervals[$i]}"
         debug_echo 100 "preferred_interval[$i]: ${preferred_interval[$i]}"
-        if [[ "${preferred_interval[$i]}" == true ]]
+        if [[ "${preferred_interval[$i]}" == 'true' ]]
         then
             debug_echo 100 "preferred_interval[$i] is true"
             preferred_index=$i
             ((num_preferred++)) || true # Force true
 
-            if [[ "${allowed_intervals[$i]}" == false ]]
+            if [[ "${allowed_intervals[$i]}" == 'false' ]]
             then
                 debug_echo 100 "allowed_intervals[$i] is false"
                 debug_echo 100 "Allowed intervals = [ ${allowed_intervals[*]} ]"
@@ -222,7 +273,7 @@ add_single_line_content()
                 debug_echo 100 "The Preferred interval must also be an Allowed interval."
 
                 result_value='Allowed intervals and Preferred interval does not match.'
-                return -1
+                return 1
             else
                 debug_echo 100 "allowed_intervals[$i] is true"
             fi
@@ -239,7 +290,7 @@ add_single_line_content()
         debug_echo 100 "Contains 0 true values, should contain exactly 1 true value."
         
         result_value='Preferred interval does not contain valid values.'
-        return -1
+        return 1
         ;;
     1)
         ;;
@@ -249,203 +300,149 @@ add_single_line_content()
         debug_echo 100 "Contains $num_preferred true values, should contain exactly 1 true value."
 
         result_value='Preferred interval does not contain valid values.'
-        return -1
+        return 1
         ;;
     esac
 
     debug_echo 100 "Found preferred interval in index $i."
-
-    EVAL_VAR_NAME=$VAR_NAME # ${!EVAL_VAR_NAME}
-    EVAL_VAR_NAME_EXISTS=${VAR_NAME}_EXISTS # ${!EVAL_VAR_NAME_EXISTS}
-
-    debug_echo 1 -e "\n*********************************************************************"
-    debug_echo 1 "***** Start input of $VAR_NAME **********************************"
-    debug_echo 1 "*********************************************************************"
-
-    declare -g ${VAR_NAME}_EXISTS=true
-
-    # Iterate over every line of VAR_NAME as they are independent
-    already_done=true
-    while IFS= read -r line
-    do
-        debug_echo 100 "##################################################################"
-        debug_echo 100 "Checking new line of variable. ###################################"
-        debug_echo 100 -e "##################################################################\n"
-        exists_in_file "$FILE_PATH/$FILE_NAME" "$line" LINE
-
-        if [[ $REF_TYPE == "INBETWEEN" ]]
-        then
-            debug_echo 100 -e "\nReference type: INBETWEEN\n"
-            if ! $LINE_EXISTS
-            then
-                ADD_TO_PREFERRED_INTERVAL=true
-                already_done=false
-
-                file_num_lines=$(wc -l "$FILE_PATH/$FILE_NAME" | cut -f1 -d' ')
-                tmp_intervals=(0 ${_intervals[@]} "$file_num_lines")
-            else
-
-                # Mark in which intervals the content exists
-                declare -i num_items=${#_intervals[@]}
-                declare found_in_interval
-                declare -a exists_in_intervals=()
-                for ((i=0;i<=num_items;i++))
-                do
-                    case $i in
-                    0)
-                        if (( LINE_START < _intervals[i] ))
-                        then
-                            debug_echo 100 "Line number $LINE_START IS in the interval < ${_intervals[$i]}. #####"
-                            found_in_interval=true
-                        else
-                            debug_echo 100 "Line number $LINE_START is NOT in the interval < ${_intervals[$i]}. *****"
-                            found_in_interval=false
-                        fi;;
-
-                    $num_items)
-                        if (( _intervals[i-1] < LINE_START ))
-                        then
-                            debug_echo 100 "Line number $LINE_START IS in the interval > ${_intervals[$((i-1))]}. #####"
-                            found_in_interval=true
-                        else
-                            debug_echo 100 "Line number $LINE_START is NOT in the interval > ${_intervals[$((i-1))]}. *****"
-                            found_in_interval=false
-                        fi;;
-
-                    *)
-                        if (( _intervals[i-1] <= LINE_START )) && (( LINE_START <= _intervals[i] ))
-                        then
-                            debug_echo 100 "Line number $LINE_START IS in interval ${_intervals[$((i-1))]} - ${_intervals[$i]}. #####"
-                            found_in_interval=true
-                        else
-                            debug_echo 100 "Line number $LINE_START is NOT in interval ${_intervals[$((i-1))]} - ${_intervals[$i]}. *****"
-                            found_in_interval=false
-                        fi;;
-                    esac
-                    debug_echo 100 " "
-
-                    exists_in_intervals+=( $found_in_interval )
-                done
-
-
-                # Compare where it exists with where it is allowed and preferred to exist
-                ADD_TO_PREFERRED_INTERVAL=false
-                str="exists_in_intervals: [${exists_in_intervals[*]}]"
-                debug_echo 100 -e "$str"
-                str="allowed_intervals:   [${allowed_intervals[*]}]"
-                debug_echo 100 -e "$str"
-                str="preferred_interval:  [${preferred_interval[*]}]\n"
-                debug_echo 100 -e "$str"
-                for ((j=0;j<${#exists_in_intervals[@]};j++))
-                do
-                    # Add start and end of intervals. _intervals could have been updated
-                    # since last calculation
-                    file_num_lines=$(wc -l "$FILE_PATH/$FILE_NAME" | cut -f1 -d' ')
-                    tmp_intervals=(0 ${_intervals[@]} "$file_num_lines")
-                    debug_echo 100 "-------------------------"
-                    debug_echo 100 "Checking interval $j"
-                    debug_echo 100 -e "-------------------------\n"
-                    if ${exists_in_intervals[$j]}
-                    then
-                        if ${allowed_intervals[$j]}
-                        then
-                            debug_echo 100 "Exists in allowed interval."
-                            if ${preferred_interval[$j]}
-                            then
-                                debug_echo 100 "Exists in the preferred interval."
-                            else
-                                debug_echo 100 "Is not in the preferred interval."
-                                debug_echo 100 -e "Remove content of line $LINE_START\n"
-                                # Remove the line
-                                sed -i "${LINE_START}d" "$FILE_PATH/$FILE_NAME"
-                                # Insert empty line in its place
-                                sed -i "$((LINE_START - 1))a $NL" "$FILE_PATH/$FILE_NAME"
-                                already_done=false
-                            fi
-                        else # Exists in DISALLOWED interval
-
-                            debug_echo 100 "Exists in DISALLOWED interval."
-                            debug_echo 100 -e "Remove content of line $LINE_START\n"
-                            # Remove the line
-                            sed -i "${LINE_START}d" "$FILE_PATH/$FILE_NAME"
-                            # Insert empty line in its place
-                            sed -i "$((LINE_START - 1))a $NL" "$FILE_PATH/$FILE_NAME"
-
-                            already_done=false
-                        fi
-                    else # Does NOT exist in interval
-                        if ${preferred_interval[$j]}
-                        then
-                            debug_echo 100 "Does NOT exist in preferred interval"
-                            debug_echo 100 "To be added in preferred interval"
-                            
-                            ADD_TO_PREFERRED_INTERVAL=true
-                            ADD_TO_PREFERRED_INTERVAL_INDEX=$j
-                            already_done=false
-                        fi
-                    fi
-                    debug_echo 100 "-^-^-^-^-^-^-^-^-^-"
-                    debug_echo 100 "DONE with interval"
-                    debug_echo 100 -e "-^-^-^-^-^-^-^-^-^-\n"
-                done
-                debug_echo 100 "-*-*-*-*-*-*-*-*-*-*-*-*-"
-                debug_echo 100 "Checked all intervals."
-                debug_echo 100 "-*-*-*-*-*-*-*-*-*-*-*-*-"
-            fi
-
-            # Done afterwards as it messes with the line numbering when inserting.
-            # Only remove content of lines before this line, but don't remove the actual lines.
-            if $ADD_TO_PREFERRED_INTERVAL
-            then
-                debug_echo 100 "Place in preferred interval."
-                # If ending with backslash, add another one to behave as wanted with sed
-                line=$(echo "$line" | sed -E 's/[\\]$/\\\\/gm')
-                
-                # Place content in allowed interval
-                case "$REF_PLACEMENT" in
-                    "START")
-                        insert_line_number="$(( tmp_intervals[preferred_index] + 1))"
-                        line_to_get_whitespace=$(sed -n  "$((insert_line_number - 1))"p "$FILE_PATH/$FILE_NAME")
-                        whitespace_indentation="$(grep -Eo "^\s*" <<< "$line_to_get_whitespace")"
-                        debug_echo 100 "line num line_to_get_whitespace: '$((insert_line_number - 1))'"
-                        debug_echo 100 "line_to_get_whitespace: '$line_to_get_whitespace'"
-                        debug_echo 100 "whitespace_indentation: '$whitespace_indentation'"
-                        sed -i "${insert_line_number}i $whitespace_indentation\\\t$line" "$FILE_PATH/$FILE_NAME"
-                        ;;
-                    *)
-                        insert_line_number="$((tmp_intervals[preferred_index + 1]))"
-                        line_to_get_whitespace=$(sed -n  "$insert_line_number"p "$FILE_PATH/$FILE_NAME")
-                        whitespace_indentation="$(grep -Eo "^\s*" <<< "$line_to_get_whitespace")"
-                        debug_echo 100 "insert_line_number: '$insert_line_number'"
-                        debug_echo 100 "line_to_get_whitespace: '$line_to_get_whitespace'"
-                        debug_echo 100 "whitespace_indentation: '$whitespace_indentation'"
-                        sed -i "${insert_line_number}i $whitespace_indentation\\\t$line" "$FILE_PATH/$FILE_NAME"
-                        ;;
-                esac
-                debug_echo 100 "Placed in preferred interval."
-                # Update interval numbers
-                adjust_interval_linenumbers "$line" $ADD_TO_PREFERRED_INTERVAL_INDEX
-                already_done=false
-            fi
-            debug_echo 100 " "
-        fi
-
-
-    done <<< "${!EVAL_VAR_NAME}"
-
-    debug_echo 1 -e "\n*********************************************************************"
-    debug_echo 1 "***** End input of $VAR_NAME ************************************"
-    debug_echo 1 "*********************************************************************"
-
-    if $already_done; then
-        return_value='already done'
-    else
-        return_value='success'
-    fi
-    return 0
 }
 
+_find_line_in_intervals()
+{
+    # Mark in which intervals the content exists
+    local num_items=${#_intervals[@]}
+    local found_in_interval
+    exists_in_intervals=()
+    for ((i=0;i<=num_items;i++))
+    do
+        case $i in
+        0)
+            if (( LINE_START < _intervals[i] ))
+            then
+                debug_echo 100 "Line number $LINE_START IS in the interval < ${_intervals[$i]}. #####"
+                found_in_interval='true'
+            else
+                debug_echo 100 "Line number $LINE_START is NOT in the interval < ${_intervals[$i]}. *****"
+                found_in_interval='false'
+            fi;;
 
+        $num_items)
+            if (( _intervals[i-1] < LINE_START ))
+            then
+                debug_echo 100 "Line number $LINE_START IS in the interval > ${_intervals[$((i-1))]}. #####"
+                found_in_interval='true'
+            else
+                debug_echo 100 "Line number $LINE_START is NOT in the interval > ${_intervals[$((i-1))]}. *****"
+                found_in_interval='false'
+            fi;;
+
+        *)
+            if (( _intervals[i-1] <= LINE_START )) && (( LINE_START <= _intervals[i] ))
+            then
+                debug_echo 100 "Line number $LINE_START IS in interval ${_intervals[$((i-1))]} - ${_intervals[$i]}. #####"
+                found_in_interval='true'
+            else
+                debug_echo 100 "Line number $LINE_START is NOT in interval ${_intervals[$((i-1))]} - ${_intervals[$i]}. *****"
+                found_in_interval='false'
+            fi;;
+        esac
+        debug_echo 100 " "
+
+        exists_in_intervals+=( "$found_in_interval" )
+    done
+}
+
+_check_line_in_valid_intervals_del_invalid()
+{
+    # Compare where it exists with where it is allowed and preferred to exist
+    add_to_preferred_interval='false'
+
+    for ((j=0;j<${#exists_in_intervals[@]};j++))
+    do
+        # Add start and end of intervals. _intervals could have been updated
+        # since last calculation
+        file_num_lines=$(wc -l "$FILE_PATH/$FILE_NAME" | cut -f1 -d' ')
+        tmp_intervals=(0 ${_intervals[@]} "$file_num_lines")
+        debug_echo 100 "-------------------------"
+        debug_echo 100 "Checking interval $j"
+        debug_echo 100 -e "-------------------------\n"
+        if [[ "${exists_in_intervals[$j]}" = 'true' ]]
+        then
+            if ${allowed_intervals[$j]}
+            then
+                debug_echo 100 "Exists in allowed interval."
+                if ${preferred_interval[$j]}
+                then
+                    debug_echo 100 "Exists in the preferred interval."
+                else
+                    debug_echo 100 "Is not in the preferred interval."
+                    debug_echo 100 -e "Remove content of line $LINE_START\n"
+                    # Remove the line
+                    sed -i "${LINE_START}d" "$FILE_PATH/$FILE_NAME"
+                    # Insert empty line in its place
+                    sed -i "$((LINE_START - 1))a $NL" "$FILE_PATH/$FILE_NAME"
+                    already_done='false'
+                fi
+            else # Exists in DISALLOWED interval
+
+                debug_echo 100 "Exists in DISALLOWED interval."
+                debug_echo 100 -e "Remove content of line $LINE_START\n"
+                # Remove the line
+                sed -i "${LINE_START}d" "$FILE_PATH/$FILE_NAME"
+                # Insert empty line in its place
+                sed -i "$((LINE_START - 1))a $NL" "$FILE_PATH/$FILE_NAME"
+
+                already_done='false'
+            fi
+        else # Does NOT exist in interval
+            if ${preferred_interval[$j]}
+            then
+                debug_echo 100 "Does NOT exist in preferred interval"
+                debug_echo 100 "To be added in preferred interval"
+                
+                add_to_preferred_interval='true'
+                add_to_preferred_interval_INDEX=$j
+                already_done='false'
+            fi
+        fi
+        debug_echo 100 "-^-^-^-^-^-^-^-^-^-"
+        debug_echo 100 "DONE with interval"
+        debug_echo 100 -e "-^-^-^-^-^-^-^-^-^-\n"
+    done
+    debug_echo 100 "-*-*-*-*-*-*-*-*-*-*-*-*-"
+    debug_echo 100 "Checked all intervals."
+    debug_echo 100 "-*-*-*-*-*-*-*-*-*-*-*-*-"
+}
+
+_insert_preferred_interval()
+{
+    debug_echo 100 "Place in preferred interval."
+    # If ending with backslash, add another one to behave as wanted with sed
+    line=$(echo "$line" | sed -E 's/[\\]$/\\\\/gm')
+    
+    # Place content in allowed interval
+    case "$REF_PLACEMENT" in
+        "START")
+            insert_line_number="$(( tmp_intervals[preferred_index] + 1))"
+            line_to_get_whitespace=$(sed -n  "$((insert_line_number - 1))"p "$FILE_PATH/$FILE_NAME")
+            whitespace_indentation="$(grep -Eo "^\s*" <<< "$line_to_get_whitespace")"
+            debug_echo 100 "line num line_to_get_whitespace: '$((insert_line_number - 1))'"
+            debug_echo 100 "line_to_get_whitespace: '$line_to_get_whitespace'"
+            debug_echo 100 "whitespace_indentation: '$whitespace_indentation'"
+            sed -i "${insert_line_number}i $whitespace_indentation\\\t$line" "$FILE_PATH/$FILE_NAME"
+            ;;
+        *)
+            insert_line_number="$((tmp_intervals[preferred_index + 1]))"
+            line_to_get_whitespace=$(sed -n  "$insert_line_number"p "$FILE_PATH/$FILE_NAME")
+            whitespace_indentation="$(grep -Eo "^\s*" <<< "$line_to_get_whitespace")"
+            debug_echo 100 "insert_line_number: '$insert_line_number'"
+            debug_echo 100 "line_to_get_whitespace: '$line_to_get_whitespace'"
+            debug_echo 100 "whitespace_indentation: '$whitespace_indentation'"
+            sed -i "${insert_line_number}i $whitespace_indentation\\\t$line" "$FILE_PATH/$FILE_NAME"
+            ;;
+    esac
+    debug_echo 100 "Placed in preferred interval."
+}
 
 add_multiline_content()
 {
@@ -689,7 +686,7 @@ add_multiline_content()
             debug_echo 100 "Placed in preferred interval."
             
             # Update interval numbers
-            adjust_interval_linenumbers "${!EVAL_VAR_NAME}" $ADD_TO_PREFERRED_INTERVAL_INDEX
+            adjust_interval_linenumbers "${!EVAL_VAR_NAME}" $add_to_preferred_interval_INDEX
 
             declare -g "${VAR_NAME}_EXISTS=false" # EXISTS since before = not true
             already_done=false
@@ -745,7 +742,7 @@ add_multiline_content()
             done
 
             # Compare where it exists with where it is allowed and preferred to exist
-            ADD_TO_PREFERRED_INTERVAL=false
+            add_to_preferred_interval=false
             str="exists_in_intervals: [${exists_in_intervals[@]}]"
             debug_echo 100 -e "$str"
             str="allowed_intervals:   [${allowed_intervals[@]}]"
@@ -801,8 +798,8 @@ add_multiline_content()
                         debug_echo 100 "Does NOT exist in preferred interval"
                         debug_echo 100 "To be added in preferred interval"
                         
-                        ADD_TO_PREFERRED_INTERVAL=true
-                        ADD_TO_PREFERRED_INTERVAL_INDEX=$j
+                        add_to_preferred_interval=true
+                        add_to_preferred_interval_INDEX=$j
                         
                         already_done=false
                     fi
@@ -818,7 +815,7 @@ add_multiline_content()
 
             # Done afterwards as it messes with the line numbering when inserting.
             # Only remove content of lines before this line, but don't remove the actual lines.
-            if $ADD_TO_PREFERRED_INTERVAL
+            if $add_to_preferred_interval
             then
                 debug_echo 100 "Place in preferred interval."
 
@@ -848,7 +845,7 @@ add_multiline_content()
                 debug_echo 100 "Placed in preferred interval."
                 
                 # Update interval numbers
-                adjust_interval_linenumbers "${!EVAL_VAR_NAME}" $ADD_TO_PREFERRED_INTERVAL_INDEX
+                adjust_interval_linenumbers "${!EVAL_VAR_NAME}" $add_to_preferred_interval_INDEX
 
                 declare -g "${VAR_NAME}_EXISTS=false" # EXISTS since before = not true
                 already_done=false

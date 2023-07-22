@@ -160,7 +160,7 @@ export_files_new()
     done
 
     # Check if all existing dest files equal source files
-    local files_already_exists=true
+    local files_already_exists='true'
     for (( i=0; i<len; i++ ))
     do
         source_file="${arr_source_path[i]}/${arr_source_file_name[i]}"
@@ -169,7 +169,7 @@ export_files_new()
         if ! [[ -f "$dest_file" ]] || \
            ! cmp --silent "$source_file" "$dest_file"
         then
-            files_already_exists=false
+            files_already_exists='false'
             break
         fi
     done
@@ -288,7 +288,7 @@ exists_in_file()
     FILECONTENT=$(<$1)
     CONTENT_TO_CHECK="$2"
 
-    declare -g $3_EXISTS=false
+    declare -g $3_EXISTS='false'
     
     
     debug_echo 1 -e "\n----------------------------------"
@@ -341,7 +341,7 @@ exists_in_file()
                 # For eval and print within this function
                 START=$3_START
                 END=$3_END
-                declare -g $3_EXISTS=true
+                declare -g $3_EXISTS='true'
 
                 debug_echo 1 -e "${GREEN_COLOR}######################${END_COLOR}"
                 debug_echo 1 -e "${GREEN_COLOR}### Found content! ###${END_COLOR}"
@@ -381,7 +381,7 @@ exists_in_file()
         # For eval and print within this function
         START=$3_START
         END=$3_END
-        declare -g $3_EXISTS=true
+        declare -g $3_EXISTS='true'
         debug_echo 1 -e "${GREEN_COLOR}######################${END_COLOR}"
         debug_echo 1 -e "${GREEN_COLOR}### Found content! ###${END_COLOR}"
         debug_echo 1 -e "${GREEN_COLOR}######################${END_COLOR}\n"
