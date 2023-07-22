@@ -67,7 +67,8 @@ main()
     initial_questions
 
     # Go through every setup, calling their corresponding function if to be done
-    TOTAL_RESULTS=true
+    total_results_success='true'
+    total_results_already_done='true'
     for ind_arr_setups in "${!arr_setups[@]}"
     do 
         if [[ $(( ind_arr_setups % 2 )) == 0 ]]
@@ -99,22 +100,27 @@ main()
 
                 case $return_value in 
                     'success')   # Success
-                        END_RESULTS+="[✔️] ";;
+                        end_results+="[✔️] "
+                        total_results_already_done='false'
+                        ;;
                     'already done') # Already done
-                        END_RESULTS+="[🔷] ";;
+                        end_results+="[🔷] "
+                        ;;
                     *)   # Failure
-                        END_RESULTS+="[❌] ";
-                        TOTAL_RESULTS=false;;
+                        end_results+="[❌] ";
+                        total_results_success='false'
+                        total_results_already_done='false'
+                        ;;
                 esac
                 debug_echo 1 -e "${ORANGE_COLOR}$(for i in {1..100}; do printf '\\'; done; printf '\n';)${END_COLOR}"
                 debug_echo 1 -e "${ORANGE_COLOR}/// End setup of \"${arr_setups[(($ind_arr_setups + 1))]}\"${END_COLOR}"
                 debug_echo 1 -e "${ORANGE_COLOR}$(for i in {1..100}; do printf '\\'; done; printf '\n';)${END_COLOR}"
             else
                 # Setup not to be done
-                END_RESULTS+="[🟠] "
+                end_results+="[🟠] "
             fi
 
-            END_RESULTS+="${arr_setups[(($ind_arr_setups + 1))]}\n"
+            end_results+="${arr_setups[(($ind_arr_setups + 1))]}\n"
         fi
     done
 
@@ -124,16 +130,21 @@ main()
     echo -e " ✔️ = Success"
     echo -e " ❌ = Failure"
     echo -e " 🔷 = Already setup\n"
-    echo -e "$END_RESULTS\n"
+    echo -e "$end_results\n"
     echo -e "****************************************"
-    TOTAL_RESULTS_PRINT="Total results: "
-    if $TOTAL_RESULTS
+
+    total_results_print="Total results: "
+    if [[ "$total_results_already_done" = 'true' ]]
     then
-        TOTAL_RESULTS_PRINT+="✔️ - SUCCESS"
+        total_results_print+="🔷 - ALREADY DONE"
+    elif [[ "$total_results_success" == 'true' ]]
+    then
+        total_results_print+="✔️ - SUCCESS"
     else
-        TOTAL_RESULTS_PRINT+="❌ - FAILURE"
+        total_results_print+="❌ - FAILURE"
     fi
-    echo -e "$TOTAL_RESULTS_PRINT"
+
+    echo -e "$total_results_print"
     echo -e "****************************************\n"
 
 }
