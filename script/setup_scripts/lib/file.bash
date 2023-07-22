@@ -1,6 +1,7 @@
 [[ -n $GUARD_FILE ]] && return || readonly GUARD_FILE=1
 
 source "$LIB_PATH/dynamic.bash"
+source "$LIB_PATH/base.bash"
 
 backup()
 {
