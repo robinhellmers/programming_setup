@@ -51,22 +51,22 @@ find_else_elif_fi_statement()
     # echo "${!eval_index_var_name_LNs}"
     # echo "${!eval_var_name_LNs}"
     #
-    local var_name_LNs="${VAR_NAME}_LNs"
+    local var_name_LNs="${VAR_NAME_PREFIX}_LNs"
     declare -ag "${var_name_LNs}=()"
     declare eval_var_name_LNs="${var_name_LNs}[@]"
     declare eval_index_var_name_LNs="${var_name_LNs}[index]"
     
 
-    # Declare dynamic name array ${VAR_NAME}_type
-    local var_name_type="${VAR_NAME}_type"
+    # Declare dynamic name array ${VAR_NAME_PREFIX}_type
+    local var_name_type="${VAR_NAME_PREFIX}_type"
     declare -ag "${var_name_type}=()"
     declare eval_var_name_type="${var_name_type}[@]"
     declare eval_index_var_name_type="${var_name_type}[index]"
 
-    # declare -ag "${VAR_NAME}_type=()"
-    # declare -n var_name_type="${VAR_NAME}_type"
-    # eval_var_name_type="${VAR_NAME}_type[@]"
-    # declare  eval_index_var_name_type="${VAR_NAME}_type[index]"
+    # declare -ag "${VAR_NAME_PREFIX}_type=()"
+    # declare -n var_name_type="${VAR_NAME_PREFIX}_type"
+    # eval_var_name_type="${VAR_NAME_PREFIX}_type[@]"
+    # declare  eval_index_var_name_type="${VAR_NAME_PREFIX}_type[index]"
 
     debug_echo 100 "********************************************************"
     debug_echo 100 "***** Update if statement variables ********************"
