@@ -74,7 +74,7 @@ find_else_elif_fi_statement()
 
     if_statement_level=0
     line_count=0
-    while read -r line; do
+    while read -r line || [[ -n "$line" ]]; do
         # Get first word of line
         first_word=$(echo "$line" | head -n1 | awk '{print $1;}')
         
