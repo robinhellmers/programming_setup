@@ -1,4 +1,4 @@
-[[ -n $GUARD_DYNAMIC ]] && return || readonly GUARD_DYNAMIC=
+[[ -n $GUARD_DYNAMIC ]] && return || readonly GUARD_DYNAMIC=1
 
 ##############################
 ### Library initialization ###
