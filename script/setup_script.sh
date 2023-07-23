@@ -17,21 +17,35 @@
 # trap 'failure "${BASH_LINENO[*]}" "$LINENO" "${FUNCNAME[*]:-script}" "$?" "$BASH_COMMAND"' ERR
 
 # 'export' to pass variables to script shell executed from this script
-export MAIN_SCRIPT_PATH="$(dirname "$(readlink -f "$0")")"
-SETUP_SCRIPTS_PATH="$MAIN_SCRIPT_PATH/setup_scripts"
-LIB_PATH="$SETUP_SCRIPTS_PATH/lib"
 
-source "$LIB_PATH/base.bash"
+########################
+### Library sourcing ###
+########################
 
-NL='
-'
-DEFAULT_BOLD_COLOR='\033[1;39m'
-DEFAULT_UNDERLINE_COLOR='\033[4;39m'
-RED_COLOR='\033[0;31m'
-GREEN_COLOR='\033[0;32m'
-ORANGE_COLOR='\033[0;33m'
-MAGENTA_COLOR='\033[0;35m'
-END_COLOR='\033[0m'
+library_sourcing()
+{
+    find_this_script_path
+    readonly MAIN_SCRIPT_PATH="$this_script_path"
+    export MAIN_SCRIPT_PATH
+
+    readonly SETUP_SCRIPTS_PATH="$this_script_path/setup_scripts"
+    readonly LIB_PATH="$SETUP_SCRIPTS_PATH/lib"
+
+    source "$LIB_PATH/base.bash"
+}
+
+find_this_script_path()
+{
+    local source=${BASH_SOURCE[0]}
+    while [ -L "$source" ]; do # resolve $source until the file is no longer a symlink
+        this_script_path=$( cd -P "$( dirname "$source" )" >/dev/null 2>&1 && pwd )
+        source=$(readlink "$source")
+        [[ $source != /* ]] && source=$this_script_path/$source # if $source was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+    done
+    this_script_path=$( cd -P "$( dirname "$source" )" >/dev/null 2>&1 && pwd )
+}
+
+library_sourcing
 
 ################
 ### SETTINGS ###

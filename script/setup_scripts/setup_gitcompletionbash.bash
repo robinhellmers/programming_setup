@@ -1,8 +1,28 @@
 
 
-SETUP_SCRIPTS_PATH="$(dirname "$(readlink -f "$0")")" # This script's path
-LIB_PATH="$SETUP_SCRIPTS_PATH/lib"
+########################
+### Library sourcing ###
+########################
 
+library_sourcing()
+{
+    find_this_script_path
+
+    readonly LIB_PATH="$this_script_path/lib"
+}
+
+find_this_script_path()
+{
+    local source=${BASH_SOURCE[0]}
+    while [ -L "$source" ]; do # resolve $source until the file is no longer a symlink
+        this_script_path=$( cd -P "$( dirname "$source" )" >/dev/null 2>&1 && pwd )
+        source=$(readlink "$source")
+        [[ $source != /* ]] && source=$this_script_path/$source # if $source was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+    done
+    this_script_path=$( cd -P "$( dirname "$source" )" >/dev/null 2>&1 && pwd )
+}
+
+library_sourcing
 
 ############################
 ### GIT COMPLETION SETUP ###
