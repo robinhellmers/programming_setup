@@ -29,7 +29,7 @@ library_sourcing()
     export MAIN_SCRIPT_PATH
 
     readonly SETUP_SCRIPTS_PATH="$this_script_path/setup_scripts"
-    readonly LIB_PATH="$SETUP_SCRIPTS_PATH/lib"
+    local -r LIB_PATH="$SETUP_SCRIPTS_PATH/lib"
 
     source "$LIB_PATH/base.bash"
 }

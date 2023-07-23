@@ -8,7 +8,7 @@ library_sourcing()
 {
     find_this_script_path
 
-    readonly LIB_PATH="$this_script_path/lib"
+    local -r LIB_PATH="$this_script_path/lib"
 
     source "$LIB_PATH/config.bash"
     source "$LIB_PATH/base.bash"

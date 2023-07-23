@@ -8,7 +8,7 @@ init_lib()
 {
     find_this_script_path
 
-    readonly LIB_PATH="$this_script_path"
+    local -r LIB_PATH="$this_script_path"
 
     source "$LIB_PATH/dynamic.bash"
 }

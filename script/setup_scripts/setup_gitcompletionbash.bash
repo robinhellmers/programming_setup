@@ -8,7 +8,7 @@ library_sourcing()
 {
     find_this_script_path
 
-    readonly LIB_PATH="$this_script_path/lib"
+    local -r LIB_PATH="$this_script_path/lib"
 }
 
 find_this_script_path()
