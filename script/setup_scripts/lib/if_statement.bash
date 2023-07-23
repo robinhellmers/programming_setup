@@ -74,66 +74,85 @@ find_else_elif_fi_statement()
     # eval_var_name_type="${VAR_NAME_PREFIX}_type[@]"
     # declare  eval_index_var_name_type="${VAR_NAME_PREFIX}_type[index]"
 
-    debug_echo 100 "********************************************************"
-    debug_echo 100 "***** Update if statement variables ********************"
-    debug_echo 100 "********************************************************"
+    debug_echo 10 "************************************************"
+    debug_echo 10 "***** Update if statement variables ************"
+    debug_echo 10 "************************************************"
+
+    debug_echo 100 "MAX LEVEL: $MAX_LEVEL"
+    debug_echo 100 "Arrays to update:"
+    debug_echo 100 "* $var_name_LNs[]"
+    debug_echo 100 "* $var_name_type[]"
+    debug_echo 100 -e "* $var_name_level[]\n"
 
     local level=0
     local line_count=0
-    while read -r line || [[ -n "$line" ]]; do
+    while read -r line || [[ -n "$line" ]]
+    do
+        current_line_number=$((IF_STATEMENT_START_LINE_NUM + $line_count))
+
         # Get first word of line
         first_word=$(echo "$line" | head -n1 | awk '{print $1;}')
-        
+
+        debug_echo 100 "first word: $first_word"
+
+        [[ "$first_word" == 'if' ]] && ((level++))
+        [[ "$first_word" == 'fi' ]] && ((level--))
+
         case $first_word in
-        'if')
-            ((level++))
+        'if'|'elif'|'else')
+            debug_echo 100 "level: $level"
 
             if (( level <= MAX_LEVEL ))
             then
-                append_array $var_name_LNs $((IF_STATEMENT_START_LINE_NUM + $line_count))
-                append_array $var_name_type 'if'
-                append_array $var_name_level "$level"
-            fi
-            ;;
-        'elif')
-            if (( level <= MAX_LEVEL ))
-            then
-                append_array $var_name_LNs $((IF_STATEMENT_START_LINE_NUM + $line_count))
-                append_array $var_name_type 'elif'
-                append_array $var_name_level "$level"
-            fi
-            ;;
-        'else')
-            if (( level <= MAX_LEVEL ))
-            then
-                append_array $var_name_LNs $((IF_STATEMENT_START_LINE_NUM + $line_count))
-                append_array $var_name_type 'else'
+                debug_echo 100 "Appending data to arrays."
+                debug_echo 100 "Line number: $current_line_number"
+                debug_echo 100 "Type: $first_word"
+                debug_echo 100 "Level: $level"
+
+                append_array $var_name_LNs $current_line_number
+                append_array $var_name_type "$first_word"
                 append_array $var_name_level "$level"
             fi
             ;;
         'fi')
-            ((level--))
+            debug_echo 100 "level: $level"
 
             if ((level <= MAX_LEVEL - 1))
             then
-                append_array $var_name_LNs $((IF_STATEMENT_START_LINE_NUM + $line_count))
-                append_array $var_name_type 'fi'
+                debug_echo 100 "Appending data to arrays."
+                debug_echo 100 "Line number: $current_line_number"
+                debug_echo 100 "Type: $first_word"
+                debug_echo 100 "Level: $level"
+
+                append_array $var_name_LNs $current_line_number
+                append_array $var_name_type "$first_word"
                 append_array $var_name_level "$level"
 
                 if ((level == 0))
                 then
+                    debug_echo 100 "************************************************"
+                    debug_echo 100 "***** Done updating if statement variables *****"
+                    debug_echo 100 "************************************************"
                     return 0
                 fi
             fi
             ;;
         *)
+            debug_echo 100 "Discard line."
             ;;
         esac
+
+        debug_echo 100 "-"
         
         ((line_count++)) || true # Force true
     done < <(tail -n "+$IF_STATEMENT_START_LINE_NUM" $FILE)
 
-    return -1
+    debug_echo 1 -e "\nReturning with error, if statement level never became 0.\n"
+    debug_echo 10 "************************************************"
+    debug_echo 10 "***** Done updating if statement variables *****"
+    debug_echo 10 "************************************************"
+
+    return 1
 }
 
 
