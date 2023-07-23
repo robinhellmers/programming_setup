@@ -15,6 +15,7 @@ library_sourcing()
     find_this_script_path
 
     local -r LIB_PATH="$this_script_path/lib"
+    SETUP_SCRIPTS_PATH="${SETUP_SCRIPTS_PATH:-"$this_script_path"}"
 
     source "$LIB_PATH/config.bash"
     source "$LIB_PATH/common.bash"
