@@ -483,194 +483,38 @@ add_multiline_content()
     local -r REF_TYPE="$1"; shift        # 4
     local -r REF_PLACEMENT="$1"; shift   # 5
 
+    local dynamic_array_prefix="input_array"
+    handle_input_arrays_dynamically "$dynamic_array_prefix" "$@"
+
+    get_dynamic_array "${dynamic_array_prefix}1"
+    allowed_intervals=("${dynamic_array[@]}")
+
+    get_dynamic_array "${dynamic_array_prefix}2"
+    preferred_interval=("${dynamic_array[@]}")
+
+    get_dynamic_array "${dynamic_array_prefix}3"
+    _intervals=("${dynamic_array[@]}")
+
     debug_echo 100 -e "\nFILE_PATH: $FILE_PATH"
     debug_echo 100 "FILE_NAME: $FILE_NAME"
     debug_echo 100 "VAR_NAME_PREFIX: $VAR_NAME_PREFIX"
-    debug_echo 100 "REF_TYPE: $REF_TYPE"
-    debug_echo 100 "REF_PLACEMENT: $REF_PLACEMENT"
 
-     # Check validity of input: 'REF_TYPE' & 'REF_PLACEMENT'
-    case "$REF_TYPE" in
-    "INBETWEEN")
-        case "$REF_PLACEMENT" in
-        "START")
-            ;;
-        "END")
-            ;;
-        *)
-            debug_echo 100 "Reference placement: $REF_PLACEMENT"
-            debug_echo 100 "Reference placement does not have a valid value."
-            debug_echo 100 "Options to choose from:"
-            debug_echo 100 "- 'START'"
-            debug_echo 100 "- 'END'"
-
-            return_value='Reference placement does not have a valid value.s'
-            return -1
-            ;;
-        esac
-        ;;
-    "LINE")
-        case "$REF_PLACEMENT" in
-        "BEFORE")
-            ;;
-        "AFTER")
-            ;;
-        *)
-            debug_echo 100 "Reference placement: $REF_PLACEMENT"
-            debug_echo 100 "Reference placement does not have a valid value."
-            debug_echo 100 "Options to choose from:"
-            debug_echo 100 "- 'BEFORE'"
-            debug_echo 100 "- 'AFTER'"
-
-            return_value='Reference placement does not have a valid value.'
-            return -1
-            ;;
-        esac
-        ;;
-    *)
-        debug_echo 100 "Reference type: $REF_TYPE"
-        debug_echo 100 "Reference type does not have a valid value."
-        debug_echo 100 "Options to choose from:"
-        debug_echo 100 "- 'INBETWEEN'"
-        debug_echo 100 "- 'LINE'"
-
-        return_value='Reference type does not have a valid value.'
-        return -1
-        ;;
-    esac
-
-
-    if [[ $REF_TYPE == "INBETWEEN" ]]
-    then
-        declare -i array_num=1 # Extra array for '_intervals'
-    else
-        declare -i array_num=2
-    fi
-
-    declare -i num_args
-    declare -ag _intervals=() # Values may be updated with external function
-    declare -a allowed_intervals=()
-    declare -a preferred_interval=()
-
-    # Get ending input arrays
-    while (( $# )) ; do
-        num_args=$1; shift
-        while (( num_args-- > 0 )) 
-        do
-            case $array_num in
-            1)
-                _intervals+=( "$1" ); shift;;
-            2)
-                allowed_intervals+=( "$1" ); shift;;
-            3)
-                preferred_interval+=( "$1" ); shift;;
-            *)
-                ;;
-            esac
-
-        done
-        ((array_num++)) || true # Force true
-    done
+    _check_valid_ref "$REF_TYPE" "$REF_PLACEMENT" || return $?
 
     debug_echo 100 -e "\n_intervals =         [ ${_intervals[*]} ]"
     debug_echo 100 "allowed_intervals =  [ ${allowed_intervals[*]} ]"
     debug_echo 100 -e "preferred_interval = [ ${preferred_interval[*]} ]\n"
 
-    # Check validity of input lengths: 'intervals', 'preferred_intervals' & 'allowed_intervals'
-    if (( ${#_intervals[@]} < 2 ))
-    then
-        debug_echo 100 "Length of Intervals: ${#_intervals[@]}"
-        debug_echo 100 "Intervals length is too short."
-        debug_echo 100 "Intervals should have a length of at least 2."
+    _check_valid_intervals || return $?
 
-        return_value='Intervals length is too short.'
-        return -1
-    elif (( ${#_intervals[@]} + 1 != ${#preferred_interval[@]} ))
-    then
-        debug_echo 100 "Length of Intervals: ${#_intervals[@]}"
-        debug_echo 100 "Length of Preferred intervals: ${#preferred_interval[@]}"
-        debug_echo 100 "Preferred intervals is not the right length to match Intervals."
-        debug_echo 100 "Preferred intervals should be of length $((${#_intervals[@]} + 1))"
-
-        return_value="Preferred intervals is not the right length to match Intervals."
-        return -1
-    elif (( ${#_intervals[@]} + 1 != ${#allowed_intervals[@]} ))
-    then
-        debug_echo 100 "Length of Intervals: ${#_intervals[@]}"
-        debug_echo 100 "Length of Allowed intervals: ${#allowed_intervals[@]}"
-        debug_echo 100 "Allowed intervals is not the right length to match Intervals."
-        debug_echo 100 "Allowed intervals should be of length $((${#_intervals[@]} + 1))"
-
-        return_value="Allowed intervals is not the right length to match Intervals."
-        return -1
-    fi
-
-    # Get index of preferred interval
-    # Check validity of input matching: 'preferred_interval' & 'allowed_intervals'
-    declare -i preferred_index
-    declare -i num_preferred=0
-    for i in "${!preferred_interval[@]}"
-    do
-        debug_echo 100 "allowed_intervals[$i]: ${allowed_intervals[$i]}"
-        debug_echo 100 "preferred_interval[$i]: ${preferred_interval[$i]}"
-        if [[ "${preferred_interval[$i]}" == true ]]
-        then
-            debug_echo 100 "preferred_interval[$i] is true"
-            preferred_index=$i
-            ((num_preferred++)) || true # Force true
-
-            if [[ "${allowed_intervals[$i]}" == false ]]
-            then
-                debug_echo 100 "allowed_intervals[$i] is false"
-                debug_echo 100 "Allowed intervals = [ ${allowed_intervals[*]} ]"
-                debug_echo 100 "Preferred interval: [ ${preferred_interval[*]} ]"
-                debug_echo 100 "Allowed intervals and Preferred interval does not match."
-                debug_echo 100 "The Preferred interval must also be an Allowed interval."
-
-                return_value='Allowed intervals and Preferred interval does not match.'
-                return -1
-            else
-                debug_echo 100 "allowed_intervals[$i] is true"
-            fi
-        else
-            debug_echo 100 "preferred_interval[$i] is false"
-        fi
-    done
-
-    # Check validity of input: 'preferred_interval'
-    case "$num_preferred" in
-    0)
-        debug_echo 100 "Preferred interval: [ ${preferred_interval[*]} ]"
-        debug_echo 100 "Preferred interval does not contain valid values."
-        debug_echo 100 "Contains 0 true values, should contain exactly 1 true value."
-
-        return_value='Preferred interval does not contain valid values.'
-        return -1
-        ;;
-    1)
-        ;;
-    *)
-        debug_echo 100 "Preferred interval: [ ${preferred_interval[*]} ]"
-        debug_echo 100 "Preferred interval does not contain valid values."
-        debug_echo 100 "Contains $num_preferred true values, should contain exactly 1 true value."
-
-        return_value='Preferred interval does not contain valid values.'
-        return -1
-        ;;
-    esac
-
-    debug_echo 100 "Found preferred interval in index $i."
-
-
+    debug_echo 1 -e "\n*********************************************************************"
+    debug_echo 1 "***** Start input of $VAR_NAME_PREFIX **********************************"
+    debug_echo 1 "*********************************************************************"
 
     EVAL_VAR_NAME=$VAR_NAME_PREFIX # ${!EVAL_VAR_NAME}
     EVAL_VAR_NAME_EXISTS=${VAR_NAME_PREFIX}_EXISTS # ${!EVAL_VAR_NAME_EXISTS}
     EVAL_VAR_NAME_START=${VAR_NAME_PREFIX}_START # ${!EVAL_VAR_NAME_START}
     EVAL_VAR_NAME_END=${VAR_NAME_PREFIX}_END # ${!EVAL_VAR_NAME_END}
-
-    debug_echo 1 -e "\n*********************************************************************"
-    debug_echo 1 "***** Start input of $VAR_NAME_PREFIX **********************************"
-    debug_echo 1 "*********************************************************************"
 
     exists_in_file "$FILE_PATH/$FILE_NAME" "${!EVAL_VAR_NAME}" $VAR_NAME_PREFIX
 
