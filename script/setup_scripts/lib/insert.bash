@@ -477,15 +477,15 @@ add_multiline_content()
         return -1
     fi
 
-    FILE_PATH="$1"; shift       # 1
-    FILE_NAME="$1"; shift       # 2
-    VAR_NAME="$1"; shift        # 3
-    REF_TYPE="$1"; shift        # 4
-    REF_PLACEMENT="$1"; shift   # 5
+    local -r FILE_PATH="$1"; shift       # 1
+    local -r FILE_NAME="$1"; shift       # 2
+    local -r VAR_NAME_PREFIX="$1"; shift        # 3
+    local -r REF_TYPE="$1"; shift        # 4
+    local -r REF_PLACEMENT="$1"; shift   # 5
 
     debug_echo 100 -e "\nFILE_PATH: $FILE_PATH"
     debug_echo 100 "FILE_NAME: $FILE_NAME"
-    debug_echo 100 "VAR_NAME: $VAR_NAME"
+    debug_echo 100 "VAR_NAME_PREFIX: $VAR_NAME_PREFIX"
     debug_echo 100 "REF_TYPE: $REF_TYPE"
     debug_echo 100 "REF_PLACEMENT: $REF_PLACEMENT"
 
@@ -663,16 +663,16 @@ add_multiline_content()
 
 
 
-    EVAL_VAR_NAME=$VAR_NAME # ${!EVAL_VAR_NAME}
-    EVAL_VAR_NAME_EXISTS=${VAR_NAME}_EXISTS # ${!EVAL_VAR_NAME_EXISTS}
-    EVAL_VAR_NAME_START=${VAR_NAME}_START # ${!EVAL_VAR_NAME_START}
-    EVAL_VAR_NAME_END=${VAR_NAME}_END # ${!EVAL_VAR_NAME_END}
+    EVAL_VAR_NAME=$VAR_NAME_PREFIX # ${!EVAL_VAR_NAME}
+    EVAL_VAR_NAME_EXISTS=${VAR_NAME_PREFIX}_EXISTS # ${!EVAL_VAR_NAME_EXISTS}
+    EVAL_VAR_NAME_START=${VAR_NAME_PREFIX}_START # ${!EVAL_VAR_NAME_START}
+    EVAL_VAR_NAME_END=${VAR_NAME_PREFIX}_END # ${!EVAL_VAR_NAME_END}
 
     debug_echo 1 -e "\n*********************************************************************"
-    debug_echo 1 "***** Start input of $VAR_NAME **********************************"
+    debug_echo 1 "***** Start input of $VAR_NAME_PREFIX **********************************"
     debug_echo 1 "*********************************************************************"
 
-    exists_in_file "$FILE_PATH/$FILE_NAME" "${!EVAL_VAR_NAME}" $VAR_NAME
+    exists_in_file "$FILE_PATH/$FILE_NAME" "${!EVAL_VAR_NAME}" $VAR_NAME_PREFIX
 
     EVALUATED_VAR_NAME_START=${!EVAL_VAR_NAME_START}
     EVALUATED_VAR_NAME_END=${!EVAL_VAR_NAME_END}
@@ -693,7 +693,7 @@ add_multiline_content()
             # insert line at line number later work as expected
             TMP=$(echo "$TMP" | sed -E 's/[\\]$/\\\\/gm')
 
-            declare -g "${VAR_NAME}=${TMP}"
+            declare -g "${VAR_NAME_PREFIX}=${TMP}"
 
             # Place content in allowed interval
             case "$REF_PLACEMENT" in
@@ -713,7 +713,7 @@ add_multiline_content()
             # Update interval numbers
             adjust_interval_linenumbers "${!EVAL_VAR_NAME}" $add_to_preferred_interval_INDEX
 
-            declare -g "${VAR_NAME}_EXISTS=false" # EXISTS since before = not true
+            declare -g "${VAR_NAME_PREFIX}_EXISTS=false" # EXISTS since before = not true
             already_done=false
         fi
     else    
@@ -852,7 +852,7 @@ add_multiline_content()
                 # insert line at line number later work as expected
                 TMP=$(echo "$TMP" | sed -E 's/[\\]$/\\\\/gm')
 
-                declare -g "${VAR_NAME}=${TMP}"
+                declare -g "${VAR_NAME_PREFIX}=${TMP}"
 
                 # Place content in allowed interval
                 case "$REF_PLACEMENT" in
@@ -872,12 +872,12 @@ add_multiline_content()
                 # Update interval numbers
                 adjust_interval_linenumbers "${!EVAL_VAR_NAME}" $add_to_preferred_interval_INDEX
 
-                declare -g "${VAR_NAME}_EXISTS=false" # EXISTS since before = not true
+                declare -g "${VAR_NAME_PREFIX}_EXISTS=false" # EXISTS since before = not true
                 already_done=false
             fi
 
             debug_echo 1 -e "\n*********************************************************************"
-            debug_echo 1  "***** End input of $VAR_NAME ************************************"
+            debug_echo 1  "***** End input of $VAR_NAME_PREFIX ************************************"
             debug_echo 1  "*********************************************************************"
             
         fi
@@ -909,7 +909,7 @@ add_multiline_content()
         #     # insert line at line number later work as expected
         #     TMP=$(echo "$TMP" | sed -E 's/[\\]$/\\\\/gm')
             
-        #     declare -g "${VAR_NAME}=${TMP}"
+        #     declare -g "${VAR_NAME_PREFIX}=${TMP}"
 
         #     sed -i "${IF_STATEMENT_START}i ${!EVAL_VAR_NAME}" "$FILE_PATH/$FILE_NAME"
             
