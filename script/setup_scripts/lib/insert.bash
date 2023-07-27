@@ -589,7 +589,7 @@ _insert_preferred_interval()
 _insert_preferred_interval_multiline()
 {
     tmp_intervals=(0 ${_intervals[@]} $(wc -l "$FILE_PATH/$FILE_NAME" | cut -f1 -d' '))
-            debug_echo 100 "Place in preferred interval."
+    debug_echo 100 "Place in preferred interval."
 
     # Replace backslashes with double backslashes to have 'sed' insert line at
     # line number later work as expected
@@ -707,32 +707,10 @@ add_multiline_content()
             # Only remove content of lines before this line, but don't remove the actual lines.
             if [[ "$add_to_preferred_interval" == 'true' ]]
             then
-                debug_echo 100 "Place in preferred interval."
+                _insert_preferred_interval_multiline
 
-                # Replace backslashes with double backslashes to have 'sed' insert line at
-                # line number later work as expected
-                TMP=$(echo "${!EVAL_VAR_NAME}")
-                TMP=$(echo "$TMP" | sed 's/\\/\\\\/g')
-                # Replace backslash at end of line with an extra backslash to have 'sed' 
-                # insert line at line number later work as expected
-                TMP=$(echo "$TMP" | sed -E 's/[\\]$/\\\\/gm')
-
-                declare -g "${VAR_NAME_PREFIX}=${TMP}"
-
-                # Place content in allowed interval
-                case "$REF_PLACEMENT" in
-                    "START")
-                        sed -i "$((tmp_intervals[preferred_index] + 1))i ${!EVAL_VAR_NAME}" "$FILE_PATH/$FILE_NAME"
-                        # Update if statement variables if they got shifted
-                        adjust_else_elif_fi_linenumbers "${!EVAL_VAR_NAME}" $((tmp_intervals[preferred_index] + 1))
-                        ;;
-                    *)
-                        sed -i "$((tmp_intervals[preferred_index + 1]))i ${!EVAL_VAR_NAME}" "$FILE_PATH/$FILE_NAME"
-                        # Update if statement variables if they got shifted
-                        adjust_else_elif_fi_linenumbers "${!EVAL_VAR_NAME}" $((tmp_intervals[preferred_index + 1] - 1))
-                        ;;
-                esac
-                debug_echo 100 "Placed in preferred interval."
+                # Update if statement variables if they got shifted
+                adjust_else_elif_fi_linenumbers "${!EVAL_VAR_NAME}" $insert_line_number
                 
                 # Update interval numbers
                 adjust_interval_linenumbers "${!EVAL_VAR_NAME}" $add_to_preferred_interval_INDEX
