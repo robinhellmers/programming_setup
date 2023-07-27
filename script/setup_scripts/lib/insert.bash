@@ -377,6 +377,54 @@ _find_line_in_intervals()
     done
 }
 
+_find_multiline_in_intervals()
+{
+    # Mark in which intervals the content exists
+    declare -i num_items=${#_intervals[@]}
+    declare found_in_interval
+    declare -a exists_in_intervals=()
+    for ((i=0;i<=num_items;i++))
+    do
+        case $i in
+        0)
+            if (( EVALUATED_VAR_NAME_START < _intervals[i] )) && \
+                (( EVALUATED_VAR_NAME_END   < _intervals[i] ))
+            then
+                debug_echo 100 "Line number $EVALUATED_VAR_NAME_START-$EVALUATED_VAR_NAME_END ARE in the interval < ${_intervals[$i]}. #####"
+                found_in_interval='true'
+            else
+                debug_echo 100 "Line number $EVALUATED_VAR_NAME_START-$EVALUATED_VAR_NAME_END are NOT in the interval < ${_intervals[$i]}. *****"
+                found_in_interval='false'
+            fi;;
+
+        $num_items)
+            if (( _intervals[i-1] < EVALUATED_VAR_NAME_START )) && \
+                (( _intervals[i-1] < EVALUATED_VAR_NAME_END   ))
+            then
+                debug_echo 100 "Line numbers $EVALUATED_VAR_NAME_START-$EVALUATED_VAR_NAME_END ARE in the interval > ${_intervals[$((i-1))]}. #####"
+                found_in_interval='true'
+            else
+                debug_echo 100 "Line number $EVALUATED_VAR_NAME_START-$EVALUATED_VAR_NAME_END are NOT in the interval > ${_intervals[$((i-1))]}. *****"
+                found_in_interval='false'
+            fi;;
+
+        *)
+            if (( _intervals[i-1] <= EVALUATED_VAR_NAME_START )) && (( EVALUATED_VAR_NAME_START <= _intervals[i] )) && \
+                (( _intervals[i-1] <= EVALUATED_VAR_NAME_END   )) && (( EVALUATED_VAR_NAME_END   <= _intervals[i] ))
+            then
+                debug_echo 100 "Line number $EVALUATED_VAR_NAME_START-$EVALUATED_VAR_NAME_END ARE in interval ${_intervals[$((i-1))]} - ${_intervals[$i]}. #####"
+                found_in_interval='true'
+            else
+                debug_echo 100 "Line number $EVALUATED_VAR_NAME_START-$EVALUATED_VAR_NAME_END are NOT in interval ${_intervals[$((i-1))]} - ${_intervals[$i]}. *****"
+                found_in_interval='false'
+            fi;;
+        esac
+        debug_echo 100 " "
+
+    exists_in_intervals+=( $found_in_interval )
+    done
+}
+
 _check_line_in_valid_intervals_del_invalid()
 {
     # Compare where it exists with where it is allowed and preferred to exist
@@ -577,50 +625,7 @@ add_multiline_content()
         then
             debug_echo 100 -e "\nReference type: INBETWEEN\n"
 
-            # Mark in which intervals the content exists
-            declare -i num_items=${#_intervals[@]}
-            declare found_in_interval
-            declare -a exists_in_intervals=()
-            for ((i=0;i<=num_items;i++))
-            do
-                case $i in
-                0)
-                    if (( EVALUATED_VAR_NAME_START < _intervals[i] )) && \
-                       (( EVALUATED_VAR_NAME_END   < _intervals[i] ))
-                    then
-                        debug_echo 100 "Line number $EVALUATED_VAR_NAME_START-$EVALUATED_VAR_NAME_END ARE in the interval < ${_intervals[$i]}. #####"
-                        found_in_interval=true
-                    else
-                        debug_echo 100 "Line number $EVALUATED_VAR_NAME_START-$EVALUATED_VAR_NAME_END are NOT in the interval < ${_intervals[$i]}. *****"
-                        found_in_interval=false
-                    fi;;
-
-                $num_items)
-                    if (( _intervals[i-1] < EVALUATED_VAR_NAME_START )) && \
-                       (( _intervals[i-1] < EVALUATED_VAR_NAME_END   ))
-                    then
-                        debug_echo 100 "Line numbers $EVALUATED_VAR_NAME_START-$EVALUATED_VAR_NAME_END ARE in the interval > ${_intervals[$((i-1))]}. #####"
-                        found_in_interval=true
-                    else
-                        debug_echo 100 "Line number $EVALUATED_VAR_NAME_START-$EVALUATED_VAR_NAME_END are NOT in the interval > ${_intervals[$((i-1))]}. *****"
-                        found_in_interval=false
-                    fi;;
-
-                *)
-                    if (( _intervals[i-1] <= EVALUATED_VAR_NAME_START )) && (( EVALUATED_VAR_NAME_START <= _intervals[i] )) && \
-                       (( _intervals[i-1] <= EVALUATED_VAR_NAME_END   )) && (( EVALUATED_VAR_NAME_END   <= _intervals[i] ))
-                    then
-                        debug_echo 100 "Line number $EVALUATED_VAR_NAME_START-$EVALUATED_VAR_NAME_END ARE in interval ${_intervals[$((i-1))]} - ${_intervals[$i]}. #####"
-                        found_in_interval=true
-                    else
-                        debug_echo 100 "Line number $EVALUATED_VAR_NAME_START-$EVALUATED_VAR_NAME_END are NOT in interval ${_intervals[$((i-1))]} - ${_intervals[$i]}. *****"
-                        found_in_interval=false
-                    fi;;
-                esac
-                debug_echo 100 " "
-
-            exists_in_intervals+=( $found_in_interval )
-            done
+            _find_multiline_in_intervals
 
             # Compare where it exists with where it is allowed and preferred to exist
             add_to_preferred_interval=false
