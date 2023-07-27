@@ -487,6 +487,75 @@ _check_line_in_valid_intervals_del_invalid()
     debug_echo 100 "-*-*-*-*-*-*-*-*-*-*-*-*-"
 }
 
+_check_multiline_in_valid_intervals_del_invalid()
+{
+    # Compare where it exists with where it is allowed and preferred to exist
+    add_to_preferred_interval='false'
+
+    for ((j=0;j<${#exists_in_intervals[@]};j++))
+    do
+        # Add start and end of intervals. _intervals could have been updated
+        # since last calculation
+        tmp_intervals=(0 ${_intervals[@]} $(wc -l "$FILE_PATH/$FILE_NAME" | cut -f1 -d' '))
+        debug_echo 100 "-------------------------"
+        debug_echo 100 "Checking interval $j"
+        debug_echo 100 -e "-------------------------\n"
+        if ${exists_in_intervals[$j]}
+        then
+            if ${allowed_intervals[$j]}
+            then
+                debug_echo 100 "Exists in allowed interval."
+                if ${preferred_interval[$j]}
+                then
+                    debug_echo 100 "Exists in the preferred interval."
+                else
+                    debug_echo 100 "Is not in the preferred interval."
+                    debug_echo 100 -e "Remove content of lines ${EVALUATED_VAR_NAME_START}-${EVALUATED_VAR_NAME_END}\n"
+                    # Remove the lines
+                    sed -i "${EVALUATED_VAR_NAME_START},${EVALUATED_VAR_NAME_END}d" "$FILE_PATH/$FILE_NAME"
+                    # Insert empty lines in its place
+                    for ((i=1; i<=(EVALUATED_VAR_NAME_END - EVALUATED_VAR_NAME_START + 1); i++))
+                    do
+                        sed -i "$((EVALUATED_VAR_NAME_START - 1))a $NL" "$FILE_PATH/$FILE_NAME"
+                    done
+
+                    already_done='false'
+                fi
+            else # Exists in DISALLOWED interval
+
+                debug_echo 100 "Exists in DISALLOWED interval."
+                debug_echo 100 -e "Remove content of lines ${EVALUATED_VAR_NAME_START}-${EVALUATED_VAR_NAME_END}\n"
+                # Remove the lines
+                sed -i "${EVALUATED_VAR_NAME_START},${EVALUATED_VAR_NAME_END}d" "$FILE_PATH/$FILE_NAME"
+                # Insert empty lines in its place
+                for ((i=1; i<=(EVALUATED_VAR_NAME_END - EVALUATED_VAR_NAME_START + 1); i++))
+                do
+                    sed -i "$((EVALUATED_VAR_NAME_START - 1))a $NL" "$FILE_PATH/$FILE_NAME"
+                done
+
+                already_done='false'
+            fi
+        else # Does NOT exist in interval
+            if ${preferred_interval[$j]}
+            then
+                debug_echo 100 "Does NOT exist in preferred interval"
+                debug_echo 100 "To be added in preferred interval"
+                
+                add_to_preferred_interval='true'
+                add_to_preferred_interval_INDEX=$j
+                
+                already_done='false'
+            fi
+        fi
+        debug_echo 100 "-^-^-^-^-^-^-^-^-^-"
+        debug_echo 100 "DONE with interval"
+        debug_echo 100 -e "-^-^-^-^-^-^-^-^-^-\n"
+    done
+    debug_echo 100 "-*-*-*-*-*-*-*-*-*-*-*-*-"
+    debug_echo 100 "Checked all intervals."
+    debug_echo 100 "-*-*-*-*-*-*-*-*-*-*-*-*-"
+}
+
 _insert_preferred_interval()
 {
     debug_echo 100 "Place in preferred interval."
@@ -602,7 +671,7 @@ add_multiline_content()
     EVALUATED_VAR_NAME_START=${!EVAL_VAR_NAME_START}
     EVALUATED_VAR_NAME_END=${!EVAL_VAR_NAME_END}
 
-    already_done=true
+    already_done='true'
     if ! ${!EVAL_VAR_NAME_EXISTS}
     then
         if [[ $REF_TYPE == "INBETWEEN" ]]
@@ -616,7 +685,7 @@ add_multiline_content()
             adjust_interval_linenumbers "${!EVAL_VAR_NAME}" $add_to_preferred_interval_INDEX
 
             declare -g "${VAR_NAME_PREFIX}_EXISTS=false" # EXISTS since before = not true
-            already_done=false
+            already_done='false'
         fi
     else    
         # The text already exists in the file
@@ -627,81 +696,16 @@ add_multiline_content()
 
             _find_multiline_in_intervals
 
-            # Compare where it exists with where it is allowed and preferred to exist
-            add_to_preferred_interval=false
-            str="exists_in_intervals: [${exists_in_intervals[@]}]"
-            debug_echo 100 -e "$str"
-            str="allowed_intervals:   [${allowed_intervals[@]}]"
-            debug_echo 100 -e "$str"
-            str="preferred_interval:  [${preferred_interval[@]}]\n"
-            debug_echo 100 -e "$str"
-            for ((j=0;j<${#exists_in_intervals[@]};j++))
-            do
-                # Add start and end of intervals. _intervals could have been updated
-                # since last calculation
-                tmp_intervals=(0 ${_intervals[@]} $(wc -l "$FILE_PATH/$FILE_NAME" | cut -f1 -d' '))
-                debug_echo 100 "-------------------------"
-                debug_echo 100 "Checking interval $j"
-                debug_echo 100 -e "-------------------------\n"
-                if ${exists_in_intervals[$j]}
-                then
-                    if ${allowed_intervals[$j]}
-                    then
-                        debug_echo 100 "Exists in allowed interval."
-                        if ${preferred_interval[$j]}
-                        then
-                            debug_echo 100 "Exists in the preferred interval."
-                        else
-                            debug_echo 100 "Is not in the preferred interval."
-                            debug_echo 100 -e "Remove content of lines ${EVALUATED_VAR_NAME_START}-${EVALUATED_VAR_NAME_END}\n"
-                            # Remove the lines
-                            sed -i "${EVALUATED_VAR_NAME_START},${EVALUATED_VAR_NAME_END}d" "$FILE_PATH/$FILE_NAME"
-                            # Insert empty lines in its place
-                            for ((i=1; i<=(EVALUATED_VAR_NAME_END - EVALUATED_VAR_NAME_START + 1); i++))
-                            do
-                                sed -i "$((EVALUATED_VAR_NAME_START - 1))a $NL" "$FILE_PATH/$FILE_NAME"
-                            done
+            debug_echo 100 -e "exists_in_intervals: [${exists_in_intervals[@]}]"
+            debug_echo 100 -e "allowed_intervals:   [${allowed_intervals[@]}]"
+            debug_echo 100 -e "preferred_interval:  [${preferred_interval[@]}]\n"
 
-                            already_done=false
-                        fi
-                    else # Exists in DISALLOWED interval
-
-                        debug_echo 100 "Exists in DISALLOWED interval."
-                        debug_echo 100 -e "Remove content of lines ${EVALUATED_VAR_NAME_START}-${EVALUATED_VAR_NAME_END}\n"
-                        # Remove the lines
-                        sed -i "${EVALUATED_VAR_NAME_START},${EVALUATED_VAR_NAME_END}d" "$FILE_PATH/$FILE_NAME"
-                        # Insert empty lines in its place
-                        for ((i=1; i<=(EVALUATED_VAR_NAME_END - EVALUATED_VAR_NAME_START + 1); i++))
-                        do
-                            sed -i "$((EVALUATED_VAR_NAME_START - 1))a $NL" "$FILE_PATH/$FILE_NAME"
-                        done
-
-                        already_done=false
-                    fi
-                else # Does NOT exist in interval
-                    if ${preferred_interval[$j]}
-                    then
-                        debug_echo 100 "Does NOT exist in preferred interval"
-                        debug_echo 100 "To be added in preferred interval"
-                        
-                        add_to_preferred_interval=true
-                        add_to_preferred_interval_INDEX=$j
-                        
-                        already_done=false
-                    fi
-                fi
-                debug_echo 100 "-^-^-^-^-^-^-^-^-^-"
-                debug_echo 100 "DONE with interval"
-                debug_echo 100 -e "-^-^-^-^-^-^-^-^-^-\n"
-            done
-            debug_echo 100 "-*-*-*-*-*-*-*-*-*-*-*-*-"
-            debug_echo 100 "Checked all intervals."
-            debug_echo 100 "-*-*-*-*-*-*-*-*-*-*-*-*-"
-
+            _check_multiline_in_valid_intervals_del_invalid
+            # Returns: already_done / add_to_preferred_interval / add_to_preferred_interval_INDEX
 
             # Done afterwards as it messes with the line numbering when inserting.
             # Only remove content of lines before this line, but don't remove the actual lines.
-            if $add_to_preferred_interval
+            if [[ "$add_to_preferred_interval" == 'true' ]]
             then
                 debug_echo 100 "Place in preferred interval."
 
@@ -734,7 +738,7 @@ add_multiline_content()
                 adjust_interval_linenumbers "${!EVAL_VAR_NAME}" $add_to_preferred_interval_INDEX
 
                 declare -g "${VAR_NAME_PREFIX}_EXISTS=false" # EXISTS since before = not true
-                already_done=false
+                already_done='false'
             fi
 
             debug_echo 1 -e "\n*********************************************************************"
@@ -787,7 +791,7 @@ add_multiline_content()
         # fi
     fi
 
-    if $already_done
+    if [[ "$already_done" == 'true' ]]
     then
         return_value='already done'
     else
