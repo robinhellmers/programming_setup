@@ -191,6 +191,163 @@ add_single_line_content()
     return 0
 }
 
+add_multiline_content()
+{
+    if (( $# < 5 ))
+    then
+        debug_echo 100 "Function 'add_multiline_content' need at least 5 inputs, you gave $#."
+        return -1
+    fi
+
+    local -r FILE_PATH="$1"; shift       # 1
+    local -r FILE_NAME="$1"; shift       # 2
+    local -r VAR_NAME_PREFIX="$1"; shift        # 3
+    local -r REF_TYPE="$1"; shift        # 4
+    local -r REF_PLACEMENT="$1"; shift   # 5
+
+    local dynamic_array_prefix="input_array"
+    handle_input_arrays_dynamically "$dynamic_array_prefix" "$@"
+
+    get_dynamic_array "${dynamic_array_prefix}1"
+    allowed_intervals=("${dynamic_array[@]}")
+
+    get_dynamic_array "${dynamic_array_prefix}2"
+    preferred_interval=("${dynamic_array[@]}")
+
+    get_dynamic_array "${dynamic_array_prefix}3"
+    _intervals=("${dynamic_array[@]}")
+
+    debug_echo 100 -e "\nFILE_PATH: $FILE_PATH"
+    debug_echo 100 "FILE_NAME: $FILE_NAME"
+    debug_echo 100 "VAR_NAME_PREFIX: $VAR_NAME_PREFIX"
+
+    _check_valid_ref "$REF_TYPE" "$REF_PLACEMENT" || return $?
+
+    debug_echo 100 -e "\n_intervals =         [ ${_intervals[*]} ]"
+    debug_echo 100 "allowed_intervals =  [ ${allowed_intervals[*]} ]"
+    debug_echo 100 -e "preferred_interval = [ ${preferred_interval[*]} ]\n"
+
+    _check_valid_intervals || return $?
+
+    debug_echo 1 -e "\n*********************************************************************"
+    debug_echo 1 "***** Start input of $VAR_NAME_PREFIX **********************************"
+    debug_echo 1 "*********************************************************************"
+
+    EVAL_VAR_NAME=$VAR_NAME_PREFIX # ${!EVAL_VAR_NAME}
+    EVAL_VAR_NAME_EXISTS=${VAR_NAME_PREFIX}_EXISTS # ${!EVAL_VAR_NAME_EXISTS}
+    EVAL_VAR_NAME_START=${VAR_NAME_PREFIX}_START # ${!EVAL_VAR_NAME_START}
+    EVAL_VAR_NAME_END=${VAR_NAME_PREFIX}_END # ${!EVAL_VAR_NAME_END}
+
+    exists_in_file "$FILE_PATH/$FILE_NAME" "${!EVAL_VAR_NAME}" $VAR_NAME_PREFIX
+
+    EVALUATED_VAR_NAME_START=${!EVAL_VAR_NAME_START}
+    EVALUATED_VAR_NAME_END=${!EVAL_VAR_NAME_END}
+
+    already_done='true'
+    if ! ${!EVAL_VAR_NAME_EXISTS}
+    then
+        if [[ $REF_TYPE == "INBETWEEN" ]]
+        then
+            _insert_preferred_interval_multiline
+            
+            # Update if statement variables if they got shifted
+            adjust_else_elif_fi_linenumbers "${!EVAL_VAR_NAME}" $insert_line_number
+
+            # Update interval numbers
+            adjust_interval_linenumbers "${!EVAL_VAR_NAME}" $add_to_preferred_interval_INDEX
+
+            declare -g "${VAR_NAME_PREFIX}_EXISTS=false" # EXISTS since before = not true
+            already_done='false'
+        fi
+    else    
+        # The text already exists in the file
+
+        if [[ $REF_TYPE == "INBETWEEN" ]]
+        then
+            debug_echo 100 -e "\nReference type: INBETWEEN\n"
+
+            _find_multiline_in_intervals
+
+            debug_echo 100 -e "exists_in_intervals: [${exists_in_intervals[@]}]"
+            debug_echo 100 -e "allowed_intervals:   [${allowed_intervals[@]}]"
+            debug_echo 100 -e "preferred_interval:  [${preferred_interval[@]}]\n"
+
+            _check_multiline_in_valid_intervals_del_invalid
+            # Returns: already_done / add_to_preferred_interval / add_to_preferred_interval_INDEX
+
+            # Done afterwards as it messes with the line numbering when inserting.
+            # Only remove content of lines before this line, but don't remove the actual lines.
+            if [[ "$add_to_preferred_interval" == 'true' ]]
+            then
+                _insert_preferred_interval_multiline
+
+                # Update if statement variables if they got shifted
+                adjust_else_elif_fi_linenumbers "${!EVAL_VAR_NAME}" $insert_line_number
+                
+                # Update interval numbers
+                adjust_interval_linenumbers "${!EVAL_VAR_NAME}" $add_to_preferred_interval_INDEX
+
+                declare -g "${VAR_NAME_PREFIX}_EXISTS=false" # EXISTS since before = not true
+                already_done='false'
+            fi
+
+            debug_echo 1 -e "\n*********************************************************************"
+            debug_echo 1  "***** End input of $VAR_NAME_PREFIX ************************************"
+            debug_echo 1  "*********************************************************************"
+            
+        fi
+
+
+        # if (( ${!EVAL_VAR_NAME_START} < $IF_STATEMENT_START ))
+        # then # Line is before if statement
+        #     echo -e "Line exists and is before if statement.\n"
+        # elif (( $FI_LINE_NUMBER < ${!EVAL_VAR_NAME_START} ))
+        # then # Lines are after whole if statement (fi)
+        #     # Remove content of that line
+        #     echo "Content exists, but is after if statement."
+        #     echo "Remove content of lines ${!EVAL_VAR_NAME_START}-${!EVAL_VAR_NAME_END}"
+        #     sed -i "${!EVAL_VAR_NAME_START},${!EVAL_VAR_NAME_END}d" "$FILE_PATH/$FILE_NAME"
+            
+        #     # Commented out below does not work as intended.
+        #     # If ending with backslash, but not a backslash before that (double or more)
+        #     # then replace with double backslash. Making sure that a single one is 
+        #     # replaced with a double
+        #     # https://stackoverflow.com/a/9306228/12374737
+        #     # "Where (?<!x) means "only if it doesn't have 'x' before this point"."
+        #     # BASHRC_INPUT2=$(echo "$BASHRC_INPUT2" | sed 's/(?<!\\)[\\]{1}$/\\\\/gm')
+
+        #     # Replace backslashes with double backslashes to have 'sed' insert line at
+        #     # line number later work as expected
+        #     TMP=$(echo "${!EVAL_VAR_NAME}")
+        #     TMP=$(echo "$TMP" | sed 's/\\/\\\\/g')
+        #     # Replace backslash at end of line with an extra backslash to have 'sed' 
+        #     # insert line at line number later work as expected
+        #     TMP=$(echo "$TMP" | sed -E 's/[\\]$/\\\\/gm')
+            
+        #     declare -g "${VAR_NAME_PREFIX}=${TMP}"
+
+        #     sed -i "${IF_STATEMENT_START}i ${!EVAL_VAR_NAME}" "$FILE_PATH/$FILE_NAME"
+            
+        #     # Increment if statement variables as they got shifted
+        #     adjust_else_elif_fi_linenumbers "${!EVAL_VAR_NAME}"
+
+        #     declare -g "$VARNAME_EXISTS=false"
+        # else
+        #     echo "Content found in if statement even though it shouldn't be there."
+        #     echo "LINE FOUND:"
+        #     echo "${!EVAL_VAR_NAME}"
+        #     echo "AT LINES: ${!EVAL_VAR_NAME_START}-${!EVAL_VAR_NAME_END}"
+        #     return -1
+        # fi
+    fi
+
+    if [[ "$already_done" == 'true' ]]
+    then
+        return_value='already done'
+    else
+        return_value='success'
+    fi
+}
 
 _check_valid_ref()
 {
@@ -617,162 +774,4 @@ _insert_preferred_interval_multiline()
             ;;
     esac
     debug_echo 100 "Placed in preferred interval."
-}
-
-add_multiline_content()
-{
-    if (( $# < 5 ))
-    then
-        debug_echo 100 "Function 'add_multiline_content' need at least 5 inputs, you gave $#."
-        return -1
-    fi
-
-    local -r FILE_PATH="$1"; shift       # 1
-    local -r FILE_NAME="$1"; shift       # 2
-    local -r VAR_NAME_PREFIX="$1"; shift        # 3
-    local -r REF_TYPE="$1"; shift        # 4
-    local -r REF_PLACEMENT="$1"; shift   # 5
-
-    local dynamic_array_prefix="input_array"
-    handle_input_arrays_dynamically "$dynamic_array_prefix" "$@"
-
-    get_dynamic_array "${dynamic_array_prefix}1"
-    allowed_intervals=("${dynamic_array[@]}")
-
-    get_dynamic_array "${dynamic_array_prefix}2"
-    preferred_interval=("${dynamic_array[@]}")
-
-    get_dynamic_array "${dynamic_array_prefix}3"
-    _intervals=("${dynamic_array[@]}")
-
-    debug_echo 100 -e "\nFILE_PATH: $FILE_PATH"
-    debug_echo 100 "FILE_NAME: $FILE_NAME"
-    debug_echo 100 "VAR_NAME_PREFIX: $VAR_NAME_PREFIX"
-
-    _check_valid_ref "$REF_TYPE" "$REF_PLACEMENT" || return $?
-
-    debug_echo 100 -e "\n_intervals =         [ ${_intervals[*]} ]"
-    debug_echo 100 "allowed_intervals =  [ ${allowed_intervals[*]} ]"
-    debug_echo 100 -e "preferred_interval = [ ${preferred_interval[*]} ]\n"
-
-    _check_valid_intervals || return $?
-
-    debug_echo 1 -e "\n*********************************************************************"
-    debug_echo 1 "***** Start input of $VAR_NAME_PREFIX **********************************"
-    debug_echo 1 "*********************************************************************"
-
-    EVAL_VAR_NAME=$VAR_NAME_PREFIX # ${!EVAL_VAR_NAME}
-    EVAL_VAR_NAME_EXISTS=${VAR_NAME_PREFIX}_EXISTS # ${!EVAL_VAR_NAME_EXISTS}
-    EVAL_VAR_NAME_START=${VAR_NAME_PREFIX}_START # ${!EVAL_VAR_NAME_START}
-    EVAL_VAR_NAME_END=${VAR_NAME_PREFIX}_END # ${!EVAL_VAR_NAME_END}
-
-    exists_in_file "$FILE_PATH/$FILE_NAME" "${!EVAL_VAR_NAME}" $VAR_NAME_PREFIX
-
-    EVALUATED_VAR_NAME_START=${!EVAL_VAR_NAME_START}
-    EVALUATED_VAR_NAME_END=${!EVAL_VAR_NAME_END}
-
-    already_done='true'
-    if ! ${!EVAL_VAR_NAME_EXISTS}
-    then
-        if [[ $REF_TYPE == "INBETWEEN" ]]
-        then
-            _insert_preferred_interval_multiline
-            
-            # Update if statement variables if they got shifted
-            adjust_else_elif_fi_linenumbers "${!EVAL_VAR_NAME}" $insert_line_number
-
-            # Update interval numbers
-            adjust_interval_linenumbers "${!EVAL_VAR_NAME}" $add_to_preferred_interval_INDEX
-
-            declare -g "${VAR_NAME_PREFIX}_EXISTS=false" # EXISTS since before = not true
-            already_done='false'
-        fi
-    else    
-        # The text already exists in the file
-
-        if [[ $REF_TYPE == "INBETWEEN" ]]
-        then
-            debug_echo 100 -e "\nReference type: INBETWEEN\n"
-
-            _find_multiline_in_intervals
-
-            debug_echo 100 -e "exists_in_intervals: [${exists_in_intervals[@]}]"
-            debug_echo 100 -e "allowed_intervals:   [${allowed_intervals[@]}]"
-            debug_echo 100 -e "preferred_interval:  [${preferred_interval[@]}]\n"
-
-            _check_multiline_in_valid_intervals_del_invalid
-            # Returns: already_done / add_to_preferred_interval / add_to_preferred_interval_INDEX
-
-            # Done afterwards as it messes with the line numbering when inserting.
-            # Only remove content of lines before this line, but don't remove the actual lines.
-            if [[ "$add_to_preferred_interval" == 'true' ]]
-            then
-                _insert_preferred_interval_multiline
-
-                # Update if statement variables if they got shifted
-                adjust_else_elif_fi_linenumbers "${!EVAL_VAR_NAME}" $insert_line_number
-                
-                # Update interval numbers
-                adjust_interval_linenumbers "${!EVAL_VAR_NAME}" $add_to_preferred_interval_INDEX
-
-                declare -g "${VAR_NAME_PREFIX}_EXISTS=false" # EXISTS since before = not true
-                already_done='false'
-            fi
-
-            debug_echo 1 -e "\n*********************************************************************"
-            debug_echo 1  "***** End input of $VAR_NAME_PREFIX ************************************"
-            debug_echo 1  "*********************************************************************"
-            
-        fi
-
-
-        # if (( ${!EVAL_VAR_NAME_START} < $IF_STATEMENT_START ))
-        # then # Line is before if statement
-        #     echo -e "Line exists and is before if statement.\n"
-        # elif (( $FI_LINE_NUMBER < ${!EVAL_VAR_NAME_START} ))
-        # then # Lines are after whole if statement (fi)
-        #     # Remove content of that line
-        #     echo "Content exists, but is after if statement."
-        #     echo "Remove content of lines ${!EVAL_VAR_NAME_START}-${!EVAL_VAR_NAME_END}"
-        #     sed -i "${!EVAL_VAR_NAME_START},${!EVAL_VAR_NAME_END}d" "$FILE_PATH/$FILE_NAME"
-            
-        #     # Commented out below does not work as intended.
-        #     # If ending with backslash, but not a backslash before that (double or more)
-        #     # then replace with double backslash. Making sure that a single one is 
-        #     # replaced with a double
-        #     # https://stackoverflow.com/a/9306228/12374737
-        #     # "Where (?<!x) means "only if it doesn't have 'x' before this point"."
-        #     # BASHRC_INPUT2=$(echo "$BASHRC_INPUT2" | sed 's/(?<!\\)[\\]{1}$/\\\\/gm')
-
-        #     # Replace backslashes with double backslashes to have 'sed' insert line at
-        #     # line number later work as expected
-        #     TMP=$(echo "${!EVAL_VAR_NAME}")
-        #     TMP=$(echo "$TMP" | sed 's/\\/\\\\/g')
-        #     # Replace backslash at end of line with an extra backslash to have 'sed' 
-        #     # insert line at line number later work as expected
-        #     TMP=$(echo "$TMP" | sed -E 's/[\\]$/\\\\/gm')
-            
-        #     declare -g "${VAR_NAME_PREFIX}=${TMP}"
-
-        #     sed -i "${IF_STATEMENT_START}i ${!EVAL_VAR_NAME}" "$FILE_PATH/$FILE_NAME"
-            
-        #     # Increment if statement variables as they got shifted
-        #     adjust_else_elif_fi_linenumbers "${!EVAL_VAR_NAME}"
-
-        #     declare -g "$VARNAME_EXISTS=false"
-        # else
-        #     echo "Content found in if statement even though it shouldn't be there."
-        #     echo "LINE FOUND:"
-        #     echo "${!EVAL_VAR_NAME}"
-        #     echo "AT LINES: ${!EVAL_VAR_NAME_START}-${!EVAL_VAR_NAME_END}"
-        #     return -1
-        # fi
-    fi
-
-    if [[ "$already_done" == 'true' ]]
-    then
-        return_value='already done'
-    else
-        return_value='success'
-    fi
 }
