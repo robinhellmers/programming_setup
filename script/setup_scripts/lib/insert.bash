@@ -469,6 +469,39 @@ _insert_preferred_interval()
     debug_echo 100 "Placed in preferred interval."
 }
 
+_insert_preferred_interval_multiline()
+{
+    tmp_intervals=(0 ${_intervals[@]} $(wc -l "$FILE_PATH/$FILE_NAME" | cut -f1 -d' '))
+            debug_echo 100 "Place in preferred interval."
+
+    # Replace backslashes with double backslashes to have 'sed' insert line at
+    # line number later work as expected
+    TMP=$(echo "${!EVAL_VAR_NAME}" | sed 's/\\/\\\\/g')
+    # Replace backslash at end of line with an extra backslash to have 'sed' 
+    # insert line at line number later work as expected
+    TMP=$(echo "$TMP" | sed -E 's/[\\]$/\\\\/gm')
+
+    declare -g "${VAR_NAME_PREFIX}=${TMP}"
+
+    # Place content in allowed interval
+    case "$REF_PLACEMENT" in
+        "START")
+            insert_line_number="((tmp_intervals[preferred_index] + 1))"
+            line_to_get_whitespace=$(sed -n  "$((insert_line_number - 1))"p "$FILE_PATH/$FILE_NAME")
+            whitespace_indentation="$(grep -Eo "^\s*" <<< "$line_to_get_whitespace")"
+
+            sed -i "${insert_line_number}i ${whitespace_indentation}${!EVAL_VAR_NAME}" "$FILE_PATH/$FILE_NAME"
+            ;;
+        *)
+            insert_line_number="$((tmp_intervals[preferred_index + 1] - 1))"
+            line_to_get_whitespace=$(sed -n  "$((insert_line_number - 1))"p "$FILE_PATH/$FILE_NAME")
+            whitespace_indentation="$(grep -Eo "^\s*" <<< "$line_to_get_whitespace")"
+            sed -i "${insert_line_number}i ${whitespace_indentation}${!EVAL_VAR_NAME}" "$FILE_PATH/$FILE_NAME"
+            ;;
+    esac
+    debug_echo 100 "Placed in preferred interval."
+}
+
 add_multiline_content()
 {
     if (( $# < 5 ))
@@ -526,34 +559,11 @@ add_multiline_content()
     then
         if [[ $REF_TYPE == "INBETWEEN" ]]
         then
-            tmp_intervals=(0 ${_intervals[@]} $(wc -l "$FILE_PATH/$FILE_NAME" | cut -f1 -d' '))
-            debug_echo 100 "Place in preferred interval."
-
-            # Replace backslashes with double backslashes to have 'sed' insert line at
-            # line number later work as expected
-            TMP=$(echo "${!EVAL_VAR_NAME}")
-            TMP=$(echo "$TMP" | sed 's/\\/\\\\/g')
-            # Replace backslash at end of line with an extra backslash to have 'sed' 
-            # insert line at line number later work as expected
-            TMP=$(echo "$TMP" | sed -E 's/[\\]$/\\\\/gm')
-
-            declare -g "${VAR_NAME_PREFIX}=${TMP}"
-
-            # Place content in allowed interval
-            case "$REF_PLACEMENT" in
-                "START")
-                    sed -i "$((tmp_intervals[preferred_index] + 1))i ${!EVAL_VAR_NAME}" "$FILE_PATH/$FILE_NAME"
-                    # Update if statement variables if they got shifted
-                    adjust_else_elif_fi_linenumbers "${!EVAL_VAR_NAME}" $((tmp_intervals[preferred_index] + 1))
-                    ;;
-                *)
-                    sed -i "$((tmp_intervals[preferred_index + 1] - 1))i ${!EVAL_VAR_NAME}" "$FILE_PATH/$FILE_NAME"
-                    # Update if statement variables if they got shifted
-                    adjust_else_elif_fi_linenumbers "${!EVAL_VAR_NAME}" $((tmp_intervals[preferred_index + 1] - 1))
-                    ;;
-            esac
-            debug_echo 100 "Placed in preferred interval."
+            _insert_preferred_interval_multiline
             
+            # Update if statement variables if they got shifted
+            adjust_else_elif_fi_linenumbers "${!EVAL_VAR_NAME}" $insert_line_number
+
             # Update interval numbers
             adjust_interval_linenumbers "${!EVAL_VAR_NAME}" $add_to_preferred_interval_INDEX
 
@@ -561,6 +571,8 @@ add_multiline_content()
             already_done=false
         fi
     else    
+        # The text already exists in the file
+
         if [[ $REF_TYPE == "INBETWEEN" ]]
         then
             debug_echo 100 -e "\nReference type: INBETWEEN\n"
