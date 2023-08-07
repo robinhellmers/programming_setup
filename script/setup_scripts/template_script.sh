@@ -12,24 +12,35 @@ fi
 
 library_sourcing()
 {
-    find_this_script_path
 
-    local -r LIB_PATH="$this_script_path/lib"
-    SETUP_SCRIPTS_PATH="${SETUP_SCRIPTS_PATH:-"$this_script_path"}"
+    local -r THIS_SCRIPT_PATH="$(find_script_path)"
 
-    # Source files here using $LIB_PATH
+    # Store $THIS_SCRIPT_PATH as unique or local variables
+    local -r LIB_PATH="$THIS_SCRIPT_PATH/lib"
+
+    ### Source libraries ###
     source "$LIB_PATH/base.bash"
 }
 
-find_this_script_path()
+# Only store output in multi-file unique readonly global variables or
+# local variables to avoid variable values being overwritten in e.g.
+# sourced library files.
+# Recommended to always call the function when to use it
+find_script_path()
 {
-    local source=${BASH_SOURCE[0]}
-    while [ -L "$source" ]; do # resolve $source until the file is no longer a symlink
-        this_script_path=$( cd -P "$( dirname "$source" )" >/dev/null 2>&1 && pwd )
-        source=$(readlink "$source")
-        [[ $source != /* ]] && source=$this_script_path/$source # if $source was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+    local this_script_path
+    local bash_source="${BASH_SOURCE[0]}"
+
+    while [ -L "$bash_source" ]; do # resolve $bash_source until the file is no longer a symlink
+        this_script_path=$( cd -P "$( dirname "$bash_source" )" >/dev/null 2>&1 && pwd )
+        bash_source=$(readlink "$bash_source")
+        # If $bash_source was a relative symlink, we need to resolve it relative
+        # to the path where the symlink file was located
+        [[ $bash_source != /* ]] && bash_source=$this_script_path/$bash_source 
     done
     this_script_path=$( cd -P "$( dirname "$source" )" >/dev/null 2>&1 && pwd )
+
+    echo "$this_script_path"
 }
 
 library_sourcing
