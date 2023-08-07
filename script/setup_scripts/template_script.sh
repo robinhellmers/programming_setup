@@ -12,6 +12,8 @@ fi
 
 library_sourcing()
 {
+    # Unset as only called once and most likely overwritten when sourcing libs
+    unset -f library_sourcing
 
     local -r THIS_SCRIPT_PATH="$(find_script_path)"
 
