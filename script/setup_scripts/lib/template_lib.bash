@@ -3,9 +3,11 @@
 ##############################
 ### Library initialization ###
 ##############################
-
 init_lib()
 {
+    # Unset as only called once and most likely overwritten when sourcing libs
+    unset -f init_lib
+
     local -r THIS_SCRIPT_PATH="$(find_script_path)"
 
     # Store $THIS_SCRIPT_PATH as unique or local variables
