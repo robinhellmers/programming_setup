@@ -128,7 +128,6 @@ find_else_elif_fi_statement()
 
         case $first_word in
         'if'|'elif'|'else')
-            debug_echo 100 "level: $level"
 
             if (( level <= MAX_LEVEL ))
             then
@@ -143,7 +142,6 @@ find_else_elif_fi_statement()
             fi
             ;;
         'fi')
-            debug_echo 100 "level: $level"
 
             if ((level <= MAX_LEVEL - 1))
             then
