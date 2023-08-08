@@ -18,6 +18,15 @@
 
 # 'export' to pass variables to script shell executed from this script
 
+sourceable_script='false'
+
+if [[ "$sourceable_script" != 'true' && ! "${BASH_SOURCE[0]}" -ef "$0" ]]
+then
+    echo "Do not source this script! Execute it with bash instead."
+    return 1
+fi
+unset sourceable_script
+
 ########################
 ### Library sourcing ###
 ########################
