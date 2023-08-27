@@ -354,23 +354,41 @@ exists_in_file()
             # Remove leading (& trailing again without meaning)
             # Grep using content without leading or trailing whitespace
             LINE_NUMBER=$(sed 's/^[ \t]*//;s/[ \t]*$//' <<< "$FILECONTENT" | grep -Fxn "$CONTENT_TO_CHECK_WO_WHITESPACE" | cut -f1 -d:)
-            
+
             if [[ -n "$LINE_NUMBER" ]] ;
             then
+                local START=${3}_START
+                local END=${3}_END
+                declare -ag $START
+                declare -ag $END
 
-                declare -g $3_START=${LINE_NUMBER}
-                declare -g $3_END=${LINE_NUMBER}
-                # For eval and print within this function
-                START=$3_START
-                END=$3_END
+                while IFS= read -r value
+                do
+                    append_array "$START" "$value"
+                    append_array "$END" "$value"
+                done <<< "$LINE_NUMBER"
+
                 declare -g $3_EXISTS='true'
 
                 debug_echo 1 -e "${GREEN_COLOR}######################${END_COLOR}"
                 debug_echo 1 -e "${GREEN_COLOR}### Found content! ###${END_COLOR}"
                 debug_echo 1 -e "${GREEN_COLOR}######################${END_COLOR}\n"
-                debug_echo 1 "Content STARTING at line: ${!START}"
-                debug_echo 1 -e "Content ENDING at line:   ${!END}\n"
-                debug_echo 1 -e "--------------------------------"
+
+                local len_found_start="$(get_dynamic_array_len "$START")"
+                local len_found_end="$(get_dynamic_array_len "$END")"
+
+                debug_echo 1 "Found $len_found_start number of matching contents"
+
+                for (( i=0; i<len_found_start; i++ ))
+                do
+                    
+                    local element_start="$(get_dynamic_element $START $i)"
+                    local element_end="$(get_dynamic_element $END $i)"
+                    debug_echo 1 -e "\nMatch $((i + 1)):"
+                    debug_echo 1 "Between lines $element_start - $element_end"
+                done
+
+                debug_echo 1 -e "\n--------------------------------"
                 debug_echo 1 "||| END checking for content |||"
                 debug_echo 1 -e "--------------------------------\n"
                 return 0
