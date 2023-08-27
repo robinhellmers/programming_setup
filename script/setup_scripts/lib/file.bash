@@ -332,30 +332,24 @@ exists_in_file()
     
     case "$CONTENT_TO_CHECK" in
         *"$NL"*) # CONTENT_TO_CHECK is multiple lines
-            if $DEBUG
-            then
-                debug_echo 1 -e "Content to check is MULTIPLE lines\n"
-                debug_echo 1 -e "${DEFAULT_UNDERLINE_COLOR}Content to check:${END_COLOR}"
-                debug_echo 1 "$CONTENT_TO_CHECK"
-                debug_echo 1 " "
-            fi
+            debug_echo 1 -e "Content to check is MULTIPLE lines\n"
+            debug_echo 1 -e "${DEFAULT_UNDERLINE_COLOR}Content to check:${END_COLOR}"
+            debug_echo 1 "$CONTENT_TO_CHECK"
+            debug_echo 1 " "
             ;;
         *) # CONTENT_TO_CHECK is one line
-            if $DEBUG
-            then
-                # Remove leading & trailing whitespace
-                CONTENT_TO_CHECK_WO_WHITESPACE=$(sed 's/^[ \t]*//;s/[ \t]*$//' <<< "$CONTENT_TO_CHECK")
-                # Remove leading (& trailing again without meaning)
-                # Grep using content without leading or trailing whitespace
-                SED_OUTPUT=$(sed 's/^[ \t]*//;s/[ \t]*$//' <<< "$FILECONTENT")
-                GREP_OUTPUT=$(grep -Fxn "$CONTENT_TO_CHECK_WO_WHITESPACE" --color=never <<< "$SED_OUTPUT")
+            # Remove leading & trailing whitespace
+            CONTENT_TO_CHECK_WO_WHITESPACE=$(sed 's/^[ \t]*//;s/[ \t]*$//' <<< "$CONTENT_TO_CHECK")
+            # Remove leading (& trailing again without meaning)
+            # Grep using content without leading or trailing whitespace
+            SED_OUTPUT=$(sed 's/^[ \t]*//;s/[ \t]*$//' <<< "$FILECONTENT")
+            GREP_OUTPUT=$(grep -Fxn "$CONTENT_TO_CHECK_WO_WHITESPACE" --color=never <<< "$SED_OUTPUT")
 
-                debug_echo 1 -e "Content to check is ONE line.\n"
-                debug_echo 1 -e "${DEFAULT_UNDERLINE_COLOR}Content to check:${END_COLOR}"
-                debug_echo 1 "$CONTENT_TO_CHECK"
-                debug_echo 1 -e "\n${DEFAULT_UNDERLINE_COLOR}GREP output:${END_COLOR}"
-                debug_echo 1 -e "$GREP_OUTPUT\n"
-            fi
+            debug_echo 1 -e "Content to check is ONE line.\n"
+            debug_echo 1 -e "${DEFAULT_UNDERLINE_COLOR}Content to check:${END_COLOR}"
+            debug_echo 1 "$CONTENT_TO_CHECK"
+            debug_echo 1 -e "\n${DEFAULT_UNDERLINE_COLOR}GREP output:${END_COLOR}"
+            debug_echo 1 -e "$GREP_OUTPUT\n"
 
             # Remove leading (& trailing again without meaning)
             # Grep using content without leading or trailing whitespace
