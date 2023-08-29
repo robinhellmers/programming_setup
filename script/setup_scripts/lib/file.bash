@@ -329,92 +329,175 @@ exists_in_file()
     # Remove leading and trailing whitespace
     # FILECONTENT="$(echo "${FILECONTENT}" |  sed 's/^[ \t]*//;s/[ \t]*$//')"
 
-    
     case "$CONTENT_TO_CHECK" in
         *"$NL"*) # CONTENT_TO_CHECK is multiple lines
-            debug_echo 1 -e "Content to check is MULTIPLE lines\n"
-            debug_echo 1 -e "${DEFAULT_UNDERLINE_COLOR}Content to check:${END_COLOR}"
-            debug_echo 1 "$CONTENT_TO_CHECK"
-            debug_echo 1 " "
+            _handle_multiline_content "$FILECONTENT" "$CONTENT_TO_CHECK"
+            return
             ;;
         *) # CONTENT_TO_CHECK is one line
-            # Remove leading & trailing whitespace
-            CONTENT_TO_CHECK_WO_WHITESPACE=$(sed 's/^[ \t]*//;s/[ \t]*$//' <<< "$CONTENT_TO_CHECK")
-            # Remove leading (& trailing again without meaning)
-            # Grep using content without leading or trailing whitespace
-            SED_OUTPUT=$(sed 's/^[ \t]*//;s/[ \t]*$//' <<< "$FILECONTENT")
-            GREP_OUTPUT=$(grep -Fxn "$CONTENT_TO_CHECK_WO_WHITESPACE" --color=never <<< "$SED_OUTPUT")
-
-            debug_echo 1 -e "Content to check is ONE line.\n"
-            debug_echo 1 -e "${DEFAULT_UNDERLINE_COLOR}Content to check:${END_COLOR}"
-            debug_echo 1 "$CONTENT_TO_CHECK"
-            debug_echo 1 -e "\n${DEFAULT_UNDERLINE_COLOR}GREP output:${END_COLOR}"
-            debug_echo 1 -e "$GREP_OUTPUT\n"
-
-            # Remove leading (& trailing again without meaning)
-            # Grep using content without leading or trailing whitespace
-            LINE_NUMBER=$(sed 's/^[ \t]*//;s/[ \t]*$//' <<< "$FILECONTENT" | grep -Fxn "$CONTENT_TO_CHECK_WO_WHITESPACE" | cut -f1 -d:)
-
-            if [[ -n "$LINE_NUMBER" ]] ;
-            then
-                local START=${3}_START
-                local END=${3}_END
-                declare -ag $START
-                declare -ag $END
-
-                while IFS= read -r value
-                do
-                    append_array "$START" "$value"
-                    append_array "$END" "$value"
-                done <<< "$LINE_NUMBER"
-
-                declare -g $3_EXISTS='true'
-
-                debug_echo 1 -e "${GREEN_COLOR}######################${END_COLOR}"
-                debug_echo 1 -e "${GREEN_COLOR}### Found content! ###${END_COLOR}"
-                debug_echo 1 -e "${GREEN_COLOR}######################${END_COLOR}\n"
-
-                local len_found_start="$(get_dynamic_array_len "$START")"
-                local len_found_end="$(get_dynamic_array_len "$END")"
-
-                debug_echo 1 "Found $len_found_start number of matching contents"
-
-                for (( i=0; i<len_found_start; i++ ))
-                do
-                    
-                    local element_start="$(get_dynamic_element $START $i)"
-                    local element_end="$(get_dynamic_element $END $i)"
-                    debug_echo 1 -e "\nMatch $((i + 1)):"
-                    debug_echo 1 "Between lines $element_start - $element_end"
-                done
-
-                debug_echo 1 -e "\n--------------------------------"
-                debug_echo 1 "||| END checking for content |||"
-                debug_echo 1 -e "--------------------------------\n"
-                return 0
-            else
-                debug_echo 1 -e "${RED_COLOR}#############################${END_COLOR}"
-                debug_echo 1 -e "${RED_COLOR}### Did NOT find content! ###${END_COLOR}"
-                debug_echo 1 -e "${RED_COLOR}#############################${END_COLOR}\n"
-                debug_echo 1 -e "--------------------------------"
-                debug_echo 1 "||| END checking for content |||"
-                debug_echo 1 -e "--------------------------------\n"
-                return -1
-            fi ;;
+            _handle_oneline_content "$FILECONTENT" "$CONTENT_TO_CHECK"
+            return
+            ;;
     esac
+}
 
-    # If multiple lines
-    REPLACED_CONTENT=${FILECONTENT/"$CONTENT_TO_CHECK"/}
+_handle_oneline_content()
+{
+    local FILECONTENT="$1"
+    local CONTENT_TO_CHECK="$2"
+
+    # Remove leading & trailing whitespace
+    local CONTENT_TO_CHECK_WO_WHITESPACE=$(sed 's/^[ \t]*//;s/[ \t]*$//' <<< "$CONTENT_TO_CHECK")
+    # Remove leading (& trailing again without meaning)
+    # Grep using content without leading or trailing whitespace
+    local SED_OUTPUT=$(sed 's/^[ \t]*//;s/[ \t]*$//' <<< "$FILECONTENT")
+    local GREP_OUTPUT=$(grep -Fxn "$CONTENT_TO_CHECK_WO_WHITESPACE" --color=never <<< "$SED_OUTPUT")
+
+    debug_echo 1 -e "Content to check is ONE line.\n"
+    debug_echo 1 -e "${DEFAULT_UNDERLINE_COLOR}Content to check:${END_COLOR}"
+    debug_echo 1 "$CONTENT_TO_CHECK"
+    debug_echo 1 -e "\n${DEFAULT_UNDERLINE_COLOR}GREP output:${END_COLOR}"
+    debug_echo 1 -e "$GREP_OUTPUT\n"
+
+    if [[ -z "$FILECONTENT" ]]
+    then
+        debug_echo 1 -e "Given file content is empty."
+        return 1
+    elif [[ -z "$CONTENT_TO_CHECK" ]]
+    then
+        debug_echo 1 -e "Given  content to look for is empty."
+        return 1
+    fi
+
+    # Remove leading (& trailing again without meaning)
+    # Grep using content without leading or trailing whitespace
+    local LINE_NUMBER=$(sed 's/^[ \t]*//;s/[ \t]*$//' <<< "$FILECONTENT" | grep -Fxn "$CONTENT_TO_CHECK_WO_WHITESPACE" | cut -f1 -d:)
+
+    if [[ -n "$LINE_NUMBER" ]] ;
+    then
+        local START=${3}_START
+        local END=${3}_END
+        declare -ag $START
+        declare -ag $END
+
+        while IFS= read -r value
+        do
+            append_array "$START" "$value"
+            append_array "$END" "$value"
+        done <<< "$LINE_NUMBER"
+
+        declare -g $3_EXISTS='true'
+
+        debug_echo 1 -e "${GREEN_COLOR}######################${END_COLOR}"
+        debug_echo 1 -e "${GREEN_COLOR}### Found content! ###${END_COLOR}"
+        debug_echo 1 -e "${GREEN_COLOR}######################${END_COLOR}\n"
+
+        local len_found_start="$(get_dynamic_array_len "$START")"
+        local len_found_end="$(get_dynamic_array_len "$END")"
+
+        debug_echo 1 "Found $len_found_start number of matching contents"
+
+        for (( i=0; i<len_found_start; i++ ))
+        do
+            local element_start="$(get_dynamic_element $START $i)"
+            local element_end="$(get_dynamic_element $END $i)"
+            debug_echo 1 -e "\nMatch $((i + 1)):"
+            debug_echo 1 "Between lines $element_start - $element_end"
+        done
+
+        debug_echo 1 -e "\n--------------------------------"
+        debug_echo 1 "||| END checking for content |||"
+        debug_echo 1 -e "--------------------------------\n"
+        return 0
+    else
+        debug_echo 1 -e "${RED_COLOR}#############################${END_COLOR}"
+        debug_echo 1 -e "${RED_COLOR}### Did NOT find content! ###${END_COLOR}"
+        debug_echo 1 -e "${RED_COLOR}#############################${END_COLOR}\n"
+        debug_echo 1 -e "--------------------------------"
+        debug_echo 1 "||| END checking for content |||"
+        debug_echo 1 -e "--------------------------------\n"
+        return 1
+    fi
+}
+
+_handle_multiline_content()
+{
+    local FILECONTENT="$1"
+    local CONTENT_TO_CHECK="$2"
+
+    debug_echo 1 -e "Content to check is MULTIPLE lines\n"
+    debug_echo 1 -e "${DEFAULT_UNDERLINE_COLOR}Content to check:${END_COLOR}"
+    debug_echo 1 "$CONTENT_TO_CHECK"
+    debug_echo 1 " "
+
+    if [[ -z "$FILECONTENT" ]]
+    then
+        debug_echo 1 -e "Given file content is empty."
+        return 1
+    elif [[ -z "$CONTENT_TO_CHECK" ]]
+    then
+        debug_echo 1 -e "Given  content to look for is empty."
+        return 1
+    fi
+
+    local CONTENT_TO_CHECK_WO_WHITESPACE
+    # Remove leading whitespace from only the first line
+    CONTENT_TO_CHECK_WO_WHITESPACE="${CONTENT_TO_CHECK#"${CONTENT_TO_CHECK%%[![:space:]]*}"}"
+    # Remove trailing whitespace from all lines
+    CONTENT_TO_CHECK_WO_WHITESPACE=$(sed 's/[ \t]*$//' <<< "$CONTENT_TO_CHECK_WO_WHITESPACE")
+
+    echo "CONTENT_TO_CHECK_WO_WHITESPACE:"
+    echo "$CONTENT_TO_CHECK_WO_WHITESPACE"
+    echo ""
+
+    echo GREP START
+    awk -v RS='^$' -v ORS= -v content="$CONTENT_TO_CHECK" '$0 ~ content {print}' <<< "$FILECONTENT"
+    exit
+
+    # REPLACED_CONTENT=${FILECONTENT/"$CONTENT_TO_CHECK"/}
+    FILECONTENT_PREVIOUS="$FILECONTENT"
+    CONTENT_REMOVED=${FILECONTENT_PREVIOUS/"$CONTENT_TO_CHECK"/}
+    THEDIFF=$(diff <(echo "$FILECONTENT_PREVIOUS") <(echo "$CONTENT_REMOVED"))
+    debug_echo 100 -e "THEDIFF:\n$THEDIFF\n"
+
+    FILECONTENT_PREVIOUS=${FILECONTENT_PREVIOUS/"$CONTENT_TO_CHECK"/"DUMMY TEXT $CONTENT_TO_CHECK"}
+
+    CONTENT_REMOVED=${FILECONTENT_PREVIOUS/"$CONTENT_TO_CHECK"/}
+    THEDIFF=$(diff <(echo "$FILECONTENT_PREVIOUS") <(echo "$CONTENT_REMOVED"))
+    debug_echo 100 -e "THEDIFF:\n$THEDIFF\n"
+
+    exit 1
+    # REPLACED_CONTENT=$(sed "s|$CONTENT_TO_CHECK||g" <<< "$FILECONTENT")
+    # echo "REPLACED_CONTENT"
+    # echo "$REPLACED_CONTENT"
+    # echo 
+    THEDIFF=$(diff <(echo "$FILECONTENT") <(echo "$REPLACED_CONTENT"))
+    debug_echo 100 -e "THEDIFF:\n$THEDIFF\n"
+    REPLACED_CONTENT=${REPLACED_CONTENT/"$CONTENT_TO_CHECK"/"DUMMY TEXT $CONTENT_TO_CHECK"}
+    THEDIFF=$(diff <(echo "$FILECONTENT") <(echo "$REPLACED_CONTENT"))
+    debug_echo 100 -e "THEDIFF:\n$THEDIFF\n"
+    REPLACED_CONTENT=${REPLACED_CONTENT/"$CONTENT_TO_CHECK"/"DUMMY TEXT $CONTENT_TO_CHECK"}
+    THEDIFF=$(diff <(echo "$FILECONTENT") <(echo "$REPLACED_CONTENT"))
+    debug_echo 100 -e "THEDIFF:\n$THEDIFF\n"
     
     if [[ "$FILECONTENT" != "$REPLACED_CONTENT" ]]
     then # Content to find where found and replaced
 
         # Find between which line numbers the diff is (find where the content where replaced)
         LINE_NUMBERS=$(diff <(echo "$FILECONTENT") <(echo "$REPLACED_CONTENT") | grep -E '^\s*[0-9]+')
+        THEDIFF=$(diff <(echo "$FILECONTENT") <(echo "$REPLACED_CONTENT"))
+        debug_echo 100 -e "THEDIFF:\n$THEDIFF\n"
+        debug_echo 100 -e "LINE_NUMBERS:\n$LINE_NUMBERS\n"
         # Split them up into an array
         IFS=',cd' read -r -a line_numbers <<< "$LINE_NUMBERS"
         # Sort the array, from min to max
         IFS=$'\n' sorted_line_numbers=($(sort <<<"${line_numbers[*]}"))
+        debug_echo 100 "sorted_line_numbers:"
+        for element in "${line_numbers[@]}"
+        do
+            debug_echo 100 "element: $element"
+        done
+        
 
         declare -g $3_START=${sorted_line_numbers[0]}
         declare -g $3_END=${sorted_line_numbers[${#sorted_line_numbers[@]} - 1]}
@@ -440,7 +523,6 @@ exists_in_file()
         debug_echo 1 -e "--------------------------------\n"
         return -1
     fi
-    
 }
 
 # Makes sure file exists with the exact content given. If not, it creates or
