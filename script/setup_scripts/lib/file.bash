@@ -313,10 +313,11 @@ files_equal_multiple()
 #     $3_END - End line number of where $2 where found in $1
 exists_in_file()
 {
-    FILECONTENT=$(<$1)
-    CONTENT_TO_CHECK="$2"
+    local file_content=$(<$1)
+    local to_check="$2"
+    local dyn_var_prefix="$3"
 
-    declare -g $3_EXISTS='false'
+    declare -g ${dyn_var_prefix}_exists='false'
     
     
     debug_echo 1 -e "\n----------------------------------"
@@ -324,18 +325,18 @@ exists_in_file()
     debug_echo 1 -e "----------------------------------\n"
 
     # Remove trailing whitespace
-    FILECONTENT="$(echo "${FILECONTENT}" | sed -e 's/[[:space:]]*$//')"
-    # FILECONTENT=$(echo "$FILECONTENT" | sed 's/\\*$//g')
+    file_content="$(echo "${file_content}" | sed -e 's/[[:space:]]*$//')"
+    # file_content=$(echo "$file_content" | sed 's/\\*$//g')
     # Remove leading and trailing whitespace
-    # FILECONTENT="$(echo "${FILECONTENT}" |  sed 's/^[ \t]*//;s/[ \t]*$//')"
+    # file_content="$(echo "${file_content}" |  sed 's/^[ \t]*//;s/[ \t]*$//')"
 
-    case "$CONTENT_TO_CHECK" in
+    case "$to_check" in
         *"$NL"*) # CONTENT_TO_CHECK is multiple lines
-            _handle_multiline_content "$FILECONTENT" "$CONTENT_TO_CHECK"
+            _handle_multiline_content "$file_content" "$to_check" "$dyn_var_prefix"
             return
             ;;
-        *) # CONTENT_TO_CHECK is one line
-            _handle_oneline_content "$FILECONTENT" "$CONTENT_TO_CHECK"
+        *) # to_check is one line
+            _handle_oneline_content "$file_content" "$to_check" "$dyn_var_prefix"
             return
             ;;
     esac
@@ -420,7 +421,111 @@ _handle_oneline_content()
     fi
 }
 
+_find_multiline_content()
+{
+    local file_content="$1"
+    local to_find="$2"
+
+    local to_find_wo_ws
+    # Remove leading whitespace from only the first line
+    to_find_wo_ws="${to_find#"${to_find%%[![:space:]]*}"}"
+    # Remove trailing whitespace from all lines
+    to_find_wo_ws=$(sed -E 's/[[:space:]]*$//' <<< "$to_find_wo_ws")
+
+    # Remove trainling whiespace from all lines
+    file_content=$(sed -E 's/[[:space:]]*$//' <<< "$file_content")
+    
+    local first_line_to_find
+    first_line_to_find="$(sed "1q;d" <<< "$to_find_wo_ws")"
+
+    # Find potential potential matches
+    local first_line_matches
+    first_line_matches="$(grep -n "$first_line_to_find" <<< "$file_content" | cut -d : -f 1)"
+    # Store in array
+    IFS=$'\n' first_line_matches=($first_line_matches)
+
+    local matches_line_numbers_start=()
+    for line_num in "${first_line_matches[@]}"
+    do
+        # For each first line match, start checking rest of lines to match
+        local rel_line_num=1
+        local content_is_matching='true'
+        while IFS= read -r look_for_line # <<< "$to_find_wo_ws"
+        do
+            (( rel_line_num == 1)) && { ((rel_line_num++)); continue; }
+
+            [[ "$content_is_matching" != 'true' ]] && break
+
+            local file_line
+            file_line="$(sed "$((line_num + rel_line_num - 1))q;d" <<< "$file_content")"
+
+            [[ "$file_line" != "$look_for_line" ]] && content_is_matching='false'
+
+            ((rel_line_num++))
+        done <<< "$to_find_wo_ws"
+
+        if [[ "$content_is_matching" == 'true' ]]
+        then
+            matching_starting_line_numbers+=("$line_num")
+        fi
+    done
+
+    echo "${matching_starting_line_numbers[@]}"
+}
+
 _handle_multiline_content()
+{
+    local file_content="$1"
+    local to_find="$2"
+    local dyn_var_prefix="$3"
+
+    local matches_line_nums
+    matches_line_nums=($(_find_multiline_content "$file_content" "$to_find"))
+
+    if [[ -z "${matches_line_nums[@]}" ]]
+    then
+        return 1
+    fi
+    
+    declare -g ${dyn_var_prefix}_exists='true'
+
+    local dyn_var_start=${dyn_var_prefix}_start
+    local dyn_var_end=${dyn_var_prefix}_end
+    declare -ag $dyn_var_start
+    declare -ag $dyn_var_end
+
+    local num_lines=$(echo -n "$to_find" | grep -c '^')
+
+    for line_num in "${matches_line_nums[@]}"
+    do
+        append_array "$dyn_var_start" "$line_num"
+        append_array "$dyn_var_end" "$((line_num + num_lines - 1))"
+    done
+
+    debug_echo 1 -e "${GREEN_COLOR}######################${END_COLOR}"
+    debug_echo 1 -e "${GREEN_COLOR}### Found content! ###${END_COLOR}"
+    debug_echo 1 -e "${GREEN_COLOR}######################${END_COLOR}\n"
+
+    local len_found_start="$(get_dynamic_array_len "$dyn_var_start")"
+    local len_found_end="$(get_dynamic_array_len "$dyn_var_end")"
+
+    debug_echo 1 "Found $len_found_start number of matching contents"
+
+    for (( i=0; i<len_found_start; i++ ))
+    do
+        local element_start="$(get_dynamic_element $dyn_var_start $i)"
+        local element_end="$(get_dynamic_element $dyn_var_end $i)"
+        debug_echo 1 -e "\nMatch $((i + 1)):"
+        debug_echo 1 "Between lines $element_start - $element_end"
+    done
+
+    debug_echo 1 -e "\n--------------------------------"
+    debug_echo 1 "||| END checking for content |||"
+    debug_echo 1 -e "--------------------------------\n"
+    return 0
+}
+
+_handle_multiline_content_old()
 {
     local FILECONTENT="$1"
     local CONTENT_TO_CHECK="$2"

@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
-source "../lib/base.bash"
-source "../lib/if_statement.bash"
-source "../lib/insert.bash"
-source "../lib/file.bash"
+source "../../lib/base.bash"
+source "../../lib/if_statement.bash"
+source "../../lib/insert.bash"
+source "../../lib/file.bash"
 
 main()
 {
