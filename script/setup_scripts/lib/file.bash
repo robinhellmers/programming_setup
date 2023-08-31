@@ -331,7 +331,7 @@ exists_in_file()
     # file_content="$(echo "${file_content}" |  sed 's/^[ \t]*//;s/[ \t]*$//')"
 
     case "$to_check" in
-        *"$NL"*) # CONTENT_TO_CHECK is multiple lines
+        *"$NL"*) # to_check is multiple lines
             _handle_multiline_content "$file_content" "$to_check" "$dyn_var_prefix"
             return
             ;;
@@ -344,27 +344,26 @@ exists_in_file()
 
 _handle_oneline_content()
 {
-    local FILECONTENT="$1"
-    local CONTENT_TO_CHECK="$2"
+    local file_content="$1"
+    local to_check="$2"
+    local dyn_var_prefix="$3"
 
     # Remove leading & trailing whitespace
-    local CONTENT_TO_CHECK_WO_WHITESPACE=$(sed 's/^[ \t]*//;s/[ \t]*$//' <<< "$CONTENT_TO_CHECK")
+    local to_check_wo_ws=$(sed 's/^[ \t]*//;s/[ \t]*$//' <<< "$to_check")
     # Remove leading (& trailing again without meaning)
     # Grep using content without leading or trailing whitespace
-    local SED_OUTPUT=$(sed 's/^[ \t]*//;s/[ \t]*$//' <<< "$FILECONTENT")
-    local GREP_OUTPUT=$(grep -Fxn "$CONTENT_TO_CHECK_WO_WHITESPACE" --color=never <<< "$SED_OUTPUT")
+    local sed_out=$(sed 's/^[ \t]*//;s/[ \t]*$//' <<< "$file_content")
+    local grep_out=$(grep -Fxn "$to_check_wo_ws" --color=never <<< "$sed_out")
 
     debug_echo 1 -e "Content to check is ONE line.\n"
     debug_echo 1 -e "${DEFAULT_UNDERLINE_COLOR}Content to check:${END_COLOR}"
-    debug_echo 1 "$CONTENT_TO_CHECK"
-    debug_echo 1 -e "\n${DEFAULT_UNDERLINE_COLOR}GREP output:${END_COLOR}"
-    debug_echo 1 -e "$GREP_OUTPUT\n"
+    debug_echo 1 "$to_check"
 
-    if [[ -z "$FILECONTENT" ]]
+    if [[ -z "$file_content" ]]
     then
         debug_echo 1 -e "Given file content is empty."
         return 1
-    elif [[ -z "$CONTENT_TO_CHECK" ]]
+    elif [[ -z "$to_check" ]]
     then
         debug_echo 1 -e "Given  content to look for is empty."
         return 1
@@ -372,36 +371,36 @@ _handle_oneline_content()
 
     # Remove leading (& trailing again without meaning)
     # Grep using content without leading or trailing whitespace
-    local LINE_NUMBER=$(sed 's/^[ \t]*//;s/[ \t]*$//' <<< "$FILECONTENT" | grep -Fxn "$CONTENT_TO_CHECK_WO_WHITESPACE" | cut -f1 -d:)
+    local line_numbers=$(sed 's/^[ \t]*//;s/[ \t]*$//' <<< "$file_content" | grep -Fxn "$to_check_wo_ws" | cut -f1 -d:)
 
-    if [[ -n "$LINE_NUMBER" ]] ;
+    if [[ -n "$line_numbers" ]] ;
     then
-        local START=${3}_START
-        local END=${3}_END
-        declare -ag $START
-        declare -ag $END
+        local start=${dyn_var_prefix}_start
+        local end=${dyn_var_prefix}_end
+        declare -ag $start
+        declare -ag $start
 
         while IFS= read -r value
         do
-            append_array "$START" "$value"
-            append_array "$END" "$value"
-        done <<< "$LINE_NUMBER"
+            append_array "$start" "$value"
+            append_array "$start" "$value"
+        done <<< "$line_numbers"
 
-        declare -g $3_EXISTS='true'
+        declare -g ${dyn_var_prefix}_exists='true'
 
         debug_echo 1 -e "${GREEN_COLOR}######################${END_COLOR}"
         debug_echo 1 -e "${GREEN_COLOR}### Found content! ###${END_COLOR}"
         debug_echo 1 -e "${GREEN_COLOR}######################${END_COLOR}\n"
 
-        local len_found_start="$(get_dynamic_array_len "$START")"
-        local len_found_end="$(get_dynamic_array_len "$END")"
+        local len_found_start="$(get_dynamic_array_len "$start")"
+        local len_found_end="$(get_dynamic_array_len "$start")"
 
         debug_echo 1 "Found $len_found_start number of matching contents"
 
         for (( i=0; i<len_found_start; i++ ))
         do
-            local element_start="$(get_dynamic_element $START $i)"
-            local element_end="$(get_dynamic_element $END $i)"
+            local element_start="$(get_dynamic_element $start $i)"
+            local element_end="$(get_dynamic_element $start $i)"
             debug_echo 1 -e "\nMatch $((i + 1)):"
             debug_echo 1 "Between lines $element_start - $element_end"
         done
