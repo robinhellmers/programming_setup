@@ -62,9 +62,9 @@ setup_gitcompletionbash()
     debug_echo 100 "*****************************************************************************"
     IF_STATEMENT='if [ "$color_prompt" = yes ]; then'
     exists_in_file "$PATH_BASHRC/$NAME_BASHRC" "$IF_STATEMENT" IF_STATEMENT
-    debug_echo 100 "IF_STATEMENT_EXISTS: $IF_STATEMENT_EXISTS"
+    debug_echo 100 "IF_STATEMENT_exists: $IF_STATEMENT_exists"
     debug_echo 100 "IF_STATEMENT_START: $IF_STATEMENT_START IF_STATEMENT_END: $IF_STATEMENT_END"
-    if $IF_STATEMENT_EXISTS
+    if $IF_STATEMENT_exists
     then
         find_else_elif_fi_statement "$PATH_BASHRC/$NAME_BASHRC" "$IF_STATEMENT_START" if_statement 1
         if [[ "$?" != 0 ]]

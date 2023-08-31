@@ -308,7 +308,7 @@ files_equal_multiple()
 # 1 - Filename
 # 2 - Multiline variable. Must be quoted
 # 3 - Variable name to create results from. Creates:
-#     $3_EXISTS=true/false - Tells whether if $2 where found in $1
+#     $3_exists=true/false - Tells whether if $2 where found in $1
 #     $3_START - Start line number of where $2 where found in $1
 #     $3_END - End line number of where $2 where found in $1
 exists_in_file()
@@ -608,7 +608,7 @@ _handle_multiline_content_old()
         # For eval and print within this function
         START=$3_START
         END=$3_END
-        declare -g $3_EXISTS='true'
+        declare -g $3_exists='true'
         debug_echo 1 -e "${GREEN_COLOR}######################${END_COLOR}"
         debug_echo 1 -e "${GREEN_COLOR}### Found content! ###${END_COLOR}"
         debug_echo 1 -e "${GREEN_COLOR}######################${END_COLOR}\n"

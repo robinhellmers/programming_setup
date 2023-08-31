@@ -130,8 +130,8 @@ add_single_line_content()
     debug_echo 1 "*********************************************************************"
 
     EVAL_VAR_NAME=$VAR_NAME_PREFIX # ${!EVAL_VAR_NAME}
-    EVAL_VAR_NAME_EXISTS=${VAR_NAME_PREFIX}_EXISTS # ${!EVAL_VAR_NAME_EXISTS}
-    declare -g ${VAR_NAME_PREFIX}_EXISTS='true'
+    EVAL_VAR_NAME_exists=${VAR_NAME_PREFIX}_exists # ${!EVAL_VAR_NAME_exists}
+    declare -g ${VAR_NAME_PREFIX}_exists='true'
 
     # Iterate over every line of VAR_NAME_PREFIX as they are independent
     already_done='true'
@@ -146,7 +146,7 @@ add_single_line_content()
         if [[ $REF_TYPE == "INBETWEEN" ]]
         then
             debug_echo 100 -e "\nReference type: INBETWEEN\n"
-            if ! $LINE_EXISTS
+            if ! $LINE_exists
             then
                 add_to_preferred_interval='true'
                 already_done='false'
@@ -234,7 +234,7 @@ add_multiline_content()
     debug_echo 1 "*********************************************************************"
 
     EVAL_VAR_NAME=$VAR_NAME_PREFIX # ${!EVAL_VAR_NAME}
-    EVAL_VAR_NAME_EXISTS=${VAR_NAME_PREFIX}_EXISTS # ${!EVAL_VAR_NAME_EXISTS}
+    EVAL_VAR_NAME_exists=${VAR_NAME_PREFIX}_exists # ${!EVAL_VAR_NAME_exists}
     EVAL_VAR_NAME_START=${VAR_NAME_PREFIX}_START # ${!EVAL_VAR_NAME_START}
     EVAL_VAR_NAME_END=${VAR_NAME_PREFIX}_END # ${!EVAL_VAR_NAME_END}
 
@@ -244,7 +244,7 @@ add_multiline_content()
     EVALUATED_VAR_NAME_END=${!EVAL_VAR_NAME_END}
 
     already_done='true'
-    if ! ${!EVAL_VAR_NAME_EXISTS}
+    if ! ${!EVAL_VAR_NAME_exists}
     then
         if [[ $REF_TYPE == "INBETWEEN" ]]
         then
@@ -256,7 +256,7 @@ add_multiline_content()
             # Update interval numbers
             adjust_interval_linenumbers "${!EVAL_VAR_NAME}" $add_to_preferred_interval_INDEX
 
-            declare -g "${VAR_NAME_PREFIX}_EXISTS=false" # EXISTS since before = not true
+            declare -g "${VAR_NAME_PREFIX}_exists=false" # EXISTS since before = not true
             already_done='false'
         fi
     else    
@@ -287,7 +287,7 @@ add_multiline_content()
                 # Update interval numbers
                 adjust_interval_linenumbers "${!EVAL_VAR_NAME}" $add_to_preferred_interval_INDEX
 
-                declare -g "${VAR_NAME_PREFIX}_EXISTS=false" # EXISTS since before = not true
+                declare -g "${VAR_NAME_PREFIX}_exists=false" # EXISTS since before = not true
                 already_done='false'
             fi
 
@@ -331,7 +331,7 @@ add_multiline_content()
         #     # Increment if statement variables as they got shifted
         #     adjust_else_elif_fi_linenumbers "${!EVAL_VAR_NAME}"
 
-        #     declare -g "$VARNAME_EXISTS=false"
+        #     declare -g "$VARNAME_exists=false"
         # else
         #     echo "Content found in if statement even though it shouldn't be there."
         #     echo "LINE FOUND:"
