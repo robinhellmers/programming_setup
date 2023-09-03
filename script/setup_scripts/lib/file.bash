@@ -309,8 +309,8 @@ files_equal_multiple()
 # 2 - Multiline variable. Must be quoted
 # 3 - Variable name to create results from. Creates:
 #     $3_exists=true/false - Tells whether if $2 where found in $1
-#     $3_START - Start line number of where $2 where found in $1
-#     $3_END - End line number of where $2 where found in $1
+#     $3_start - Start line number of where $2 where found in $1
+#     $3_end - End line number of where $2 where found in $1
 exists_in_file()
 {
     local file_content=$(<$1)

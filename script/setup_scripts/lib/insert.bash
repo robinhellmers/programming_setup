@@ -129,8 +129,8 @@ add_single_line_content()
     debug_echo 1 "***** Start input of $VAR_NAME_PREFIX **********************************"
     debug_echo 1 "*********************************************************************"
 
-    EVAL_VAR_NAME=$VAR_NAME_PREFIX # ${!EVAL_VAR_NAME}
-    EVAL_VAR_NAME_exists=${VAR_NAME_PREFIX}_exists # ${!EVAL_VAR_NAME_exists}
+    eval_var_name=$VAR_NAME_PREFIX # ${!eval_var_name}
+    eval_var_name_exists=${VAR_NAME_PREFIX}_exists # ${!eval_var_name_exists}
     declare -g ${VAR_NAME_PREFIX}_exists='true'
 
     # Iterate over every line of VAR_NAME_PREFIX as they are independent
@@ -140,13 +140,13 @@ add_single_line_content()
         debug_echo 100 "##################################################################"
         debug_echo 100 "Checking new line of variable. ###################################"
         debug_echo 100 -e "##################################################################\n"
-        exists_in_file "$FILE_PATH/$FILE_NAME" "$line" LINE
-        # Returns: LINE_EXIST / LINE_START / LINE_END
+        exists_in_file "$FILE_PATH/$FILE_NAME" "$line" line
+        # Returns: line_exists / line_start / line_end
 
         if [[ $REF_TYPE == "INBETWEEN" ]]
         then
             debug_echo 100 -e "\nReference type: INBETWEEN\n"
-            if ! $LINE_exists
+            if ! $line_exists
             then
                 add_to_preferred_interval='true'
                 already_done='false'
@@ -177,7 +177,7 @@ add_single_line_content()
             fi
             debug_echo 100 " "
         fi
-    done <<< "${!EVAL_VAR_NAME}"
+    done <<< "${!eval_var_name}"
 
     debug_echo 1 -e "\n*********************************************************************"
     debug_echo 1 "***** End input of $VAR_NAME_PREFIX ************************************"
@@ -233,28 +233,28 @@ add_multiline_content()
     debug_echo 1 "***** Start input of $VAR_NAME_PREFIX **********************************"
     debug_echo 1 "*********************************************************************"
 
-    EVAL_VAR_NAME=$VAR_NAME_PREFIX # ${!EVAL_VAR_NAME}
-    EVAL_VAR_NAME_exists=${VAR_NAME_PREFIX}_exists # ${!EVAL_VAR_NAME_exists}
-    EVAL_VAR_NAME_START=${VAR_NAME_PREFIX}_START # ${!EVAL_VAR_NAME_START}
-    EVAL_VAR_NAME_END=${VAR_NAME_PREFIX}_END # ${!EVAL_VAR_NAME_END}
+    eval_var_name=$VAR_NAME_PREFIX # ${!eval_var_name}
+    eval_var_name_exists=${VAR_NAME_PREFIX}_exists # ${!eval_var_name_exists}
+    eval_var_name_start=${VAR_NAME_PREFIX}_start # ${!eval_var_name_start}
+    eval_var_name_end=${VAR_NAME_PREFIX}_end # ${!eval_var_name_end}
 
-    exists_in_file "$FILE_PATH/$FILE_NAME" "${!EVAL_VAR_NAME}" $VAR_NAME_PREFIX
+    exists_in_file "$FILE_PATH/$FILE_NAME" "${!eval_var_name}" $VAR_NAME_PREFIX
 
-    EVALUATED_VAR_NAME_START=${!EVAL_VAR_NAME_START}
-    EVALUATED_VAR_NAME_END=${!EVAL_VAR_NAME_END}
+    evaluated_var_name_start=${!eval_var_name_start}
+    evaluated_var_name_end=${!eval_var_name_end}
 
     already_done='true'
-    if ! ${!EVAL_VAR_NAME_exists}
+    if ! ${!eval_var_name_exists}
     then
         if [[ $REF_TYPE == "INBETWEEN" ]]
         then
             _insert_preferred_interval_multiline
             
             # Update if statement variables if they got shifted
-            adjust_else_elif_fi_linenumbers "${!EVAL_VAR_NAME}" $insert_line_number
+            adjust_else_elif_fi_linenumbers "${!eval_var_name}" $insert_line_number
 
             # Update interval numbers
-            adjust_interval_linenumbers "${!EVAL_VAR_NAME}" $add_to_preferred_interval_INDEX
+            adjust_interval_linenumbers "${!eval_var_name}" $add_to_preferred_interval_INDEX
 
             declare -g "${VAR_NAME_PREFIX}_exists=false" # EXISTS since before = not true
             already_done='false'
@@ -282,10 +282,10 @@ add_multiline_content()
                 _insert_preferred_interval_multiline
 
                 # Update if statement variables if they got shifted
-                adjust_else_elif_fi_linenumbers "${!EVAL_VAR_NAME}" $insert_line_number
+                adjust_else_elif_fi_linenumbers "${!eval_var_name}" $insert_line_number
                 
                 # Update interval numbers
-                adjust_interval_linenumbers "${!EVAL_VAR_NAME}" $add_to_preferred_interval_INDEX
+                adjust_interval_linenumbers "${!eval_var_name}" $add_to_preferred_interval_INDEX
 
                 declare -g "${VAR_NAME_PREFIX}_exists=false" # EXISTS since before = not true
                 already_done='false'
@@ -298,15 +298,15 @@ add_multiline_content()
         fi
 
 
-        # if (( ${!EVAL_VAR_NAME_START} < $IF_STATEMENT_START ))
+        # if (( ${!eval_var_name_start} < $IF_STATEMENT_START ))
         # then # Line is before if statement
         #     echo -e "Line exists and is before if statement.\n"
-        # elif (( $FI_LINE_NUMBER < ${!EVAL_VAR_NAME_START} ))
+        # elif (( $FI_LINE_NUMBER < ${!eval_var_name_start} ))
         # then # Lines are after whole if statement (fi)
         #     # Remove content of that line
         #     echo "Content exists, but is after if statement."
-        #     echo "Remove content of lines ${!EVAL_VAR_NAME_START}-${!EVAL_VAR_NAME_END}"
-        #     sed -i "${!EVAL_VAR_NAME_START},${!EVAL_VAR_NAME_END}d" "$FILE_PATH/$FILE_NAME"
+        #     echo "Remove content of lines ${!eval_var_name_start}-${!eval_var_name_end}"
+        #     sed -i "${!eval_var_name_start},${!eval_var_name_end}d" "$FILE_PATH/$FILE_NAME"
             
         #     # Commented out below does not work as intended.
         #     # If ending with backslash, but not a backslash before that (double or more)
@@ -318,7 +318,7 @@ add_multiline_content()
 
         #     # Replace backslashes with double backslashes to have 'sed' insert line at
         #     # line number later work as expected
-        #     TMP=$(echo "${!EVAL_VAR_NAME}")
+        #     TMP=$(echo "${!eval_var_name}")
         #     TMP=$(echo "$TMP" | sed 's/\\/\\\\/g')
         #     # Replace backslash at end of line with an extra backslash to have 'sed' 
         #     # insert line at line number later work as expected
@@ -326,17 +326,17 @@ add_multiline_content()
             
         #     declare -g "${VAR_NAME_PREFIX}=${TMP}"
 
-        #     sed -i "${IF_STATEMENT_START}i ${!EVAL_VAR_NAME}" "$FILE_PATH/$FILE_NAME"
+        #     sed -i "${IF_STATEMENT_START}i ${!eval_var_name}" "$FILE_PATH/$FILE_NAME"
             
         #     # Increment if statement variables as they got shifted
-        #     adjust_else_elif_fi_linenumbers "${!EVAL_VAR_NAME}"
+        #     adjust_else_elif_fi_linenumbers "${!eval_var_name}"
 
         #     declare -g "$VARNAME_exists=false"
         # else
         #     echo "Content found in if statement even though it shouldn't be there."
         #     echo "LINE FOUND:"
-        #     echo "${!EVAL_VAR_NAME}"
-        #     echo "AT LINES: ${!EVAL_VAR_NAME_START}-${!EVAL_VAR_NAME_END}"
+        #     echo "${!eval_var_name}"
+        #     echo "AT LINES: ${!eval_var_name_start}-${!eval_var_name_end}"
         #     return -1
         # fi
     fi
@@ -499,32 +499,32 @@ _find_line_in_intervals()
     do
         case $i in
         0)
-            if (( LINE_START < _intervals[i] ))
+            if (( line_start < _intervals[i] ))
             then
-                debug_echo 100 "Line number $LINE_START IS in the interval < ${_intervals[$i]}. #####"
+                debug_echo 100 "Line number $line_start IS in the interval < ${_intervals[$i]}. #####"
                 found_in_interval='true'
             else
-                debug_echo 100 "Line number $LINE_START is NOT in the interval < ${_intervals[$i]}. *****"
+                debug_echo 100 "Line number $line_start is NOT in the interval < ${_intervals[$i]}. *****"
                 found_in_interval='false'
             fi;;
 
         $num_items)
-            if (( _intervals[i-1] < LINE_START ))
+            if (( _intervals[i-1] < line_start ))
             then
-                debug_echo 100 "Line number $LINE_START IS in the interval > ${_intervals[$((i-1))]}. #####"
+                debug_echo 100 "Line number $line_start IS in the interval > ${_intervals[$((i-1))]}. #####"
                 found_in_interval='true'
             else
-                debug_echo 100 "Line number $LINE_START is NOT in the interval > ${_intervals[$((i-1))]}. *****"
+                debug_echo 100 "Line number $line_start is NOT in the interval > ${_intervals[$((i-1))]}. *****"
                 found_in_interval='false'
             fi;;
 
         *)
-            if (( _intervals[i-1] <= LINE_START )) && (( LINE_START <= _intervals[i] ))
+            if (( _intervals[i-1] <= line_start )) && (( line_start <= _intervals[i] ))
             then
-                debug_echo 100 "Line number $LINE_START IS in interval ${_intervals[$((i-1))]} - ${_intervals[$i]}. #####"
+                debug_echo 100 "Line number $line_start IS in interval ${_intervals[$((i-1))]} - ${_intervals[$i]}. #####"
                 found_in_interval='true'
             else
-                debug_echo 100 "Line number $LINE_START is NOT in interval ${_intervals[$((i-1))]} - ${_intervals[$i]}. *****"
+                debug_echo 100 "Line number $line_start is NOT in interval ${_intervals[$((i-1))]} - ${_intervals[$i]}. *****"
                 found_in_interval='false'
             fi;;
         esac
@@ -544,35 +544,35 @@ _find_multiline_in_intervals()
     do
         case $i in
         0)
-            if (( EVALUATED_VAR_NAME_START < _intervals[i] )) && \
-                (( EVALUATED_VAR_NAME_END   < _intervals[i] ))
+            if (( evaluated_var_name_start < _intervals[i] )) && \
+                (( evaluated_var_name_end   < _intervals[i] ))
             then
-                debug_echo 100 "Line number $EVALUATED_VAR_NAME_START-$EVALUATED_VAR_NAME_END ARE in the interval < ${_intervals[$i]}. #####"
+                debug_echo 100 "Line number $evaluated_var_name_start-$evaluated_var_name_end ARE in the interval < ${_intervals[$i]}. #####"
                 found_in_interval='true'
             else
-                debug_echo 100 "Line number $EVALUATED_VAR_NAME_START-$EVALUATED_VAR_NAME_END are NOT in the interval < ${_intervals[$i]}. *****"
+                debug_echo 100 "Line number $evaluated_var_name_start-$evaluated_var_name_end are NOT in the interval < ${_intervals[$i]}. *****"
                 found_in_interval='false'
             fi;;
 
         $num_items)
-            if (( _intervals[i-1] < EVALUATED_VAR_NAME_START )) && \
-                (( _intervals[i-1] < EVALUATED_VAR_NAME_END   ))
+            if (( _intervals[i-1] < evaluated_var_name_start )) && \
+                (( _intervals[i-1] < evaluated_var_name_end   ))
             then
-                debug_echo 100 "Line numbers $EVALUATED_VAR_NAME_START-$EVALUATED_VAR_NAME_END ARE in the interval > ${_intervals[$((i-1))]}. #####"
+                debug_echo 100 "Line numbers $evaluated_var_name_start-$evaluated_var_name_end ARE in the interval > ${_intervals[$((i-1))]}. #####"
                 found_in_interval='true'
             else
-                debug_echo 100 "Line number $EVALUATED_VAR_NAME_START-$EVALUATED_VAR_NAME_END are NOT in the interval > ${_intervals[$((i-1))]}. *****"
+                debug_echo 100 "Line number $evaluated_var_name_start-$evaluated_var_name_end are NOT in the interval > ${_intervals[$((i-1))]}. *****"
                 found_in_interval='false'
             fi;;
 
         *)
-            if (( _intervals[i-1] <= EVALUATED_VAR_NAME_START )) && (( EVALUATED_VAR_NAME_START <= _intervals[i] )) && \
-                (( _intervals[i-1] <= EVALUATED_VAR_NAME_END   )) && (( EVALUATED_VAR_NAME_END   <= _intervals[i] ))
+            if (( _intervals[i-1] <= evaluated_var_name_start )) && (( evaluated_var_name_start <= _intervals[i] )) && \
+                (( _intervals[i-1] <= evaluated_var_name_end   )) && (( evaluated_var_name_end   <= _intervals[i] ))
             then
-                debug_echo 100 "Line number $EVALUATED_VAR_NAME_START-$EVALUATED_VAR_NAME_END ARE in interval ${_intervals[$((i-1))]} - ${_intervals[$i]}. #####"
+                debug_echo 100 "Line number $evaluated_var_name_start-$evaluated_var_name_end ARE in interval ${_intervals[$((i-1))]} - ${_intervals[$i]}. #####"
                 found_in_interval='true'
             else
-                debug_echo 100 "Line number $EVALUATED_VAR_NAME_START-$EVALUATED_VAR_NAME_END are NOT in interval ${_intervals[$((i-1))]} - ${_intervals[$i]}. *****"
+                debug_echo 100 "Line number $evaluated_var_name_start-$evaluated_var_name_end are NOT in interval ${_intervals[$((i-1))]} - ${_intervals[$i]}. *****"
                 found_in_interval='false'
             fi;;
         esac
@@ -606,21 +606,21 @@ _check_line_in_valid_intervals_del_invalid()
                     debug_echo 100 "Exists in the preferred interval."
                 else
                     debug_echo 100 "Is not in the preferred interval."
-                    debug_echo 100 -e "Remove content of line $LINE_START\n"
+                    debug_echo 100 -e "Remove content of line $line_start\n"
                     # Remove the line
-                    sed -i "${LINE_START}d" "$FILE_PATH/$FILE_NAME"
+                    sed -i "${line_start}d" "$FILE_PATH/$FILE_NAME"
                     # Insert empty line in its place
-                    sed -i "$((LINE_START - 1))a $NL" "$FILE_PATH/$FILE_NAME"
+                    sed -i "$((line_start - 1))a $NL" "$FILE_PATH/$FILE_NAME"
                     already_done='false'
                 fi
             else # Exists in DISALLOWED interval
 
                 debug_echo 100 "Exists in DISALLOWED interval."
-                debug_echo 100 -e "Remove content of line $LINE_START\n"
+                debug_echo 100 -e "Remove content of line $line_start\n"
                 # Remove the line
-                sed -i "${LINE_START}d" "$FILE_PATH/$FILE_NAME"
+                sed -i "${line_start}d" "$FILE_PATH/$FILE_NAME"
                 # Insert empty line in its place
-                sed -i "$((LINE_START - 1))a $NL" "$FILE_PATH/$FILE_NAME"
+                sed -i "$((line_start - 1))a $NL" "$FILE_PATH/$FILE_NAME"
 
                 already_done='false'
             fi
@@ -667,13 +667,13 @@ _check_multiline_in_valid_intervals_del_invalid()
                     debug_echo 100 "Exists in the preferred interval."
                 else
                     debug_echo 100 "Is not in the preferred interval."
-                    debug_echo 100 -e "Remove content of lines ${EVALUATED_VAR_NAME_START}-${EVALUATED_VAR_NAME_END}\n"
+                    debug_echo 100 -e "Remove content of lines ${evaluated_var_name_start}-${evaluated_var_name_end}\n"
                     # Remove the lines
-                    sed -i "${EVALUATED_VAR_NAME_START},${EVALUATED_VAR_NAME_END}d" "$FILE_PATH/$FILE_NAME"
+                    sed -i "${evaluated_var_name_start},${evaluated_var_name_end}d" "$FILE_PATH/$FILE_NAME"
                     # Insert empty lines in its place
-                    for ((i=1; i<=(EVALUATED_VAR_NAME_END - EVALUATED_VAR_NAME_START + 1); i++))
+                    for ((i=1; i<=(evaluated_var_name_end - evaluated_var_name_start + 1); i++))
                     do
-                        sed -i "$((EVALUATED_VAR_NAME_START - 1))a $NL" "$FILE_PATH/$FILE_NAME"
+                        sed -i "$((evaluated_var_name_start - 1))a $NL" "$FILE_PATH/$FILE_NAME"
                     done
 
                     already_done='false'
@@ -681,13 +681,13 @@ _check_multiline_in_valid_intervals_del_invalid()
             else # Exists in DISALLOWED interval
 
                 debug_echo 100 "Exists in DISALLOWED interval."
-                debug_echo 100 -e "Remove content of lines ${EVALUATED_VAR_NAME_START}-${EVALUATED_VAR_NAME_END}\n"
+                debug_echo 100 -e "Remove content of lines ${evaluated_var_name_start}-${evaluated_var_name_end}\n"
                 # Remove the lines
-                sed -i "${EVALUATED_VAR_NAME_START},${EVALUATED_VAR_NAME_END}d" "$FILE_PATH/$FILE_NAME"
+                sed -i "${evaluated_var_name_start},${evaluated_var_name_end}d" "$FILE_PATH/$FILE_NAME"
                 # Insert empty lines in its place
-                for ((i=1; i<=(EVALUATED_VAR_NAME_END - EVALUATED_VAR_NAME_START + 1); i++))
+                for ((i=1; i<=(evaluated_var_name_end - evaluated_var_name_start + 1); i++))
                 do
-                    sed -i "$((EVALUATED_VAR_NAME_START - 1))a $NL" "$FILE_PATH/$FILE_NAME"
+                    sed -i "$((evaluated_var_name_start - 1))a $NL" "$FILE_PATH/$FILE_NAME"
                 done
 
                 already_done='false'
@@ -750,7 +750,7 @@ _insert_preferred_interval_multiline()
 
     # Replace backslashes with double backslashes to have 'sed' insert line at
     # line number later work as expected
-    TMP=$(echo "${!EVAL_VAR_NAME}" | sed 's/\\/\\\\/g')
+    TMP=$(echo "${!eval_var_name}" | sed 's/\\/\\\\/g')
     # Replace backslash at end of line with an extra backslash to have 'sed' 
     # insert line at line number later work as expected
     TMP=$(echo "$TMP" | sed -E 's/[\\]$/\\\\/gm')
@@ -764,13 +764,13 @@ _insert_preferred_interval_multiline()
             line_to_get_whitespace=$(sed -n  "$((insert_line_number - 1))"p "$FILE_PATH/$FILE_NAME")
             whitespace_indentation="$(grep -Eo "^\s*" <<< "$line_to_get_whitespace")"
 
-            sed -i "${insert_line_number}i ${whitespace_indentation}${!EVAL_VAR_NAME}" "$FILE_PATH/$FILE_NAME"
+            sed -i "${insert_line_number}i ${whitespace_indentation}${!eval_var_name}" "$FILE_PATH/$FILE_NAME"
             ;;
         *)
             insert_line_number="$((tmp_intervals[preferred_index + 1] - 1))"
             line_to_get_whitespace=$(sed -n  "$((insert_line_number - 1))"p "$FILE_PATH/$FILE_NAME")
             whitespace_indentation="$(grep -Eo "^\s*" <<< "$line_to_get_whitespace")"
-            sed -i "${insert_line_number}i ${whitespace_indentation}${!EVAL_VAR_NAME}" "$FILE_PATH/$FILE_NAME"
+            sed -i "${insert_line_number}i ${whitespace_indentation}${!eval_var_name}" "$FILE_PATH/$FILE_NAME"
             ;;
     esac
     debug_echo 100 "Placed in preferred interval."

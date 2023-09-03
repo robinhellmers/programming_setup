@@ -60,13 +60,13 @@ setup_gitcompletionbash()
     debug_echo 100 "*****************************************************************************"
     debug_echo 100 "***** Time for finding if statement *****************************************"
     debug_echo 100 "*****************************************************************************"
-    IF_STATEMENT='if [ "$color_prompt" = yes ]; then'
-    exists_in_file "$PATH_BASHRC/$NAME_BASHRC" "$IF_STATEMENT" IF_STATEMENT
-    debug_echo 100 "IF_STATEMENT_exists: $IF_STATEMENT_exists"
-    debug_echo 100 "IF_STATEMENT_START: $IF_STATEMENT_START IF_STATEMENT_END: $IF_STATEMENT_END"
-    if $IF_STATEMENT_exists
+    if_statement='if [ "$color_prompt" = yes ]; then'
+    exists_in_file "$PATH_BASHRC/$NAME_BASHRC" "$if_statement" if_statement
+    debug_echo 100 "if_statement_exists: $if_statement_exists"
+    debug_echo 100 "if_statement_start: $if_statement_start if_statement_end: $if_statement_end"
+    if $if_statement_exists
     then
-        find_else_elif_fi_statement "$PATH_BASHRC/$NAME_BASHRC" "$IF_STATEMENT_START" if_statement 1
+        find_else_elif_fi_statement "$PATH_BASHRC/$NAME_BASHRC" "$if_statement_start" if_statement 1
         if [[ "$?" != 0 ]]
         then
             debug_echo 100 "Problem in finding else/elif/fi statement."
@@ -100,7 +100,7 @@ EOF
         BASHRC_INPUT1="${BASHRC_INPUT1_1}
 ${BASHRC_INPUT1_2}"
 
-        IF_STATEMENT='if [ "$color_prompt" = yes ]; then'
+        if_statement='if [ "$color_prompt" = yes ]; then'
         declare -a intervals=("${if_statement_LNs[@]}")
         declare -a allowed_intervals=('true' 'true' 'false' 'true')
         declare -a preferred_interval=('false' 'true' 'false' 'false')
@@ -134,9 +134,9 @@ PS1_custom='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u\[\033[00m\]:\['\
 EOF
 
         # Update if statement variables with new line numbers
-        IF_STATEMENT='if [ "$color_prompt" = yes ]; then'
-        exists_in_file "$PATH_BASHRC/$NAME_BASHRC" "$IF_STATEMENT" IF_STATEMENT
-        find_else_elif_fi_statement "$PATH_BASHRC/$NAME_BASHRC" "$IF_STATEMENT_START" if_statement 1
+        if_statement='if [ "$color_prompt" = yes ]; then'
+        exists_in_file "$PATH_BASHRC/$NAME_BASHRC" "$if_statement" if_statement
+        find_else_elif_fi_statement "$PATH_BASHRC/$NAME_BASHRC" "$if_statement_start" if_statement 1
         declare -a intervals=("${if_statement_LNs[@]}")
         declare -a allowed_intervals=(true false false false)
         declare -a preferred_interval=(true false false false)
@@ -164,9 +164,9 @@ PS1_original='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m'\
 '\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
 EOF
         # Update if statement variables with new line numbers
-        IF_STATEMENT='if [ "$color_prompt" = yes ]; then'
-        exists_in_file "$PATH_BASHRC/$NAME_BASHRC" "$IF_STATEMENT" IF_STATEMENT
-        find_else_elif_fi_statement "$PATH_BASHRC/$NAME_BASHRC" "$IF_STATEMENT_START" if_statement 1
+        if_statement='if [ "$color_prompt" = yes ]; then'
+        exists_in_file "$PATH_BASHRC/$NAME_BASHRC" "$if_statement" if_statement
+        find_else_elif_fi_statement "$PATH_BASHRC/$NAME_BASHRC" "$if_statement_start" if_statement 1
         declare -a intervals=("${if_statement_LNs[@]}")
         declare -a allowed_intervals=(true false false false)
         declare -a preferred_interval=(true false false false)
@@ -191,9 +191,9 @@ EOF
         #################################################################
 
         # Update if statement variables with new line numbers
-        IF_STATEMENT='if [ "$color_prompt" = yes ]; then'
-        exists_in_file "$PATH_BASHRC/$NAME_BASHRC" "$IF_STATEMENT" IF_STATEMENT
-        find_else_elif_fi_statement "$PATH_BASHRC/$NAME_BASHRC" "$IF_STATEMENT_START" if_statement 1
+        if_statement='if [ "$color_prompt" = yes ]; then'
+        exists_in_file "$PATH_BASHRC/$NAME_BASHRC" "$if_statement" if_statement
+        find_else_elif_fi_statement "$PATH_BASHRC/$NAME_BASHRC" "$if_statement_start" if_statement 1
         declare -a intervals=("${if_statement_LNs[@]}")
         declare -a allowed_intervals=('false' 'true' 'false' 'false')
         declare -a preferred_interval=('false' 'true' 'false' 'false')

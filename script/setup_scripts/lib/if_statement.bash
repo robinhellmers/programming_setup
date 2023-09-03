@@ -188,17 +188,17 @@ adjust_else_elif_fi_linenumbers()
     INPUT_LINE_START="$2"
     
     # Increment if statement variables as they got shifted
-    debug_echo 100 "IF_STATEMENT_START before:        $IF_STATEMENT_START"
-    debug_echo 100 "IF_STATEMENT_END before:          $IF_STATEMENT_END"
+    debug_echo 100 "if_statement_start before:        $if_statement_start"
+    debug_echo 100 "if_statement_end before:          $if_statement_end"
     debug_echo 100 "ELSE_ELIF_LINE_NUMBER before:     $ELSE_ELIF_LINE_NUMBER"
     debug_echo 100 "FI_LINE_NUMBER before:            $FI_LINE_NUMBER"
     NUM_LINES=$(echo -n "$INPUT" | grep -c '^')
     debug_echo 100 "NUM_LINES:                        $NUM_LINES"
 
-    if (( INPUT_LINE_START < IF_STATEMENT_START ))
+    if (( INPUT_LINE_START < if_statement_start ))
     then
-        IF_STATEMENT_START=$((IF_STATEMENT_START + NUM_LINES))
-        IF_STATEMENT_END=$((IF_STATEMENT_END + NUM_LINES))
+        if_statement_start=$((if_statement_start + NUM_LINES))
+        if_statement_end=$((if_statement_end + NUM_LINES))
         ELSE_ELIF_LINE_NUMBER=$((ELSE_ELIF_LINE_NUMBER + NUM_LINES))
         FI_LINE_NUMBER=$((FI_LINE_NUMBER + NUM_LINES))
 
@@ -212,8 +212,8 @@ adjust_else_elif_fi_linenumbers()
         FI_LINE_NUMBER=$((FI_LINE_NUMBER + NUM_LINES))
     fi
     
-    debug_echo 100 "IF_STATEMENT_START updated to:    $IF_STATEMENT_START"
-    debug_echo 100 "IF_STATEMENT_END updated to:      $IF_STATEMENT_END"
+    debug_echo 100 "if_statement_start updated to:    $if_statement_start"
+    debug_echo 100 "if_statement_end updated to:      $if_statement_end"
     debug_echo 100 "ELSE_ELIF_LINE_NUMBER updated to: $ELSE_ELIF_LINE_NUMBER"
     debug_echo 100 "FI_LINE_NUMBER updated to:        $FI_LINE_NUMBER"
 }
