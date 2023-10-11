@@ -57,16 +57,26 @@ setup_gitcompletionbash()
 
 
     # Find if statement to know where to place content (above,in-between,below)
+    debug_echo 100 "*****************************************************************************"
+    debug_echo 100 "***** Time for finding if statement *****************************************"
+    debug_echo 100 "*****************************************************************************"
     if_statement='if [ "$color_prompt" = yes ]; then'
     exists_in_file "$PATH_BASHRC/$NAME_BASHRC" "$if_statement" if_statement
+    debug_echo 100 "if_statement_exists: $if_statement_exists"
+    debug_echo 100 "if_statement_start: $if_statement_start if_statement_end: $if_statement_end"
     if $if_statement_exists
     then
         find_else_elif_fi_statement "$PATH_BASHRC/$NAME_BASHRC" "$if_statement_start" if_statement 1
         if [[ "$?" != 0 ]]
         then
+            debug_echo 100 "Problem in finding else/elif/fi statement."
             return_value='problem finding else/elif/fi statement'
             return -1
         fi
+
+        debug_echo 100 -e "\nFound if statement at..."
+        debug_echo 100 "if_statement_LNs: ${if_statement_LNs[*]}"
+        debug_echo 100 -e "if_statement_type: ${if_statement_type[*]}\n"
 
         everything_already_done=true
         anything_success=false

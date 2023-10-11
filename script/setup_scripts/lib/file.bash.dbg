@@ -318,6 +318,11 @@ exists_in_file()
     local dyn_var_prefix="$3"
 
     declare -g ${dyn_var_prefix}_exists='false'
+    
+    
+    debug_echo 1 -e "\n----------------------------------"
+    debug_echo 1 "||| Start checking for content |||"
+    debug_echo 1 -e "----------------------------------\n"
 
     # Remove trailing whitespace
     file_content="$(echo "${file_content}" | sed -e 's/[[:space:]]*$//')"
@@ -350,11 +355,17 @@ _handle_oneline_content()
     local sed_out=$(sed 's/^[ \t]*//;s/[ \t]*$//' <<< "$file_content")
     local grep_out=$(grep -Fxn "$to_check_wo_ws" --color=never <<< "$sed_out")
 
+    debug_echo 1 -e "Content to check is ONE line.\n"
+    debug_echo 1 -e "${DEFAULT_UNDERLINE_COLOR}Content to check:${END_COLOR}"
+    debug_echo 1 "$to_check"
+
     if [[ -z "$file_content" ]]
     then
+        debug_echo 1 -e "Given file content is empty."
         return 1
     elif [[ -z "$to_check" ]]
     then
+        debug_echo 1 -e "Given  content to look for is empty."
         return 1
     fi
 
@@ -377,17 +388,34 @@ _handle_oneline_content()
 
         declare -g ${dyn_var_prefix}_exists='true'
 
+        debug_echo 1 -e "${GREEN_COLOR}######################${END_COLOR}"
+        debug_echo 1 -e "${GREEN_COLOR}### Found content! ###${END_COLOR}"
+        debug_echo 1 -e "${GREEN_COLOR}######################${END_COLOR}\n"
+
         local len_found_start="$(get_dynamic_array_len "$start")"
         local len_found_end="$(get_dynamic_array_len "$start")"
+
+        debug_echo 1 "Found $len_found_start number of matching contents"
 
         for (( i=0; i<len_found_start; i++ ))
         do
             local element_start="$(get_dynamic_element $start $i)"
             local element_end="$(get_dynamic_element $start $i)"
+            debug_echo 1 -e "\nMatch $((i + 1)):"
+            debug_echo 1 "Between lines $element_start - $element_end"
         done
 
+        debug_echo 1 -e "\n--------------------------------"
+        debug_echo 1 "||| END checking for content |||"
+        debug_echo 1 -e "--------------------------------\n"
         return 0
     else
+        debug_echo 1 -e "${RED_COLOR}#############################${END_COLOR}"
+        debug_echo 1 -e "${RED_COLOR}### Did NOT find content! ###${END_COLOR}"
+        debug_echo 1 -e "${RED_COLOR}#############################${END_COLOR}\n"
+        debug_echo 1 -e "--------------------------------"
+        debug_echo 1 "||| END checking for content |||"
+        debug_echo 1 -e "--------------------------------\n"
         return 1
     fi
 }
@@ -473,15 +501,26 @@ _handle_multiline_content()
         append_array "$dyn_var_end" "$((line_num + num_lines - 1))"
     done
 
+    debug_echo 1 -e "${GREEN_COLOR}######################${END_COLOR}"
+    debug_echo 1 -e "${GREEN_COLOR}### Found content! ###${END_COLOR}"
+    debug_echo 1 -e "${GREEN_COLOR}######################${END_COLOR}\n"
+
     local len_found_start="$(get_dynamic_array_len "$dyn_var_start")"
     local len_found_end="$(get_dynamic_array_len "$dyn_var_end")"
+
+    debug_echo 1 "Found $len_found_start number of matching contents"
 
     for (( i=0; i<len_found_start; i++ ))
     do
         local element_start="$(get_dynamic_element $dyn_var_start $i)"
         local element_end="$(get_dynamic_element $dyn_var_end $i)"
+        debug_echo 1 -e "\nMatch $((i + 1)):"
+        debug_echo 1 "Between lines $element_start - $element_end"
     done
 
+    debug_echo 1 -e "\n--------------------------------"
+    debug_echo 1 "||| END checking for content |||"
+    debug_echo 1 -e "--------------------------------\n"
     return 0
 }
 
@@ -490,11 +529,18 @@ _handle_multiline_content_old()
     local FILECONTENT="$1"
     local CONTENT_TO_CHECK="$2"
 
+    debug_echo 1 -e "Content to check is MULTIPLE lines\n"
+    debug_echo 1 -e "${DEFAULT_UNDERLINE_COLOR}Content to check:${END_COLOR}"
+    debug_echo 1 "$CONTENT_TO_CHECK"
+    debug_echo 1 " "
+
     if [[ -z "$FILECONTENT" ]]
     then
+        debug_echo 1 -e "Given file content is empty."
         return 1
     elif [[ -z "$CONTENT_TO_CHECK" ]]
     then
+        debug_echo 1 -e "Given  content to look for is empty."
         return 1
     fi
 
@@ -516,11 +562,13 @@ _handle_multiline_content_old()
     FILECONTENT_PREVIOUS="$FILECONTENT"
     CONTENT_REMOVED=${FILECONTENT_PREVIOUS/"$CONTENT_TO_CHECK"/}
     THEDIFF=$(diff <(echo "$FILECONTENT_PREVIOUS") <(echo "$CONTENT_REMOVED"))
+    debug_echo 100 -e "THEDIFF:\n$THEDIFF\n"
 
     FILECONTENT_PREVIOUS=${FILECONTENT_PREVIOUS/"$CONTENT_TO_CHECK"/"DUMMY TEXT $CONTENT_TO_CHECK"}
 
     CONTENT_REMOVED=${FILECONTENT_PREVIOUS/"$CONTENT_TO_CHECK"/}
     THEDIFF=$(diff <(echo "$FILECONTENT_PREVIOUS") <(echo "$CONTENT_REMOVED"))
+    debug_echo 100 -e "THEDIFF:\n$THEDIFF\n"
 
     exit 1
     # REPLACED_CONTENT=$(sed "s|$CONTENT_TO_CHECK||g" <<< "$FILECONTENT")
@@ -528,23 +576,30 @@ _handle_multiline_content_old()
     # echo "$REPLACED_CONTENT"
     # echo 
     THEDIFF=$(diff <(echo "$FILECONTENT") <(echo "$REPLACED_CONTENT"))
+    debug_echo 100 -e "THEDIFF:\n$THEDIFF\n"
     REPLACED_CONTENT=${REPLACED_CONTENT/"$CONTENT_TO_CHECK"/"DUMMY TEXT $CONTENT_TO_CHECK"}
     THEDIFF=$(diff <(echo "$FILECONTENT") <(echo "$REPLACED_CONTENT"))
+    debug_echo 100 -e "THEDIFF:\n$THEDIFF\n"
     REPLACED_CONTENT=${REPLACED_CONTENT/"$CONTENT_TO_CHECK"/"DUMMY TEXT $CONTENT_TO_CHECK"}
     THEDIFF=$(diff <(echo "$FILECONTENT") <(echo "$REPLACED_CONTENT"))
-
+    debug_echo 100 -e "THEDIFF:\n$THEDIFF\n"
+    
     if [[ "$FILECONTENT" != "$REPLACED_CONTENT" ]]
     then # Content to find where found and replaced
 
         # Find between which line numbers the diff is (find where the content where replaced)
         LINE_NUMBERS=$(diff <(echo "$FILECONTENT") <(echo "$REPLACED_CONTENT") | grep -E '^\s*[0-9]+')
         THEDIFF=$(diff <(echo "$FILECONTENT") <(echo "$REPLACED_CONTENT"))
+        debug_echo 100 -e "THEDIFF:\n$THEDIFF\n"
+        debug_echo 100 -e "LINE_NUMBERS:\n$LINE_NUMBERS\n"
         # Split them up into an array
         IFS=',cd' read -r -a line_numbers <<< "$LINE_NUMBERS"
         # Sort the array, from min to max
         IFS=$'\n' sorted_line_numbers=($(sort <<<"${line_numbers[*]}"))
+        debug_echo 100 "sorted_line_numbers:"
         for element in "${line_numbers[@]}"
         do
+            debug_echo 100 "element: $element"
         done
         
 
@@ -554,8 +609,22 @@ _handle_multiline_content_old()
         START=$3_START
         END=$3_END
         declare -g $3_exists='true'
+        debug_echo 1 -e "${GREEN_COLOR}######################${END_COLOR}"
+        debug_echo 1 -e "${GREEN_COLOR}### Found content! ###${END_COLOR}"
+        debug_echo 1 -e "${GREEN_COLOR}######################${END_COLOR}\n"
+        debug_echo 1 "Content STARTING at line: ${!START}"
+        debug_echo 1 -e "Content ENDING at line:   ${!END}\n"
+        debug_echo 1 -e "--------------------------------"
+        debug_echo 1 "||| END checking for content |||"
+        debug_echo 1 -e "--------------------------------\n"
         return 0
     else
+        debug_echo 1 -e "${RED_COLOR}#############################${END_COLOR}"
+        debug_echo 1 -e "${RED_COLOR}### Did NOT find content! ###${END_COLOR}"
+        debug_echo 1 -e "${RED_COLOR}#############################${END_COLOR}\n"
+        debug_echo 1 -e "--------------------------------"
+        debug_echo 1 "||| END checking for content |||"
+        debug_echo 1 -e "--------------------------------\n"
         return -1
     fi
 }
@@ -573,18 +642,24 @@ add_content_to_file()
 
     if [[ -f $PATH_FILE/$FILE_NAME ]]
     then # File already exists
+        debug_echo 100 "$FILE_NAME already exists."
 
         if exists_in_file "$PATH_FILE/$FILE_NAME" "$CONTENT_TO_ADD" CONTENT_TO_ADD
         then # Content is already in the file
+            debug_echo 100 "$FILE_NAME already contains the relevant content."
             return_value='already done'
             return 0
         else # Append content to file
+            debug_echo 100 "Append to $FILE_NAME"
+            debug_echo 100 " "
             echo "$CONTENT_TO_ADD" >> "$PATH_FILE/$FILE_NAME"
             return_value='success'
             return 0
         fi
     else # Create file with content
+        debug_echo 100 -e "Create directory: $PATH_FILE/\n"
         mkdir -p $PATH_FILE
+        debug_echo 100 -e "Create file $PATH_FILE/$FILE_NAME\n"
         echo "$CONTENT_TO_ADD" > $PATH_FILE/$FILE_NAME
         return_value='success'
         return 0
@@ -612,6 +687,7 @@ get_internet_file()
 
         if [[ $? != 0 ]]
         then
+            debug_echo 100 "Failed. 'curl' command failed."
             return -1
         fi
 
@@ -619,6 +695,8 @@ get_internet_file()
         add_content_to_file "$PATH_FILE" "$FILE_NAME" "$URL_CONTENT"
         return
     fi
+    debug_echo 100 "Command \"curl\" not available"
+    debug_echo 100 " "
 
     # Use 'wget' if available
     if [[ -n $IS_WGET_AVAILABLE ]]
@@ -627,12 +705,17 @@ get_internet_file()
 
         if [[ $? != 0 ]]
         then
+            debug_echo 100 "Failed. 'wget' command failed."
             return -1
         fi
 
         add_content_to_file "$PATH_FILE" "$FILE_NAME" "$URL_CONTENT"
         return
     fi
+
+    debug_echo 100 "Command \"wget\" not available"
+    debug_echo 100 " "
+    debug_echo 100 "Failed. Neither 'curl' or 'wget' is availale. Can't fetch content."
 
     return -1
 }
