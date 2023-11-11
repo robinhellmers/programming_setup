@@ -1,0 +1,6 @@
+[submodule "script/setup_scripts/lib/lib_sources/bash-lib-core"]
+	path = script/setup_scripts/lib/lib_sources/bash-lib-core
+	url = git@github.com:robinhellmers/bash-lib-core.git
+[submodule "script/setup_scripts/lib/lib_sources/bash-lib-handle-input"]
+	path = script/setup_scripts/lib/lib_sources/bash-lib-handle-input
+	url = git@github.com:robinhellmers/bash-lib-handle-input.git
